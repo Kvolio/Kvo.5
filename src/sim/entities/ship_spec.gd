@@ -58,6 +58,9 @@ var secondary_battery: BatteryDef = null
 ## statistically in Stage 7 rather than by tracking individual mounts.
 var anti_air: Array = []
 
+## Torpedo tubes. Most ships have none; the ones that do are defined by them.
+var torpedo_battery: TorpedoBatteryDef = null
+
 # -- protection --------------------------------------------------------------
 var armour: ArmourSchemeDef = null
 
@@ -168,6 +171,7 @@ func duplicate_spec() -> ShipSpec:
 	copy.main_battery = main_battery
 	copy.secondary_battery = secondary_battery
 	copy.anti_air = anti_air
+	copy.torpedo_battery = torpedo_battery
 	copy.armour = armour
 	copy.aviation = aviation
 	return copy
@@ -179,6 +183,10 @@ func has_main_battery() -> bool:
 
 func has_secondary_battery() -> bool:
 	return secondary_battery != null and not secondary_battery.is_empty()
+
+
+func has_torpedoes() -> bool:
+	return torpedo_battery != null and not torpedo_battery.is_empty()
 
 
 func is_carrier() -> bool:

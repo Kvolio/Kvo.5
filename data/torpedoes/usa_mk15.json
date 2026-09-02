@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "usa_mk15",
+  "name": "21\" Mark 15",
+  "nation": "USA",
+  "diameterMm": 533,
+  "massKg": 1247,
+  "warheadKg": 375,
+  "explosive": "torpex",
+  "_warheadComment": "Mass of the explosive charge. What matters for damage is not the torpedo but this: a 490 kg Type 93 warhead does very roughly twice the structural damage of a 280 kg G7a, and no amount of torpedo defence makes that difference go away.",
+  "settings": [
+    {
+      "speedKn": 45.0,
+      "rangeM": 5500
+    },
+    {
+      "speedKn": 33.5,
+      "rangeM": 8200
+    },
+    {
+      "speedKn": 26.5,
+      "rangeM": 13700
+    }
+  ],
+  "_settingsComment": "Torpedoes were set before launch, trading speed against range. A fast setting gives the target less time to comb the tracks; a slow one lets you shoot from outside her gun range.",
+  "wakeless": false,
+  "_wakelessComment": "Steam torpedoes left a visible track a lookout could spot and a ship could turn to comb. Oxygen and electric torpedoes did not, which is most of why the Type 93 was so feared.",
+  "runDepthM": 5.0,
+  "armingDistanceM": 350.0,
+  "_armingComment": "A torpedo will not detonate before it has run this far from the tube.",
+  "sources": [
+    "NavWeaps.com torpedo data"
+  ],
+  "notes": "The standard US destroyer torpedo. Its Mark 6 exploder was notoriously unreliable for the first two years of the war; that failure is not modelled, but reliability is a data field if you want it."
+}

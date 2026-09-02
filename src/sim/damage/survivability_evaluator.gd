@@ -93,8 +93,13 @@ static func assess(ship: ShipEntity, template: ShipStructureTemplate,
 	_compute_attitude(condition, ship, flooded, heel_moment, trim_moment, stability)
 
 	# --- the derived headline number ----------------------------------------
-	var breach_fraction: float = clampf(
-		condition.breach_area_m2 / maxf(ship.spec.length_m * 0.6, 1.0), 0.0, 1.0)
+	# Breach area is compared against the ship's own plating area, not against her
+	# length: an area over a length is dimensionally meaningless, and it made a hole
+	# of a given size count for ten times as much on a destroyer as it should. Half
+	# the waterplane area is a serviceable proxy for how much shell plating there is
+	# to hole.
+	var plating_area: float = maxf(ship.spec.hull().waterplane_area() * 0.5, 1.0)
+	var breach_fraction: float = clampf(condition.breach_area_m2 / plating_area, 0.0, 1.0)
 	condition.integrity = clampf(1.0
 		- float(integrity_config.get("wreckageWeight", 0.55)) * condition.wrecked_fraction
 		- float(integrity_config.get("breachWeight", 0.15)) * breach_fraction

@@ -111,6 +111,8 @@ static func _parse_armament(spec: ShipSpec, armament: Dictionary) -> void:
 	if armament.has("secondary"):
 		spec.secondary_battery = BatteryDef.parse(armament["secondary"] as Dictionary)
 	spec.anti_air = armament.get("antiAir", []) as Array
+	if armament.has("torpedoes"):
+		spec.torpedo_battery = TorpedoBatteryDef.parse(armament["torpedoes"] as Dictionary)
 
 
 static var _hull_form_cache: Dictionary = {}

@@ -108,6 +108,7 @@ func _start_demo_battle() -> void:
 		"ballistics": GameConfig.get_dict("ballistics"),
 		"structure": GameConfig.get_dict("structure"),
 		"damage": GameConfig.get_dict("damage"),
+		"torpedo": GameConfig.get_dict("torpedo"),
 	})
 	world.set_armory(WeaponDatabase.armory())
 

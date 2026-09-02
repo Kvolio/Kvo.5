@@ -285,19 +285,28 @@ func test_wrecking_the_steering_gear_jams_the_rudder() -> void:
 # ------------------------------------------------------- flooding and fire --
 
 func test_flooding_enters_through_the_hole_and_is_faster_when_deeper() -> void:
-	var shallow: SimWorld = _world_with("uss_iowa")
-	var deep: SimWorld = _world_with("uss_iowa")
-	for pair: Array in [[shallow, 1.0], [deep, 8.0]]:
-		var ship: ShipEntity = (pair[0] as SimWorld).ships[0]
+	# The Torricelli relationship on its own, with the flooding system stepped
+	# directly. Running it through the world would have the damage control parties
+	# shoring the holes, which is a different thing and is tested separately.
+	var config: Dictionary = JsonLoader.load_dict("res://data/config/damage.json")
+	var floods: Array[float] = []
+	for depth: float in [1.0, 8.0]:
+		var world: SimWorld = _world_with("uss_iowa")
+		var ship: ShipEntity = world.ships[0]
 		var compartment: ShipStructureState.CompartmentState = _first_compartment(ship)
 		compartment.breached = true
 		compartment.breach_area_m2 = 0.5
-		compartment.breach_depth_m = pair[1] as float
-		TestShips.run_seconds(pair[0] as SimWorld, 120.0)
+		compartment.breach_depth_m = depth
+		for _i: int in 240:
+			FloodingSystem.step(ship, world.structure_for(ship), ship.structure_state,
+				config, 0.5, DeterministicRng.new(1))
+		floods.append(compartment.flood)
 
-	gt(_first_compartment(deep.ships[0]).flood, _first_compartment(shallow.ships[0]).flood,
-		"a hole eight metres down admits water far faster than one a metre down")
-	gt(_first_compartment(shallow.ships[0]).flood, 0.0, "and both are taking water")
+	gt(floods[1], floods[0], "a hole eight metres down admits water far faster than one a metre down")
+	gt(floods[0], 0.0, "and both are taking water")
+	# Rate goes as the square root of depth, so eight times the head is not eight
+	# times the flow.
+	lt(floods[1], floods[0] * 8.0, "but not eight times as fast — it goes as the square root")
 
 
 func test_flooding_is_local_and_an_intact_bulkhead_holds() -> void:
@@ -319,16 +328,21 @@ func test_flooding_is_local_and_an_intact_bulkhead_holds() -> void:
 	eq(ship.status, ShipEntity.Status.ACTIVE, "and she is still fighting")
 
 
-func test_fire_spreads_and_eats_the_ship() -> void:
+func test_fire_consumes_structure_while_it_burns() -> void:
+	# Fire eats the ship while it lasts, and an intact crew eventually puts it out.
+	# Both halves matter: without the first a fire is harmless, and without the second
+	# every hit is eventually fatal.
 	var world: SimWorld = _world_with("uss_iowa")
 	var ship: ShipEntity = world.ships[0]
 	var compartment: ShipStructureState.CompartmentState = _first_compartment(ship)
 	compartment.fire = 0.9
 	var wreckage_before: float = compartment.wreckage
 
-	TestShips.run_seconds(world, 400.0)
+	TestShips.run_seconds(world, 120.0)
 	gt(compartment.wreckage, wreckage_before, "fire consumes the structure it burns through")
-	ge(float(ship.structure_state.compartments_on_fire()), 1.0, "and is still burning")
+
+	TestShips.run_seconds(world, 600.0)
+	almost(compartment.fire, 0.0, 0.02, "and a healthy crew eventually gets it out")
 
 
 func test_flooding_puts_a_fire_out() -> void:

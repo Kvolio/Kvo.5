@@ -281,7 +281,10 @@ func test_reduced_rudder_effectiveness_widens_the_turn() -> void:
 		MovementSystem.order_rudder(_ship(world), 1.0)
 		TestShips.run_seconds(world, 200.0)
 
-	lt(absf(_ship(damaged).yaw_rate), absf(_ship(healthy).yaw_rate) * 0.6,
+	# Steering-gear damage limits how far the rudder can be held over, so a mounting
+	# with 40% authority reaches 14 degrees instead of 35 and turns correspondingly
+	# more slowly.
+	lt(absf(_ship(damaged).yaw_rate), absf(_ship(healthy).yaw_rate) * 0.55,
 		"damaged steering turns the ship more slowly")
 
 

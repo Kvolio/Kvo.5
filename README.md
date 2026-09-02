@@ -96,6 +96,7 @@ combat code.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — how the pieces fit and why
 - [`docs/DETERMINISM.md`](docs/DETERMINISM.md) — the reproducibility contract and its limits
 - [`docs/BALLISTICS.md`](docs/BALLISTICS.md) — the trajectory model and how it was calibrated
+- [`docs/DAMAGE.md`](docs/DAMAGE.md) — flooding, fire, torpedoes, damage control, and why integrity is derived
 - [`docs/SOURCES.md`](docs/SOURCES.md) — where the historical figures came from, and which to doubt
 
 ---
@@ -108,8 +109,8 @@ Built in stages, each one tested before the next begins.
 - [x] **Stage 1** — battlefield, ocean, hull geometry, movement physics
 - [x] **Stage 2** — data layer, historical ship presets, weapons
 - [x] **Stage 3** — ballistics, ship structure, trajectory tracing, penetration
-- [ ] **Stage 4** — damage, compartments, flooding, fire, derived integrity
-- [ ] **Stage 5** — magazine detonation, torpedoes, capsize, damage control
+- [x] **Stage 4** — damage, compartments, flooding, fire, derived integrity
+- [x] **Stage 5** — magazine detonation, torpedoes, capsize, damage control
 - [ ] **Stage 6** — ship designer and naval architecture
 - [ ] **Stage 7** — AI, formations, detection, carrier aircraft
 - [ ] **Stage 8** — scenario editor, save/load, replay, debug mode, combat log

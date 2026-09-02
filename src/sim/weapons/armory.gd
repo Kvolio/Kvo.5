@@ -15,12 +15,15 @@ var _guns: Dictionary = {}
 var _shells: Dictionary = {}
 var _gun_order: Array[String] = []
 var _shell_order: Array[String] = []
+var _torpedoes: Dictionary = {}
+var _torpedo_order: Array[String] = []
 var _range_tables: Dictionary = {}
 var _solver: BallisticSolver = null
 var _ballistics_config: Dictionary = {}
 
 
-static func load_from(gun_dir: String, ammo_dir: String, ballistics_config: Dictionary) -> Armory:
+static func load_from(gun_dir: String, ammo_dir: String, ballistics_config: Dictionary,
+		torpedo_dir: String = "res://data/torpedoes") -> Armory:
 	var armory: Armory = Armory.new()
 	armory._ballistics_config = ballistics_config
 	armory._solver = BallisticSolver.from_config(ballistics_config)
@@ -30,6 +33,12 @@ static func load_from(gun_dir: String, ammo_dir: String, ballistics_config: Dict
 		if shell != null:
 			armory._shells[shell.shell_id] = shell
 			armory._shell_order.append(shell.shell_id)
+
+	for path: String in JsonLoader.list_json_files(torpedo_dir):
+		var torpedo: TorpedoDef = TorpedoDef.parse(JsonLoader.load_dict(path), path)
+		if torpedo != null:
+			armory._torpedoes[torpedo.torpedo_id] = torpedo
+			armory._torpedo_order.append(torpedo.torpedo_id)
 
 	for path: String in JsonLoader.list_json_files(gun_dir):
 		var gun: GunDef = GunDef.parse(JsonLoader.load_dict(path), path)
@@ -41,6 +50,14 @@ static func load_from(gun_dir: String, ammo_dir: String, ballistics_config: Dict
 			if not armory._shells.has(shell_id):
 				push_warning("Armory: gun '%s' lists unknown shell '%s'" % [gun.gun_id, shell_id])
 	return armory
+
+
+func get_torpedo(torpedo_id: String) -> TorpedoDef:
+	return _torpedoes.get(torpedo_id) as TorpedoDef
+
+
+func torpedo_ids() -> Array[String]:
+	return _torpedo_order.duplicate()
 
 
 func solver() -> BallisticSolver:

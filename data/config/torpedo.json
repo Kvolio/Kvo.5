@@ -1,0 +1,59 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Underwater explosion damage. A torpedo is NOT a projectile that penetrates: it detonates against the hull and the blast works its way inboard, being absorbed by whatever is in the way. That is why a torpedo defence system is modelled here as real layered structure \u2014 an expansion void, a liquid layer, a holding bulkhead \u2014 rather than as a damage-reduction percentage. A ship with a deep system survives a hit that opens a destroyer from keel to deck.",
+  "explosiveEnergyMjPerKg": {
+    "_comment": "Energy released per kilogram of filling. Torpex was about 50% more powerful than TNT by weight, which is a large part of why late-war torpedoes hit so much harder than early ones.",
+    "tnt": 4.6,
+    "torpex": 5.6,
+    "hexanite": 5.0,
+    "type97": 5.2,
+    "default": 4.8
+  },
+  "coupling": {
+    "hullCouplingFraction": 0.22,
+    "_couplingComment": "Share of an underwater detonation's energy that does work on the ship. Most of it goes into the water \u2014 into the gas bubble, the shock wave and the plume \u2014 which is why a torpedo warhead is measured in hundreds of kilograms where a shell burster is measured in tens."
+  },
+  "absorption": {
+    "_comment": "How much blast energy each layer soaks up on the way inboard. This is the whole torpedo defence system: an expansion space to let the gas bubble vent, a liquid layer to spread the shock, and a holding bulkhead to stop what is left. Take any of them away and the blast reaches the machinery.",
+    "megajoulesPerMetreOfVoid": 25.0,
+    "megajoulesPerMetreOfLiquid": 70.0,
+    "_liquidComment": "Fuel or water is incompressible and disperses the shock far better than air. This is why ships ran with their outboard tanks deliberately full.",
+    "megajoulesPerMetreOfMachinery": 40.0,
+    "megajoulesPerMillimetreOfPlate": 2.5,
+    "_plateComment": "Per millimetre of thickness, scaled by the plate's material quality. A 45 mm torpedo bulkhead is worth about 50 MJ.",
+    "megajoulesPerMetreDefault": 14.0,
+    "_calibrationComment": "Calibrated so that a well-designed torpedo defence system defeats the warhead it was designed against, which is what a torpedo defence system is FOR. Bismarck's 5.5 m system with its 45 mm holding bulkhead absorbs about 340 MJ against the roughly 310 MJ a 280 kg G7a couples into the hull; Yamato's 5.1 m system with a 200 mm bulkhead absorbs far more than a Mark 15 delivers. A Fletcher, with ten millimetres of plating and no system at all, absorbs under 200 MJ across her whole beam \u2014 so the same torpedo goes straight through her."
+  },
+  "effects": {
+    "breachRadiusPerMegajoule": 0.011,
+    "_breachComment": "Radius of the hole in the shell plating, in metres per megajoule delivered. A 490 kg Type 93 opens a hole roughly twelve metres across \u2014 enormous, but a hole, not a vaporised section of ship.",
+    "wreckedCubicMetresPerMegajoule": 0.9,
+    "casualtiesPerMegajouleInCompartment": 0.3,
+    "componentDamagePerMegajoule": 0.012,
+    "shaftDamageRadiusM": 22.0,
+    "_shaftComment": "A hit right aft wrecks the shafts and steering without touching anything else \u2014 the classic torpedo mission kill.",
+    "girderDamagePerHitAmidships": 0.22,
+    "_girderComment": "A torpedo under the middle of a ship strains the hull girder itself. Enough hits in the same place and her back breaks, which is what happened to more than one destroyer hit by a Long Lance.",
+    "_wreckedComment": "Structure actually destroyed, as opposed to opened to the sea. Deliberately modest: a torpedo does not gut two thousand cubic metres of a battleship. It makes a hole and lets the sea do the rest, which is why the flooding is the weapon and the wreckage is only the local damage around the hit.",
+    "adjacentBulkheadDamage": 0.3,
+    "_adjacentComment": "A torpedo does not only open the compartments it reaches. The shock springs the watertight boundaries of the spaces around them, so water works its way further into the ship over the following minutes. This is progressive flooding, and it is what turns a contained hit into a lost ship \u2014 the damage that kills is rarely the damage you can see at the moment of the explosion."
+  },
+  "girder": {
+    "_comment": "Progressive structural failure of the hull as a beam. Reached only by very severe local damage or by heavy flooding distributed badly along the length; at 1.0 the hull fails and the ship breaks in two.",
+    "breachContributionPerSquareMetre": 0.01,
+    "floodingBendingContribution": 0.3,
+    "_bendingComment": "A ship flooded at one end and buoyant at the other is a beam loaded in the worst possible way."
+  },
+  "launcher": {
+    "trainRateDegPerSec": 12.0,
+    "salvoSpacingSeconds": 0.4,
+    "_salvoComment": "Tubes in a bank fire in sequence rather than together, which spreads the salvo slightly along its track.",
+    "spreadAngleDeg": 2.5,
+    "_spreadComment": "Deliberate divergence across a salvo. A torpedo attack is aimed at where a ship will be over a spread of possible courses, not at a point."
+  },
+  "running": {
+    "depthKeepingErrorM": 0.6,
+    "detonationProbability": 0.85,
+    "_detonationComment": "Torpedo exploders were unreliable, spectacularly so in the US case for the first two years of the war. This is a single tunable figure rather than a per-navy model."
+  }
+}

@@ -91,16 +91,11 @@ static func _spread(template: ShipStructureTemplate, state: ShipStructureState,
 
 	for source_index: int in burning:
 		var source: ShipStructureState.CompartmentState = state.compartments[source_index]
-		var origin: GeometryPrimitives.Volume = template.volumes[source_index]
-		for j: int in state.compartments.size():
-			if j == source_index:
-				continue
+		for j: int in template.neighbours(source_index):
 			var target: ShipStructureState.CompartmentState = state.compartments[j]
 			if target == null or target.fire > 0.0 or target.flood > 0.5:
 				continue
 			var neighbour: GeometryPrimitives.Volume = template.volumes[j]
-			if not FloodingSystem._adjacent(origin, neighbour):
-				continue
 
 			# What is in the compartment decides how readily it takes fire. Aviation
 			# petrol and fuel oil are why a survivable hit becomes a lost ship.

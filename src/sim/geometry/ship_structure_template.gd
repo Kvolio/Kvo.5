@@ -42,9 +42,47 @@ var bounds: GeometryPrimitives.Volume = null
 ## without walking every compartment.
 var _by_role: Dictionary = {}
 
+## Compartment adjacency, computed once. See neighbours().
+var _adjacency: Array[PackedInt32Array] = []
 
-## Recompute the bounding box. Called once after the structure is built.
+
+## Which compartments touch which. Symmetric, so each pair is tested once.
+func _build_adjacency() -> void:
+	const TOLERANCE: float = 0.35
+	_adjacency.clear()
+	for _i: int in volumes.size():
+		_adjacency.append(PackedInt32Array())
+	for i: int in volumes.size():
+		var a: GeometryPrimitives.Volume = volumes[i]
+		if a.kind != GeometryPrimitives.VolumeKind.COMPARTMENT:
+			continue
+		for j: int in range(i + 1, volumes.size()):
+			var b: GeometryPrimitives.Volume = volumes[j]
+			if b.kind != GeometryPrimitives.VolumeKind.COMPARTMENT:
+				continue
+			if (a.minimum.x <= b.maximum.x + TOLERANCE and b.minimum.x <= a.maximum.x + TOLERANCE
+					and a.minimum.y <= b.maximum.y + TOLERANCE and b.minimum.y <= a.maximum.y + TOLERANCE
+					and a.minimum.z <= b.maximum.z + TOLERANCE and b.minimum.z <= a.maximum.z + TOLERANCE):
+				_adjacency[i].append(j)
+				_adjacency[j].append(i)
+
+
+## Compartments sharing a boundary with this one.
+##
+## Precomputed, because adjacency is a property of the immutable geometry and does not
+## change during a battle. Flooding and fire both ask this question every time they
+## step, and computing it on the fly made them O(n^2) over a hundred-odd compartments
+## per tick per ship — which measured as the single largest cost in a damaged fleet.
+func neighbours(index: int) -> PackedInt32Array:
+	if index < 0 or index >= _adjacency.size():
+		return PackedInt32Array()
+	return _adjacency[index]
+
+
+## Recompute the bounding box and the compartment adjacency graph. Called once after
+## the structure is built.
 func seal() -> void:
+	_build_adjacency()
 	var minimum: Vector3 = Vector3(INF, INF, INF)
 	var maximum: Vector3 = Vector3(-INF, -INF, -INF)
 	for face: GeometryPrimitives.Face in faces:

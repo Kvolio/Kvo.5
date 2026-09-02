@@ -79,7 +79,26 @@
         "calibreMm": 20
       }
     ],
-    "_antiAirComment": "Summarised as barrel counts. Anti-aircraft fire is modelled statistically against air attacks in Stage 7 rather than as individually tracked mounts."
+    "_antiAirComment": "Summarised as barrel counts. Anti-aircraft fire is modelled statistically against air attacks in Stage 7 rather than as individually tracked mounts.",
+    "torpedoes": {
+      "torpedo": "uk_mk9",
+      "_comment": "Torpedo tubes. Beam-mounted banks train through a limited arc either side; centreline banks can fire to either beam but not ahead or astern, which is why a destroyer attack is made by turning across the target's course rather than by charging straight at her.",
+      "reloadSeconds": 0,
+      "_reloadComment": "Only the Japanese carried reloads and a power system to handle them. Everyone else got one salvo and then had to go home.",
+      "mounts": [
+        {
+          "id": "TT1",
+          "station": -0.05,
+          "lateral": 0.0,
+          "tubes": 4,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        }
+      ]
+    }
   },
   "armour": {
     "belt": {

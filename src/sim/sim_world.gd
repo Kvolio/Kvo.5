@@ -21,6 +21,7 @@ const CMD_STEER_HEADING: StringName = &"steer_heading"
 const CMD_STEER_POINT: StringName = &"steer_point"
 const CMD_SET_TARGET: StringName = &"set_target"
 const CMD_SELECT_SHELL: StringName = &"select_shell"
+const CMD_FIRE_TORPEDOES: StringName = &"fire_torpedoes"
 
 var clock: SimClock = SimClock.new()
 var ids: IdAllocator = IdAllocator.new()
@@ -41,15 +42,23 @@ var penetration_model: PenetrationModel = null
 ## Shells in the air.
 var projectiles: Array[Projectile] = []
 
+## Torpedoes running.
+var torpedoes: Array[Torpedo] = []
+
+## Configuration the damage systems read. Held on the world so a saved battle carries
+## the numbers it was actually fought with.
+var damage_config: Dictionary = {}
+var torpedo_config: Dictionary = {}
+
 ## Hits resolved recently, newest last. The debug overlay and the combat log read
 ## these; Stage 4's damage resolver writes their consequences back into them.
 var recent_hits: Array[HitReport] = []
 
 var _structure_config: Dictionary = {}
-var _damage_config: Dictionary = {}
 var _damage_interval: int = 30
 var _structures: Dictionary = {}
 var _projectile_pool: Array[Projectile] = []
+var _torpedo_pool: Array[Torpedo] = []
 var _hit_history_limit: int = 128
 
 var map_size: Vector2 = Vector2(40000.0, 40000.0)
@@ -81,8 +90,9 @@ static func create(seed_value: int = 0, config: Dictionary = {}) -> SimWorld:
 	world.spatial = BruteForceIndex.new()
 	world._movement.configure(config.get("physics", {}) as Dictionary)
 	world._structure_config = config.get("structure", {}) as Dictionary
-	world._damage_config = config.get("damage", {}) as Dictionary
-	ShipStructureState.ComponentState.configure(world._damage_config)
+	world.damage_config = config.get("damage", {}) as Dictionary
+	world.torpedo_config = config.get("torpedo", {}) as Dictionary
+	ShipStructureState.ComponentState.configure(world.damage_config)
 	var lod: Dictionary = sim_config.get("lod", {}) as Dictionary
 	world._fire_control_interval = maxi(int(lod.get("fireControlIntervalTicks", 6)), 1)
 	world._damage_interval = maxi(int(lod.get("damageControlTickInterval", 30)), 1)
@@ -119,6 +129,46 @@ func spawn_projectile(shell: ShellDef, gun: GunDef, origin: Vector3, velocity: V
 	return projectile
 
 
+## Put a torpedo in the water.
+func spawn_torpedo(definition: TorpedoDef, origin: Vector2, heading: float, speed: float,
+		shooter_id: int, target_id: int, team: int) -> Torpedo:
+	var torpedo: Torpedo = (_torpedo_pool.pop_back() as Torpedo
+		if not _torpedo_pool.is_empty() else Torpedo.new())
+	# The range a torpedo will run is a property of the SETTING it was fired on, so
+	# find the setting that matches the ordered speed rather than assuming the longest.
+	var range_m: float = definition.maximum_range()
+	for candidate: TorpedoDef.Setting in definition.settings:
+		if is_equal_approx(candidate.speed_ms, speed):
+			range_m = candidate.range_m
+	torpedo.reset(ids.allocate(), definition, origin, heading, speed, range_m,
+		shooter_id, target_id, team)
+	torpedoes.append(torpedo)
+	return torpedo
+
+
+func retire_torpedo(torpedo: Torpedo) -> void:
+	torpedo.active = false
+	torpedo.definition = null
+	_torpedo_pool.append(torpedo)
+
+
+## Record a torpedo hit. The damage has already been applied by the torpedo model;
+## this is what puts it in the log and reassesses the ship.
+func record_torpedo_hit(report: HitReport, target: ShipEntity) -> void:
+	recent_hits.append(report)
+	if recent_hits.size() > _hit_history_limit:
+		recent_hits = recent_hits.slice(recent_hits.size() - _hit_history_limit)
+	_reassess(target)
+	events.emit_event(&"torpedo_hit", report.shooter_id, target.id,
+		SimEvent.Severity.CRITICAL, {
+			"torpedo": report.shell_name,
+			"warheadKg": report.burster_charge_kg,
+			"compartmentsOpened": report.compartments_entered.size(),
+			"integrityDelta": report.damage.integrity_delta() if report.damage != null else 0.0,
+			"casualties": report.damage.crew_casualties if report.damage != null else 0,
+		})
+
+
 func retire_projectile(projectile: Projectile) -> void:
 	projectile.active = false
 	projectile.shell = null
@@ -133,7 +183,7 @@ func retire_projectile(projectile: Projectile) -> void:
 func record_hit(report: HitReport, target: ShipEntity) -> void:
 	if target.structure_state != null:
 		DamageResolver.resolve(report, target, structure_for(target),
-			target.structure_state, _damage_config, rng.stream(DamageResolver.RNG_STREAM))
+			target.structure_state, damage_config, rng.stream(DamageResolver.RNG_STREAM))
 		_reassess(target)
 	recent_hits.append(report)
 	if recent_hits.size() > _hit_history_limit:
@@ -162,7 +212,7 @@ func record_hit(report: HitReport, target: ShipEntity) -> void:
 ## passed in — a flooding rate integrated over half a second is as accurate as one
 ## integrated over a sixtieth, and costs a thirtieth as much.
 func _step_damage() -> void:
-	if _damage_config.is_empty():
+	if damage_config.is_empty():
 		return
 	var interval_dt: float = clock.dt * float(_damage_interval)
 	for ship: ShipEntity in ships:
@@ -171,10 +221,11 @@ func _step_damage() -> void:
 		if (clock.tick + ship.id) % _damage_interval != 0:
 			continue
 		var template: ShipStructureTemplate = structure_for(ship)
-		FloodingSystem.step(ship, template, ship.structure_state, _damage_config,
+		FloodingSystem.step(ship, template, ship.structure_state, damage_config,
 			interval_dt, rng.stream(FloodingSystem.RNG_STREAM))
-		FireSystem.step(ship, template, ship.structure_state, _damage_config,
+		FireSystem.step(ship, template, ship.structure_state, damage_config,
 			interval_dt, rng.stream(FireSystem.RNG_STREAM))
+		DamageControlSystem.step(ship, template, ship.structure_state, damage_config, interval_dt)
 		_reassess(ship)
 
 
@@ -188,7 +239,7 @@ func _reassess(ship: ShipEntity) -> void:
 	# as still able to steer.
 	SurvivabilityEvaluator.apply_component_effects(ship, template, ship.structure_state)
 	ship.condition = SurvivabilityEvaluator.assess(ship, template, ship.structure_state,
-		_damage_config)
+		damage_config)
 
 	ship.list_angle = deg_to_rad(ship.condition.list_deg)
 	ship.trim_angle = deg_to_rad(ship.condition.trim_deg)
@@ -216,6 +267,7 @@ func set_armory(p_armory: Armory) -> void:
 	armory = p_armory
 	for ship: ShipEntity in ships:
 		ship.build_turrets(armory)
+		ship.build_torpedo_launchers(armory)
 
 
 func get_seed() -> int:
@@ -239,11 +291,12 @@ func add_ship(spec: ShipSpec, position: Vector2, heading: float, team: int = 0,
 		"ships must stay sorted by id")
 	if armory != null:
 		ship.build_turrets(armory)
+		ship.build_torpedo_launchers(armory)
 	# Her own damage state, built from the shared geometry of her design.
 	var template: ShipStructureTemplate = structure_for(ship)
 	ship.structure_state = ShipStructureState.create(template, spec, _structure_config)
 	ship.condition = SurvivabilityEvaluator.assess(ship, template, ship.structure_state,
-		_damage_config)
+		damage_config)
 	ships.append(ship)
 	_ships_by_id[ship.id] = ship
 	spatial.insert(ship.id, ship.position, ship.hull().bounding_radius(), SpatialIndex.Layer.SHIP)
@@ -306,9 +359,10 @@ func ships_of_team(team: int) -> Array[ShipEntity]:
 ##   4. mounts        turrets train, elevate and load towards their orders
 ##   5. gunnery       mounts that are laid, loaded and bearing put shells in the air
 ##   6. projectiles   shells fly, and the ones that arrive are resolved against armour
-##   7. damage        flooding spreads, fires burn, and each ship's condition is
-##                    reassessed from what is actually wrong with her
-##   8. spatial       the index is brought up to date for next tick's queries
+##   7. torpedoes     tubes train, and torpedoes already running close their targets
+##   8. damage        flooding spreads, fires burn, damage control fights both, and
+##                    each ship's condition is reassessed from what is wrong with her
+##   9. spatial       the index is brought up to date for next tick's queries
 func step() -> void:
 	events.begin_tick(clock.tick)
 	_apply_commands()
@@ -318,6 +372,8 @@ func step() -> void:
 	_fire_guns()
 	if armory != null:
 		ProjectileSystem.step(self, clock.dt)
+		_direct_torpedoes()
+		TorpedoSystem.step(self, clock.dt)
 	_step_damage()
 	_sync_spatial()
 	clock.consume_tick()
@@ -401,8 +457,66 @@ func _apply_command(command: SimCommand) -> void:
 			ship.target_id = int(params.get("value", 0))
 		CMD_SELECT_SHELL:
 			_select_shell(ship, str(params.get("battery", "main")), str(params.get("value", "")))
+		CMD_FIRE_TORPEDOES:
+			_fire_torpedoes(ship)
 		_:
 			push_warning("SimWorld: unhandled command type '%s'" % command.type)
+
+
+## Train every ship's tubes on its target.
+##
+## Torpedoes are NOT fired automatically. A destroyer captain gets one salvo and the
+## decision of when to spend it is the biggest one he makes, so it stays a command —
+## from the player now, from the AI in Stage 7.
+func _direct_torpedoes() -> void:
+	var launcher_config: Dictionary = torpedo_config.get("launcher", {}) as Dictionary
+	var train_rate: float = deg_to_rad(float(launcher_config.get("trainRateDegPerSec", 12.0)))
+	for ship: ShipEntity in ships:
+		if ship.torpedo_launchers.is_empty() or not ship.is_afloat():
+			continue
+		var target: ShipEntity = get_ship(ship.target_id) if ship.target_id != 0 else null
+		var definition: TorpedoDef = armory.get_torpedo(ship.spec.torpedo_battery.torpedo_id)
+		TorpedoFireControl.direct(ship, target, definition, train_rate, clock.dt)
+
+
+## Loose every tube that bears. One order empties the ship.
+func _fire_torpedoes(ship: ShipEntity) -> void:
+	if armory == null or ship.torpedo_launchers.is_empty():
+		return
+	var target: ShipEntity = get_ship(ship.target_id)
+	if target == null or not target.is_afloat():
+		return
+	var definition: TorpedoDef = armory.get_torpedo(ship.spec.torpedo_battery.torpedo_id)
+	if definition == null:
+		return
+
+	var launcher_config: Dictionary = torpedo_config.get("launcher", {}) as Dictionary
+	var spread: float = deg_to_rad(float(launcher_config.get("spreadAngleDeg", 2.5)))
+
+	for launcher: TorpedoLauncher in ship.torpedo_launchers:
+		var solution: TorpedoFireControl.Solution = TorpedoFireControl.solve(
+			ship, launcher, target, definition)
+		if not solution.valid or not solution.bears or not launcher.can_fire():
+			continue
+		var count: int = launcher.fire()
+		var local: Vector2 = launcher.mount.local_position(ship.spec.length_m, ship.spec.beam_m)
+		var origin: Vector2 = ship.position + local.rotated(ship.heading)
+		for i: int in count:
+			# A salvo is fired as a SPREAD across the target's possible courses, not
+			# at a point. It is aimed at an area she might be in, which is why a
+			# handful of tubes can threaten a ship a mile away.
+			var offset: float = 0.0
+			if count > 1:
+				offset = (float(i) / float(count - 1) - 0.5) * spread * float(count)
+			spawn_torpedo(definition, origin, solution.bearing + offset,
+				solution.speed_ms, ship.id, target.id, ship.team)
+		events.emit_event(&"torpedoes_fired", ship.id, target.id, SimEvent.Severity.NOTABLE, {
+			"mount": launcher.mount.mount_id,
+			"torpedo": definition.display_name,
+			"count": count,
+			"runTimeS": solution.run_time,
+			"rangeM": solution.run_distance,
+		})
 
 
 ## Change what a battery is loading. Refused rather than silently ignored if the gun
@@ -437,6 +551,8 @@ func checksum() -> int:
 		ship.hash_into(hasher)
 	for projectile: Projectile in projectiles:
 		projectile.hash_into(hasher)
+	for torpedo: Torpedo in torpedoes:
+		torpedo.hash_into(hasher)
 	return hasher.value()
 
 

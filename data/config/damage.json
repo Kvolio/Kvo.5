@@ -106,5 +106,29 @@
       "rudder": 0.5,
       "default": 1.0
     }
+  },
+  "damageControl": {
+    "_comment": "Damage control parties. This is what decides whether a ship that has been hit is a ship that survives. Effort is finite and is SPREAD across every emergency at once, so the second fire is not fought as well as the first and the fifth is barely fought at all \u2014 which is how severe damage overwhelms a crew rather than being fought off one incident at a time.",
+    "basePartiesPerThousandCrew": 3.0,
+    "_partiesComment": "How many simultaneous emergencies a ship can properly attend to per thousand of her company. A battleship's 2,800 men can fight eight or nine at once; a destroyer's 330 can manage one.",
+    "fireSuppressionPerSecond": 0.03,
+    "floodPumpingPerSecond": 0.01,
+    "_pumpingComment": "Fraction of a compartment's water removed per second at full effort. Pumps cannot win against an open hole, only against one that has been shored and sealed.",
+    "breachSealingM2PerSecond": 0.008,
+    "_sealingComment": "Shoring and plugging. Slow, and it is what has to be done before pumping is worth anything.",
+    "componentRepairPerSecond": 0.004,
+    "_repairComment": "Damaged and disabled fittings can be brought back. Destroyed ones cannot, which is the difference between the two states.",
+    "cannotWorkAboveFloodLevel": 0.85,
+    "_accessibilityComment": "A compartment nearly full of water cannot be worked in. Beyond this level the party is driven out and the space is written off.",
+    "cannotWorkAboveFireLevel": 0.9,
+    "priority": {
+      "_comment": "What gets attended to first. Fire next to a magazine outranks everything, because the alternative to putting it out is losing the ship in one second rather than in an hour.",
+      "fireNearMagazine": 100.0,
+      "magazineFlooding": 90.0,
+      "fire": 60.0,
+      "floodingBelowWaterline": 50.0,
+      "flooding": 30.0,
+      "componentRepair": 10.0
+    }
   }
 }

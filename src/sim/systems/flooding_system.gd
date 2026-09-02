@@ -69,16 +69,13 @@ static func _spread(template: ShipStructureTemplate, state: ShipStructureState,
 		var source: ShipStructureState.CompartmentState = state.compartments[i]
 		if source == null or source.flood < 0.95:
 			continue
-		var origin: GeometryPrimitives.Volume = template.volumes[i]
-		for j: int in state.compartments.size():
-			if j == i:
-				continue
+		# Only the compartments that actually share a boundary, from the graph the
+		# template computed once.
+		for j: int in template.neighbours(i):
 			var target: ShipStructureState.CompartmentState = state.compartments[j]
 			if target == null or target.breached or target.flood >= 1.0:
 				continue
 			var neighbour: GeometryPrimitives.Volume = template.volumes[j]
-			if not _adjacent(origin, neighbour):
-				continue
 			# Only a damaged boundary lets water through.
 			if target.wreckage < 0.15 and source.wreckage < 0.15:
 				continue

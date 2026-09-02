@@ -13,8 +13,13 @@ extends Node2D
 
 const SPLASH_LIFE_S: float = 3.0
 const HIT_LIFE_S: float = 1.2
+const TORPEDO_HIT_LIFE_S: float = 4.0
 const TRACER_LENGTH_S: float = 0.35
 const MIN_TRACER_PIXELS: float = 3.0
+
+## How much of a torpedo's track stays visible behind it, in metres.
+const WAKE_LENGTH_M: float = 900.0
+const TORPEDO_MARKER_PIXELS: float = 2.5
 
 ## Splash radius as a multiple of calibre. A 16-inch shell throws a column of water
 ## tens of metres across; a 5-inch one barely marks the sea.
@@ -66,6 +71,17 @@ func _spawn_from(event: SimEvent) -> void:
 				* 0.001 * SPLASH_RADIUS_PER_CALIBRE
 			effect.colour = ViewPalette.WAKE
 			_effects.append(effect)
+		&"torpedo_hit":
+			var struck: ShipEntity = world.get_ship(event.target_id)
+			if struck == null:
+				return
+			var effect: Effect = Effect.new()
+			effect.position = struck.position
+			effect.max_life = TORPEDO_HIT_LIFE_S
+			effect.life = TORPEDO_HIT_LIFE_S
+			effect.radius = 55.0
+			effect.colour = Color(1.0, 0.95, 0.80)
+			_effects.append(effect)
 		&"shell_hit":
 			var ship: ShipEntity = world.get_ship(event.target_id)
 			if ship == null:
@@ -89,8 +105,34 @@ func _spawn_from(event: SimEvent) -> void:
 func _draw() -> void:
 	if world == null:
 		return
+	_draw_torpedo_wakes()
 	_draw_shells()
 	_draw_effects()
+
+
+## Torpedoes and the tracks they leave.
+##
+## Only the ones that leave a track are drawn. A steam torpedo's wake was visible from
+## a bridge and a ship could turn to comb it; an oxygen or electric torpedo left
+## nothing to see, which is most of why the Type 93 was so feared. Showing a wake for
+## a wakeless torpedo would hand the player information nobody had.
+func _draw_torpedo_wakes() -> void:
+	for torpedo: Torpedo in world.torpedoes:
+		if not torpedo.active or torpedo.definition == null:
+			continue
+		var head: Vector2 = torpedo.position
+		var colour: Color = ViewPalette.team_colour(torpedo.team)
+
+		if not torpedo.definition.wakeless:
+			# The track runs back towards where it was fired from, fading with age.
+			var trail: Vector2 = head - Vector2(cos(torpedo.heading), sin(torpedo.heading)) \
+				* minf(torpedo.distance_run, WAKE_LENGTH_M)
+			var wake: Color = ViewPalette.WAKE
+			wake.a *= 0.7
+			draw_line(trail, head, wake, maxf(3.0 / _zoom, 1.0), true)
+
+		# The weapon itself is a small hard mark at the head of the track.
+		draw_circle(head, maxf(TORPEDO_MARKER_PIXELS / _zoom, 1.0), colour)
 
 
 ## Shells in the air, as short tracers along their line of flight.

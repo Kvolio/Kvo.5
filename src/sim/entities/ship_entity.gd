@@ -41,6 +41,10 @@ var trim_angle: float = 0.0     ## radians, positive bow-down
 ## Gun mounts, in the order the design lists them. Built by build_turrets().
 var turrets: Array[Turret] = []
 
+## Torpedo tubes. A ship that has fired hers has spent the only thing that made her
+## dangerous to something much larger.
+var torpedo_launchers: Array[TorpedoLauncher] = []
+
 ## The ship this one is shooting at, or 0 for none. Set by the player or the AI;
 ## never inferred inside the gunnery code, so a replay reproduces target changes.
 var target_id: int = 0
@@ -113,6 +117,29 @@ func build_turrets(armory: Armory) -> void:
 	turrets.clear()
 	_add_battery(armory, spec.main_battery, &"main")
 	_add_battery(armory, spec.secondary_battery, &"secondary")
+
+
+## Build the ship's torpedo tubes. Separate from the guns because most ships have none.
+func build_torpedo_launchers(armory: Armory) -> void:
+	torpedo_launchers.clear()
+	if not spec.has_torpedoes():
+		return
+	var definition: TorpedoDef = armory.get_torpedo(spec.torpedo_battery.torpedo_id)
+	if definition == null:
+		push_warning("ShipEntity: %s has no definition for torpedo '%s'"
+			% [display_name, spec.torpedo_battery.torpedo_id])
+		return
+	for mount: TorpedoMountDef in spec.torpedo_battery.mounts:
+		torpedo_launchers.append(TorpedoLauncher.create(mount, definition, spec.torpedo_battery))
+
+
+## Torpedoes still in the tubes.
+func tubes_loaded() -> int:
+	var total: int = 0
+	for launcher: TorpedoLauncher in torpedo_launchers:
+		if launcher.is_operational():
+			total += launcher.tubes_loaded
+	return total
 
 
 func _add_battery(armory: Armory, battery: BatteryDef, label: StringName) -> void:
@@ -207,6 +234,8 @@ func hash_into(hasher: StateHasher) -> void:
 	hasher.write_int(target_id)
 	for turret: Turret in turrets:
 		turret.hash_into(hasher)
+	for launcher: TorpedoLauncher in torpedo_launchers:
+		launcher.hash_into(hasher)
 	if structure_state != null:
 		structure_state.hash_into(hasher)
 

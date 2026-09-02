@@ -30,7 +30,7 @@ static func load_ship(spec_id: String) -> ShipSpec:
 
 ## A world containing one ship, ready to step. Seeded so tests are reproducible.
 static func world_with(spec: ShipSpec, seed_value: int = 1234) -> SimWorld:
-	var world: SimWorld = SimWorld.create(seed_value, config())
+	var world: SimWorld = SimWorld.create(seed_value, movement_config())
 	world.add_ship(spec, Vector2.ZERO, 0.0, 0)
 	return world
 
@@ -43,6 +43,22 @@ static func config() -> Dictionary:
 		"ballistics": JsonLoader.load_dict("res://data/config/ballistics.json"),
 		"structure": JsonLoader.load_dict("res://data/config/structure.json"),
 		"damage": JsonLoader.load_dict("res://data/config/damage.json"),
+		"torpedo": JsonLoader.load_dict("res://data/config/torpedo.json"),
+	}
+
+
+## Configuration for a movement-only world: no damage systems at all.
+##
+## The movement suite is a unit test of how a ship handles, and a world with damage
+## control running would have the crew repairing the steering gear underneath the
+## test. Omitting the damage config leaves flooding, fire and damage control switched
+## off, so what is measured is the movement model and nothing else.
+static func movement_config() -> Dictionary:
+	return {
+		"sim": JsonLoader.load_dict("res://data/config/sim.json"),
+		"physics": JsonLoader.load_dict("res://data/config/physics.json"),
+		"ballistics": JsonLoader.load_dict("res://data/config/ballistics.json"),
+		"structure": JsonLoader.load_dict("res://data/config/structure.json"),
 	}
 
 
