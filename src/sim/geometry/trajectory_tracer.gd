@@ -368,6 +368,12 @@ static func _resolve_volume(
 	interaction.distance_m = maxf(reached - state.entry_travelled, 0.0)
 	interaction.speed_before = state.speed
 	interaction.speed_after = state.speed
+	# Compartments and components do not slow a shell measurably, but the energy it is
+	# carrying when it passes through them is exactly what decides what breaks — so it
+	# has to be recorded here as well as at the plates.
+	var energy: float = 0.5 * report.mass_kg * state.speed * state.speed
+	interaction.energy_before = energy
+	interaction.energy_after = energy
 	interaction.integrity_before = state.integrity
 	interaction.integrity_after = state.integrity
 	report.add(interaction)

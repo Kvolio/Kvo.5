@@ -41,6 +41,8 @@ static func config() -> Dictionary:
 		"sim": JsonLoader.load_dict("res://data/config/sim.json"),
 		"physics": JsonLoader.load_dict("res://data/config/physics.json"),
 		"ballistics": JsonLoader.load_dict("res://data/config/ballistics.json"),
+		"structure": JsonLoader.load_dict("res://data/config/structure.json"),
+		"damage": JsonLoader.load_dict("res://data/config/damage.json"),
 	}
 
 
@@ -63,6 +65,42 @@ static func structure(spec_id: String) -> ShipStructureTemplate:
 		load_ship(spec_id), JsonLoader.load_dict("res://data/config/structure.json"))
 	_structures[spec_id] = built
 	return built
+
+
+## Set the condition of some or all components with a role, then let it take effect.
+##
+## Ship handling is DERIVED from component condition — a ship is slow because her
+## engines are wrecked, not because a number was set — so this is how a test expresses
+## damage. Assigning propulsion_fraction directly would simply be recomputed away on
+## the next damage tick, which is the behaviour working correctly.
+static func wreck_components(world: SimWorld, ship: ShipEntity, role: String,
+		condition: float, count: int = -1) -> int:
+	var structure: ShipStructureTemplate = world.structure_for(ship)
+	var indices: PackedInt32Array = structure.volumes_with_role(role)
+	var limit: int = indices.size() if count < 0 else mini(count, indices.size())
+	for i: int in limit:
+		var component: ShipStructureState.ComponentState = ship.structure_state.component(indices[i])
+		if component != null:
+			component.condition = clampf(condition, 0.0, 1.0)
+	world._reassess(ship)
+	return limit
+
+
+## Wreck only the components of a role on one side of the centreline.
+static func wreck_components_on_side(world: SimWorld, ship: ShipEntity, role: String,
+		condition: float, starboard: bool) -> int:
+	var structure: ShipStructureTemplate = world.structure_for(ship)
+	var wrecked: int = 0
+	for index: int in structure.volumes_with_role(role):
+		var on_starboard: bool = structure.volumes[index].centre().y > 0.0
+		if on_starboard != starboard:
+			continue
+		var component: ShipStructureState.ComponentState = ship.structure_state.component(index)
+		if component != null:
+			component.condition = clampf(condition, 0.0, 1.0)
+			wrecked += 1
+	world._reassess(ship)
+	return wrecked
 
 
 ## Run a world forward by `seconds` of simulated time.

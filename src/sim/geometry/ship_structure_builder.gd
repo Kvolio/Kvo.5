@@ -414,10 +414,19 @@ func _build_compartments(t: ShipStructureTemplate, spec: ShipSpec) -> void:
 	# Superstructure: where the bridge, directors and radar live. Unarmoured, exposed,
 	# and the reason a non-penetrating hit can still blind a ship.
 	var super_half: float = spec.length_m * 0.12
+	var super_centre: Vector3 = Vector3(
+		spec.length_m * 0.05, 0.0, (t.main_deck_z + t.superstructure_top_z) * 0.5)
+	var super_size: Vector3 = Vector3(
+		super_half * 2.0, spec.beam_m * 0.5, t.superstructure_top_z - t.main_deck_z)
 	t.add_volume(GeometryPrimitives.make_volume(
 		0, GeometryPrimitives.VolumeKind.COMPARTMENT, ROLE_FIRE_CONTROL, "Superstructure",
-		Vector3(-super_half + spec.length_m * 0.05, -spec.beam_m * 0.25, t.main_deck_z),
-		Vector3(super_half + spec.length_m * 0.05, spec.beam_m * 0.25, t.superstructure_top_z)))
+		super_centre - super_size * 0.5, super_centre + super_size * 0.5))
+
+	# Its plating. Thin, and it stops nothing — but without faces here a shell would
+	# pass through the bridge without interacting with anything at all, and a hit that
+	# should wreck the fire control would do literally nothing.
+	_add_light_enclosure(t, "superstructurePlating", super_centre, super_size,
+		_plating_thickness(spec) * 0.6)
 
 	if spec.is_carrier():
 		_add_hangar(t, spec)
@@ -452,6 +461,27 @@ func _role_for(
 	# way a real unit-machinery layout does, so a single hit cannot take out the whole
 	# plant.
 	return ROLE_BOILER if machinery_index % 2 == 0 else ROLE_ENGINE
+
+
+## Six thin STRUCTURE faces around a box. Not armour — it exists so a shell passing
+## through unarmoured upperworks has something to interact with.
+func _add_light_enclosure(t: ShipStructureTemplate, zone: String, centre: Vector3,
+		size: Vector3, thickness_mm: float) -> void:
+	var half: Vector3 = size * 0.5
+	var sides: Array = [
+		[Vector3(1, 0, 0), Vector3(0, 1, 0), half.y, half.z, half.x],
+		[Vector3(-1, 0, 0), Vector3(0, 1, 0), half.y, half.z, half.x],
+		[Vector3(0, 1, 0), Vector3(1, 0, 0), half.x, half.z, half.y],
+		[Vector3(0, -1, 0), Vector3(1, 0, 0), half.x, half.z, half.y],
+		[Vector3(0, 0, 1), Vector3(1, 0, 0), half.x, half.y, half.z],
+		[Vector3(0, 0, -1), Vector3(1, 0, 0), half.x, half.y, half.z],
+	]
+	for entry: Array in sides:
+		var normal: Vector3 = entry[0]
+		t.add_face(GeometryPrimitives.make_face(
+			0, GeometryPrimitives.FaceKind.STRUCTURE, zone,
+			centre + normal * float(entry[4]), normal, entry[1] as Vector3,
+			float(entry[2]), float(entry[3]), thickness_mm, "structural_steel"))
 
 
 func _add_hangar(t: ShipStructureTemplate, spec: ShipSpec) -> void:
@@ -508,11 +538,19 @@ func _build_components(t: ShipStructureTemplate, spec: ShipSpec) -> void:
 
 	# Directors and radar sit high and unarmoured. Losing them does not slow a ship
 	# down or sink her; it stops her shooting straight, which is often decisive.
+	# Fore and after directors. Warships carried both precisely so that one hit could
+	# not blind them, and a battery can still be fought in local control from the
+	# turrets afterwards — which is why losing one is a serious degradation rather
+	# than the end of the action.
 	var director_z: float = t.superstructure_top_z - 1.0
 	t.add_volume(GeometryPrimitives.make_volume(
-		0, GeometryPrimitives.VolumeKind.COMPONENT, COMPONENT_DIRECTOR, "Main director",
+		0, GeometryPrimitives.VolumeKind.COMPONENT, COMPONENT_DIRECTOR, "Forward director",
 		Vector3(spec.length_m * 0.02, -2.0, director_z - 2.0),
 		Vector3(spec.length_m * 0.06, 2.0, director_z)))
+	t.add_volume(GeometryPrimitives.make_volume(
+		0, GeometryPrimitives.VolumeKind.COMPONENT, COMPONENT_DIRECTOR, "After director",
+		Vector3(-spec.length_m * 0.17, -2.0, t.main_deck_z + 2.0),
+		Vector3(-spec.length_m * 0.13, 2.0, t.main_deck_z + 5.0)))
 	t.add_volume(GeometryPrimitives.make_volume(
 		0, GeometryPrimitives.VolumeKind.COMPONENT, COMPONENT_RADAR, "Radar",
 		Vector3(spec.length_m * 0.02, -1.5, director_z),

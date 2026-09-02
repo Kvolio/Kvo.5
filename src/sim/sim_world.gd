@@ -46,6 +46,8 @@ var projectiles: Array[Projectile] = []
 var recent_hits: Array[HitReport] = []
 
 var _structure_config: Dictionary = {}
+var _damage_config: Dictionary = {}
+var _damage_interval: int = 30
 var _structures: Dictionary = {}
 var _projectile_pool: Array[Projectile] = []
 var _hit_history_limit: int = 128
@@ -79,8 +81,11 @@ static func create(seed_value: int = 0, config: Dictionary = {}) -> SimWorld:
 	world.spatial = BruteForceIndex.new()
 	world._movement.configure(config.get("physics", {}) as Dictionary)
 	world._structure_config = config.get("structure", {}) as Dictionary
+	world._damage_config = config.get("damage", {}) as Dictionary
+	ShipStructureState.ComponentState.configure(world._damage_config)
 	var lod: Dictionary = sim_config.get("lod", {}) as Dictionary
 	world._fire_control_interval = maxi(int(lod.get("fireControlIntervalTicks", 6)), 1)
+	world._damage_interval = maxi(int(lod.get("damageControlTickInterval", 30)), 1)
 	world.materials = ArmourMaterials.load_from("res://data/materials/armor.json")
 	world.penetration_model = PenetrationModelRegistry.create(
 		config.get("ballistics", {}) as Dictionary)
@@ -120,8 +125,16 @@ func retire_projectile(projectile: Projectile) -> void:
 	_projectile_pool.append(projectile)
 
 
-## Record a resolved hit. Stage 4 hangs the damage it caused off the same report.
+## Record a resolved hit and work out what it broke.
+##
+## The report is not a summary written after the fact — resolving it IS how the damage
+## happens, and the DamageReport it produces is hung off the same object so the whole
+## causal chain stays in one place.
 func record_hit(report: HitReport, target: ShipEntity) -> void:
+	if target.structure_state != null:
+		DamageResolver.resolve(report, target, structure_for(target),
+			target.structure_state, _damage_config, rng.stream(DamageResolver.RNG_STREAM))
+		_reassess(target)
 	recent_hits.append(report)
 	if recent_hits.size() > _hit_history_limit:
 		recent_hits = recent_hits.slice(recent_hits.size() - _hit_history_limit)
@@ -129,6 +142,8 @@ func record_hit(report: HitReport, target: ShipEntity) -> void:
 	var severity: SimEvent.Severity = SimEvent.Severity.INFO
 	if report.detonated:
 		severity = SimEvent.Severity.NOTABLE
+	if report.damage != null and report.damage.catastrophic:
+		severity = SimEvent.Severity.CRITICAL
 	events.emit_event(&"shell_hit", report.shooter_id, target.id, severity, {
 		"shell": report.shell_name,
 		"rangeM": report.range_m,
@@ -136,7 +151,63 @@ func record_hit(report: HitReport, target: ShipEntity) -> void:
 		"penetrated": report.penetrated_armour(),
 		"detonated": report.detonated,
 		"aboveWater": report.hit_above_water,
+		"integrityDelta": report.damage.integrity_delta() if report.damage != null else 0.0,
+		"casualties": report.damage.crew_casualties if report.damage != null else 0,
 	})
+
+
+## Flooding, fire, and the reassessment that follows from them.
+##
+## Run at a lower rate than the tick, staggered by ship id, with the elapsed time
+## passed in — a flooding rate integrated over half a second is as accurate as one
+## integrated over a sixtieth, and costs a thirtieth as much.
+func _step_damage() -> void:
+	if _damage_config.is_empty():
+		return
+	var interval_dt: float = clock.dt * float(_damage_interval)
+	for ship: ShipEntity in ships:
+		if ship.structure_state == null or ship.status == ShipEntity.Status.DESTROYED:
+			continue
+		if (clock.tick + ship.id) % _damage_interval != 0:
+			continue
+		var template: ShipStructureTemplate = structure_for(ship)
+		FloodingSystem.step(ship, template, ship.structure_state, _damage_config,
+			interval_dt, rng.stream(FloodingSystem.RNG_STREAM))
+		FireSystem.step(ship, template, ship.structure_state, _damage_config,
+			interval_dt, rng.stream(FireSystem.RNG_STREAM))
+		_reassess(ship)
+
+
+## Recompute a ship's condition and let it take effect.
+func _reassess(ship: ShipEntity) -> void:
+	var template: ShipStructureTemplate = structure_for(ship)
+	var previous: ShipEntity.Status = ship.status
+	# Component effects first: the assessment reads the ship's propulsion, steering
+	# and turret state, so pushing the damage through afterwards would leave it a tick
+	# behind — and a ship whose steering gear had just been wrecked would be reported
+	# as still able to steer.
+	SurvivabilityEvaluator.apply_component_effects(ship, template, ship.structure_state)
+	ship.condition = SurvivabilityEvaluator.assess(ship, template, ship.structure_state,
+		_damage_config)
+
+	ship.list_angle = deg_to_rad(ship.condition.list_deg)
+	ship.trim_angle = deg_to_rad(ship.condition.trim_deg)
+	ship.status = ship.condition.status
+	ship.loss_reason = ship.condition.reason
+
+	if ship.status != previous:
+		var severity: SimEvent.Severity = (SimEvent.Severity.CRITICAL
+			if ship.status == ShipEntity.Status.DESTROYED else SimEvent.Severity.NOTABLE)
+		events.emit_event(&"ship_status_changed", ship.id, 0, severity, {
+			"name": ship.display_name,
+			"status": ["active", "missionKill", "destroyed"][int(ship.status)],
+			"reason": ship.condition.reason,
+			"integrity": ship.condition.integrity,
+		})
+		if ship.status == ShipEntity.Status.DESTROYED:
+			# A wreck stops steaming and stops shooting, but stays on the plot.
+			ship.throttle = 0.0
+			ship.target_id = 0
 
 
 ## Attach the armoury. Ships added afterwards get their mounts built automatically;
@@ -168,6 +239,11 @@ func add_ship(spec: ShipSpec, position: Vector2, heading: float, team: int = 0,
 		"ships must stay sorted by id")
 	if armory != null:
 		ship.build_turrets(armory)
+	# Her own damage state, built from the shared geometry of her design.
+	var template: ShipStructureTemplate = structure_for(ship)
+	ship.structure_state = ShipStructureState.create(template, spec, _structure_config)
+	ship.condition = SurvivabilityEvaluator.assess(ship, template, ship.structure_state,
+		_damage_config)
 	ships.append(ship)
 	_ships_by_id[ship.id] = ship
 	spatial.insert(ship.id, ship.position, ship.hull().bounding_radius(), SpatialIndex.Layer.SHIP)
@@ -230,7 +306,9 @@ func ships_of_team(team: int) -> Array[ShipEntity]:
 ##   4. mounts        turrets train, elevate and load towards their orders
 ##   5. gunnery       mounts that are laid, loaded and bearing put shells in the air
 ##   6. projectiles   shells fly, and the ones that arrive are resolved against armour
-##   7. spatial       the index is brought up to date for next tick's queries
+##   7. damage        flooding spreads, fires burn, and each ship's condition is
+##                    reassessed from what is actually wrong with her
+##   8. spatial       the index is brought up to date for next tick's queries
 func step() -> void:
 	events.begin_tick(clock.tick)
 	_apply_commands()
@@ -240,6 +318,7 @@ func step() -> void:
 	_fire_guns()
 	if armory != null:
 		ProjectileSystem.step(self, clock.dt)
+	_step_damage()
 	_sync_spatial()
 	clock.consume_tick()
 

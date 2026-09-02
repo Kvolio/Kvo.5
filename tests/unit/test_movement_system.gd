@@ -109,7 +109,10 @@ func test_losing_power_costs_speed_by_the_cube_root_law() -> void:
 	# down two shafts is still a fast ship.
 	var world: SimWorld = TestShips.world_with(TestShips.iowa())
 	var iowa: ShipEntity = _ship(world)
-	iowa.propulsion_fraction = 0.5
+	# Two of her four engines wrecked. Half the plant, expressed the way the
+	# simulation expresses it.
+	TestShips.wreck_components(world, iowa, ShipStructureBuilder.COMPONENT_ENGINE, 0.0, 2)
+	almost(iowa.propulsion_fraction, 0.5, 0.01, "half her power")
 	iowa.throttle = FULL_AHEAD
 	TestShips.run_seconds(world, 500.0)
 	almost(iowa.speed_knots(), 33.0 * pow(0.5, 1.0 / 3.0), 0.6, "half power, about 26 knots")
@@ -121,7 +124,7 @@ func test_total_propulsion_loss_leaves_a_ship_dead_in_the_water() -> void:
 	dd.throttle = FULL_AHEAD
 	TestShips.run_seconds(world, 120.0)
 
-	dd.propulsion_fraction = 0.0
+	TestShips.wreck_components(world, dd, ShipStructureBuilder.COMPONENT_ENGINE, 0.0)
 	not_ok(dd.can_manoeuvre(), "reported as unable to manoeuvre")
 	TestShips.run_seconds(world, 600.0)
 	lt(absf(dd.speed_knots()), 1.0, "drifts to a halt")
@@ -257,7 +260,8 @@ func test_a_jammed_rudder_stays_where_it_was() -> void:
 	MovementSystem.order_rudder(dd, 1.0)
 	TestShips.run_seconds(world, 30.0)
 
-	dd.rudder_jammed = true
+	TestShips.wreck_components(world, dd, ShipStructureBuilder.COMPONENT_RUDDER, 0.0)
+	ok(dd.rudder_jammed, "the steering gear is wrecked")
 	var jammed_at: float = dd.rudder_angle
 	MovementSystem.order_rudder(dd, 0.0)  # frantic attempt to straighten up
 	TestShips.run_seconds(world, 60.0)
@@ -268,7 +272,8 @@ func test_a_jammed_rudder_stays_where_it_was() -> void:
 func test_reduced_rudder_effectiveness_widens_the_turn() -> void:
 	var healthy: SimWorld = TestShips.world_with(TestShips.fletcher())
 	var damaged: SimWorld = TestShips.world_with(TestShips.fletcher())
-	_ship(damaged).rudder_effectiveness = 0.4
+	TestShips.wreck_components(damaged, _ship(damaged),
+		ShipStructureBuilder.COMPONENT_RUDDER, 0.4)
 
 	for world: SimWorld in [healthy, damaged]:
 		_ship(world).throttle = FULL_AHEAD
@@ -289,7 +294,10 @@ func test_an_unbalanced_shaft_pair_turns_the_ship_on_its_own() -> void:
 	TestShips.run_seconds(world, 200.0)
 	var heading_before: float = iowa.heading
 
-	iowa.shaft_asymmetry = 0.5
+	# A shaft lost on the port side only.
+	TestShips.wreck_components_on_side(world, iowa,
+		ShipStructureBuilder.COMPONENT_SHAFT, 0.0, false)
+	gt(absf(iowa.shaft_asymmetry), 0.1, "the plant is out of balance")
 	TestShips.run_seconds(world, 120.0)
 	gt(absf(SimUnits.angle_delta(heading_before, iowa.heading)), 0.05,
 		"the ship swings although the rudder is amidships")
@@ -327,7 +335,11 @@ func test_ordering_sternway_backs_the_ship_at_the_ordered_speed() -> void:
 func test_ordering_more_speed_than_the_ship_has_left_means_everything_she_has() -> void:
 	var world: SimWorld = TestShips.world_with(TestShips.fletcher())
 	var dd: ShipEntity = _ship(world)
-	dd.propulsion_fraction = 0.25
+	# One of her two engines and one of her two shafts gone: a quarter of her plant.
+	TestShips.wreck_components(world, dd, ShipStructureBuilder.COMPONENT_ENGINE, 0.0, 1)
+	TestShips.wreck_components(world, dd, ShipStructureBuilder.COMPONENT_SHAFT, 0.0, 1)
+	almost(dd.propulsion_fraction, 0.25, 0.01, "a quarter of her power")
+
 	MovementSystem.order_speed(dd, SimUnits.knots_to_ms(36.5))
 	almost(dd.throttle, 1.0, 0.001, "the order becomes full ahead rather than an error")
 	TestShips.run_seconds(world, 400.0)

@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "_comment": "How a resolved hit becomes damage. THE CENTRAL RULE OF THIS FILE: there is no per-shell damage value anywhere in it, and there is no number that a shell subtracts from a health pool. Everything here converts a physical event \u2014 energy released inside a compartment, a plate that held, a hull opened below the waterline \u2014 into a consequence. Structural integrity is then DERIVED from those consequences; see the 'integrity' section.",
+  "detonation": {
+    "_comment": "What a burst inside the hull does. Energy is the shell's remaining kinetic energy plus the chemical energy of its bursting charge, which is why an AP shell that arrives fast and an HE shell that arrives slow can release comparable amounts by completely different routes.",
+    "energyPerWreckedCubicMetre": 180000.0,
+    "_energyComment": "Joules needed to destroy a cubic metre of ship. Calibrated from both ends: a 16-inch AP shell bursting inside releases about 180 MJ and should gut roughly one machinery space (Iowa's compartments average some 860 cubic metres), while an 8-inch high-explosive shell releases about 50 MJ and should wreck a useful fraction of a destroyer \u2014 twelve of them should sink her, which is what they did.",
+    "adjacentCompartmentFraction": 0.3,
+    "_adjacentComment": "Share of the wrecking that reaches compartments sharing a boundary. A burst does not stop politely at a bulkhead.",
+    "breachRadiusPerMegajoule": 0.011,
+    "_breachComment": "Radius of hull opening, in metres, per megajoule released. Only matters where the burst is near the shell plating.",
+    "fireChancePerMegajoule": 0.0045,
+    "maxFireChance": 0.85,
+    "magazineIgnitionEnergyScale": 400.0,
+    "_magazineComment": "Megajoules delivered among the charges for an even chance of ignition. A shell that reaches a magazine usually does not set it off; the times it does end the ship in seconds, which is why the event has to be rare to be worth anything."
+  },
+  "nonPenetration": {
+    "_comment": "A CLEAN NON-PENETRATION COSTS ZERO STRUCTURAL INTEGRITY. Not a small number: zero. A 350 mm belt that stops a 406 mm shell has done its job, and the ship is structurally exactly as sound as it was a moment earlier. What follows is everything a hit like that CAN still do \u2014 and every one of these is a modelled mechanism with a cause, not a fraction of a health bar.",
+    "spallEnergyPerKg": 900000.0,
+    "_spallComment": "Fragments come off the inner face of a plate that held. They are what wrecks equipment and kills crew behind armour that was never beaten.",
+    "shockRadiusPerMegajoule": 0.9,
+    "shockMaxRadiusM": 25.0,
+    "shockComponentDamage": 0.3,
+    "_shockComment": "Delicate equipment \u2014 directors, radar, fire control \u2014 is degraded by the concussion of a heavy hit even through intact armour.",
+    "exposedEquipmentRadiusM": 18.0,
+    "exposedEquipmentDamage": 0.75,
+    "_exposedComment": "Anything unarmoured near the impact point: anti-aircraft mounts, rangefinders, optics, boats, radar. A non-penetrating hit is very good at removing these.",
+    "crewCasualtiesPerMegajoule": 0.09,
+    "plateDeformationTransfer": 1.0
+  },
+  "crew": {
+    "_comment": "Casualties follow from where people actually are. A shell into a manned machinery space kills far more than one into a void, and that is a property of the compartment rather than of the shell.",
+    "casualtiesPerWreckedCubicMetre": 0.1,
+    "casualtiesPerMegajouleInCompartment": 0.055,
+    "floodingCasualtyFraction": 0.35,
+    "_floodingComment": "Share of a compartment's crew lost when it floods rapidly.",
+    "fireCasualtyRatePerSecond": 0.012,
+    "damageControlEffectivenessPerCrewFraction": 1.0,
+    "magazineDetonationCasualtyFraction": 0.8,
+    "_magazineCasualtyComment": "Share of the ship's company lost when a magazine detonates. Ships lost this way went in under a minute, usually with a handful of survivors."
+  },
+  "fire": {
+    "_comment": "Fire spreads, consumes structure, and is the mechanism by which a ship that survived the hit dies hours later. Aviation fuel and ready-use ammunition are what turn a survivable fire into a lost ship.",
+    "spreadChancePerSecond": 0.008,
+    "growthRatePerSecond": 0.02,
+    "burnoutRatePerSecond": 0.006,
+    "structureConsumedPerSecondAtFullIntensity": 0.01,
+    "magazineCookOffChancePerSecondAtFullIntensity": 0.0025,
+    "fuelCompartmentSpreadMultiplier": 2.5,
+    "hangarSpreadMultiplier": 3.0,
+    "floodedCompartmentsCannotBurn": true,
+    "_cookOffComment": "Per second, at full fire intensity, for a magazine with a full outfit. Deliberately small: magazines were surrounded by flash-tight doors and could be flooded, and cook-off was the exception rather than the rule. At this rate a magazine that has been burning for two minutes has about a one-in-four chance of going up, which is about right for something that should be rare and always decisive.",
+    "_spreadComment": "Per second, per shared boundary, at full intensity. Fire moves through a steel warship with the doors shut far more slowly than through a building, and at this rate a blaze takes several minutes to reach the next compartment rather than seconds.",
+    "magazineSpreadMultiplier": 0.15,
+    "_magazineSpreadComment": "Magazines were flash-tight and could be flooded on suspicion. Fire reaches them rarely \u2014 which is what makes it worth anything when it does.",
+    "fuelExhaustionRate": 1.0,
+    "_fuelComment": "A fire consumes what it burns. Intensity falls away as the compartment is destroyed, so a blaze in a gutted space goes out instead of burning for ever."
+  },
+  "flooding": {
+    "_comment": "Torricelli: water enters a hole at a rate set by the hole's area and its depth below the surface. That single relationship is why damage low down is so much worse than damage high up, and why a ship settling deeper floods faster as she goes.",
+    "dischargeCoefficient": 0.62,
+    "spreadChancePerSecondThroughDamagedBoundary": 0.05,
+    "progressiveFloodingFreeboardM": 0.5,
+    "_progressiveComment": "Once a compartment's top is this close to the waterline, an opened boundary above it starts admitting water too \u2014 the mechanism that turns controlled flooding into a capsize.",
+    "pumpingRateM3PerSecondPerCrewFraction": 3.0
+  },
+  "stability": {
+    "_comment": "Buoyancy, list and trim, derived from which compartments hold water and where they are. A ship founders when there is no reserve buoyancy left and capsizes when the heeling moment beats her righting arm; neither is a threshold on a health bar.",
+    "capsizeListDeg": 35.0,
+    "founderReserveBuoyancyFraction": 0.02,
+    "metacentricHeightFactor": 0.055,
+    "_gmComment": "GM as a fraction of beam, used until the ship designer computes a real one in Stage 6.",
+    "trimCapsizeDeg": 20.0
+  },
+  "integrity": {
+    "_comment": "STRUCTURAL INTEGRITY IS DERIVED, NOT DECREMENTED. It is recomputed from the ship's actual condition every time that condition changes, and exists because one headline number is genuinely useful to the UI, to scenario victory rules and to the designer's survivability estimate. It is NOT what decides whether a ship lives: see SurvivabilityEvaluator, which reads conditions directly.",
+    "wreckageWeight": 0.55,
+    "_wreckageComment": "Contribution of wrecked compartment volume, weighted by each compartment's structural contribution \u2014 a gutted machinery space inside the citadel costs far more than a gutted store right forward.",
+    "breachWeight": 0.15,
+    "floodingWeight": 0.18,
+    "fireWeight": 0.07,
+    "girderWeight": 0.05
+  },
+  "missionKill": {
+    "_comment": "A ship that is afloat but can no longer fight. Evaluated from component state INDEPENDENTLY of structural integrity, which is why a 70%-integrity ship can be combat-dead and a 30%-integrity ship can fight on.",
+    "mainBatteryBarrelsFraction": 0.25,
+    "_mainBatteryComment": "Below this fraction of her main battery still working, a ship has lost her reason to be in a gun line.",
+    "propulsionFraction": 0.15,
+    "floodedVolumeFraction": 0.45,
+    "requireAtLeastOneCondition": true
+  },
+  "components": {
+    "_comment": "Component condition runs 1 (untouched) to 0 (destroyed). The thresholds below are where it changes state, and the states are what gameplay reads.",
+    "damagedBelow": 0.7,
+    "disabledBelow": 0.35,
+    "destroyedBelow": 0.05,
+    "shockVulnerability": {
+      "_comment": "How badly each kind of equipment suffers from concussion as opposed to being hit. Radar and directors are delicate; a shaft is a steel bar.",
+      "radar": 1.6,
+      "director": 1.4,
+      "elevator": 1.2,
+      "turret": 0.6,
+      "engine": 0.7,
+      "boiler": 0.8,
+      "shaft": 0.3,
+      "rudder": 0.5,
+      "default": 1.0
+    }
+  }
+}

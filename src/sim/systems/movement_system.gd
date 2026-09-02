@@ -67,9 +67,11 @@ func step(ships: Array[ShipEntity], dt: float) -> void:
 func _step_rudder(ship: ShipEntity, dt: float) -> void:
 	if ship.rudder_jammed:
 		return
-	var limit: float = ship.spec.max_rudder_rad
+	# Steering-gear damage limits how far the rudder can be held over as well as how
+	# fast it can be moved: a failing steering motor cannot hold full rudder against
+	# the water pressure on the blade.
+	var limit: float = ship.spec.max_rudder_rad * clampf(ship.rudder_effectiveness, 0.0, 1.0)
 	var target: float = clampf(ship.rudder_order, -limit, limit)
-	# Damaged steering gear swings the rudder more slowly as well as less far.
 	var rate: float = ship.spec.rudder_rate_rad_s * maxf(ship.rudder_effectiveness, 0.05)
 	ship.rudder_angle = move_toward(ship.rudder_angle, target, rate * dt)
 
@@ -162,7 +164,12 @@ func _step_yaw(ship: ShipEntity, dt: float) -> void:
 		var rudder_fraction: float = 0.0
 		if spec.max_rudder_rad > 0.0:
 			rudder_fraction = ship.rudder_angle / spec.max_rudder_rad
-		target_rate = full_rudder_rate * rudder_fraction * ship.rudder_effectiveness
+		# NOT scaled by rudder_effectiveness. The steering gear decides where the
+		# rudder can be put; the water decides what a rudder at that angle does. A
+		# jammed rudder is still a rudder, which is why a ship whose steering gear has
+		# failed with the helm over goes round in circles rather than straightening up
+		# — the way Bismarck did.
+		target_rate = full_rudder_rate * rudder_fraction
 		# Making sternway reverses which way the rudder throws the stern.
 		if ship.speed < 0.0:
 			target_rate = -target_rate

@@ -48,6 +48,18 @@ var target_id: int = 0
 # -- condition ---------------------------------------------------------------
 var status: Status = Status.ACTIVE
 
+## This ship's own damage: what is flooded, burning, wrecked, and who is left.
+## Per-INSTANCE, unlike the geometry it refers to, which is shared by every ship of
+## the design. Without that split a hit on one Fletcher would flood all of them.
+var structure_state: ShipStructureState = null
+
+## Last assessment of her condition. Recomputed by the damage systems, read by the
+## UI and the AI. Structural integrity lives here as a DERIVED figure.
+var condition: SurvivabilityEvaluator.Condition = null
+
+## Why she was lost, once she is.
+var loss_reason: String = ""
+
 ## Fraction of design shaft power still available. Driven by engine, boiler and
 ## shaft damage from Stage 4 onward.
 var propulsion_fraction: float = 1.0
@@ -74,6 +86,23 @@ static func create(p_id: int, p_spec: ShipSpec, p_team: int = 0) -> ShipEntity:
 
 func hull() -> HullGeometry:
 	return spec.hull()
+
+
+## Structural integrity, 0-1.
+##
+## A DERIVED summary of the ship's condition, not a health pool: nothing subtracts
+## from it, and it is not what decides whether she survives. See
+## SurvivabilityEvaluator.
+func structural_integrity() -> float:
+	return 1.0 if condition == null else condition.integrity
+
+
+func list_degrees() -> float:
+	return 0.0 if condition == null else condition.list_deg
+
+
+func crew_alive() -> int:
+	return spec.crew if structure_state == null else structure_state.crew_alive
 
 
 ## Build the ship's gun mounts from her design.
@@ -178,6 +207,8 @@ func hash_into(hasher: StateHasher) -> void:
 	hasher.write_int(target_id)
 	for turret: Turret in turrets:
 		turret.hash_into(hasher)
+	if structure_state != null:
+		structure_state.hash_into(hasher)
 
 
 func serialize() -> Dictionary:
