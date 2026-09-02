@@ -6,12 +6,31 @@ extends SceneTree
 ##   godot --headless --path . --script res://tests/run_tests.gd -- --filter=rng
 ##
 ## Exits non-zero if anything failed, so CI and the per-stage gate can rely on it.
+##
+## NOTE: after adding a script with a new `class_name`, run `--import` first, or the
+## global class cache will not know the type and every suite referencing it fails to
+## parse. `tools/test.sh` does both in order.
 
 const TEST_DIRS: Array[String] = [
 	"res://tests/lint",
 	"res://tests/unit",
 	"res://tests/integration",
 ]
+
+## Safety net. A GDScript runtime error aborts the current call frame, so an
+## unguarded failure inside _initialize() would skip quit() and leave a headless
+## SceneTree spinning until CI's timeout killed it — reported as a hang rather than
+## as the parse error it actually was. _process() turns that into a fast, explicit
+## failure instead.
+var _finished: bool = false
+
+
+func _process(_delta: float) -> bool:
+	if not _finished:
+		push_error("Test runner aborted before completing — see the errors above.")
+		printerr("\nRUNNER ABORTED: a suite failed to load or errored during discovery.\n")
+		quit(2)
+	return true
 
 
 func _initialize() -> void:
@@ -20,6 +39,7 @@ func _initialize() -> void:
 
 	if suite_paths.is_empty():
 		print("No test suites found%s." % ("" if filter.is_empty() else " matching filter '%s'" % filter))
+		_finished = true
 		quit(1)
 		return
 
@@ -32,8 +52,14 @@ func _initialize() -> void:
 
 	for path: String in suite_paths:
 		var script: Variant = load(path)
-		if script == null:
+		if not (script is GDScript):
 			all_failures.append("%s :: could not be loaded" % path)
+			suites_failed += 1
+			continue
+		# A script that failed to parse still loads as a GDScript object; calling
+		# new() on it raises a runtime error that would abort this whole function.
+		if not (script as GDScript).can_instantiate():
+			all_failures.append("%s :: failed to compile (see the parse errors above)" % path)
 			suites_failed += 1
 			continue
 		var instance: Variant = (script as GDScript).new()
@@ -63,6 +89,7 @@ func _initialize() -> void:
 			suite_paths.size(), total_tests, total_assertions
 		])
 		print("---------------------------------------------------------------\n")
+		_finished = true
 		quit(0)
 		return
 
@@ -73,6 +100,7 @@ func _initialize() -> void:
 	for failure: String in all_failures:
 		print("  x %s" % failure)
 	print("---------------------------------------------------------------\n")
+	_finished = true
 	quit(1)
 
 

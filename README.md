@@ -37,12 +37,26 @@ Open the project folder in Godot 4.4 and press play.
 The simulation core is Node-free, so the whole thing is testable headless:
 
 ```bash
-godot --headless --path . --script res://tests/run_tests.gd
-godot --headless --path . --script res://tests/run_tests.gd -- --filter=rng
+tools/test.sh                 # all suites
+tools/test.sh --filter=rng    # only suites whose filename contains "rng"
 ```
 
 Exit code is non-zero on failure. Lint suites run before unit suites so an
 architectural violation is reported before the behaviour it breaks.
+
+The script runs Godot's import pass first, which is not optional: `class_name`
+types are resolved from a cache built during import, so running the tests against
+a stale cache makes every suite referencing a newly added class fail to parse.
+
+### Screenshots
+
+```bash
+tools/screenshot.sh /tmp/shot.png
+tools/screenshot.sh /tmp/shot.png --screenshot-zoom=1.1 --screenshot-focus=1
+```
+
+Renders the real game to a PNG, falling back to Xvfb when there is no display.
+Some bugs only exist once something is actually drawn.
 
 ---
 
@@ -76,7 +90,7 @@ combat code.
 Built in stages, each one tested before the next begins.
 
 - [x] **Stage 0** — foundations: determinism, spatial abstraction, test harness
-- [ ] **Stage 1** — battlefield, ocean, hull geometry, movement physics
+- [x] **Stage 1** — battlefield, ocean, hull geometry, movement physics
 - [ ] **Stage 2** — data layer, historical ship presets, weapons
 - [ ] **Stage 3** — ballistics, ship structure, trajectory tracing, penetration
 - [ ] **Stage 4** — damage, compartments, flooding, fire, derived integrity

@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "id": "uss_fletcher",
+  "name": "USS Fletcher",
+  "class": "Fletcher",
+  "nation": "USA",
+  "type": "destroyer",
+  "year": 1942,
+  "crew": 329,
+
+  "hull": {
+    "form": "destroyer",
+    "lengthM": 114.76,
+    "beamM": 12.03,
+    "draftM": 5.28,
+    "displacementStandardT": 2050,
+    "displacementFullT": 2500
+  },
+
+  "propulsion": {
+    "powerShp": 60000,
+    "shafts": 2,
+    "maxSpeedKn": 36.5,
+    "_speedNote": "38 knots is the commonly quoted design figure at trial displacement. 36.5 is the realistic deep-load speed and is used here, since the simulation fights ships at full load."
+  },
+
+  "manoeuvring": {
+    "tacticalDiameterLengths": 3.5,
+    "maxRudderDeg": 35.0,
+    "rudderRateDegPerSec": 6.0
+  },
+
+  "sources": [
+    "Friedman, US Destroyers: An Illustrated Design History (2004)",
+    "Destroyer History Foundation, Fletcher-class particulars",
+    "NavWeaps: USA 5\"/38 Mark 12"
+  ],
+  "confidence": {
+    "displacementFullT": "high",
+    "maxSpeedKn": "medium — 36.5 to 38 knots depending on load",
+    "tacticalDiameterLengths": "low — no trial figure to hand; 3.5 lengths is typical for a single-rudder destroyer of this size"
+  },
+  "notes": "The archetypal US wartime destroyer: flush-decked, very fine, and with essentially no armour. Her survivability comes from being small and fast, not from protection."
+}
