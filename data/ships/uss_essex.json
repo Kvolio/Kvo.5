@@ -1,0 +1,217 @@
+{
+  "schemaVersion": 1,
+  "id": "uss_essex",
+  "name": "USS Essex",
+  "class": "Essex",
+  "nation": "USA",
+  "type": "carrier",
+  "year": 1942,
+  "crew": 2600,
+  "hull": {
+    "form": "carrier",
+    "lengthM": 265.8,
+    "beamM": 28.3,
+    "draftM": 8.4,
+    "displacementStandardT": 27100,
+    "displacementFullT": 36380
+  },
+  "propulsion": {
+    "powerShp": 150000,
+    "shafts": 4,
+    "maxSpeedKn": 33.0,
+    "boilers": 8,
+    "machineryType": "steam_turbine"
+  },
+  "manoeuvring": {
+    "tacticalDiameterLengths": 3.9,
+    "maxRudderDeg": 35.0,
+    "rudderRateDegPerSec": 3.0
+  },
+  "armament": {
+    "_comment": "Mount positions are given in normalised hull coordinates so they scale with the hull: station runs -0.5 at the stern to +0.5 at the bow, lateral is a fraction of half-beam with 0 on the centreline. Train limits are relative to the mount's rest bearing (0 = facing forward, 180 = facing aft), which is how real turret arcs are specified.",
+    "main": {
+      "gun": "usa_5in38_mk12",
+      "mounts": [
+        {
+          "id": "A",
+          "station": 0.2,
+          "lateral": 0.0,
+          "guns": 2,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -140.0,
+            140.0
+          ]
+        },
+        {
+          "id": "B",
+          "station": 0.13,
+          "lateral": 0.0,
+          "guns": 2,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -140.0,
+            140.0
+          ]
+        },
+        {
+          "id": "C",
+          "station": -0.16,
+          "lateral": 0.0,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -140.0,
+            140.0
+          ]
+        },
+        {
+          "id": "D",
+          "station": -0.23,
+          "lateral": 0.0,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -140.0,
+            140.0
+          ]
+        },
+        {
+          "id": "E",
+          "station": 0.05,
+          "lateral": 0.9,
+          "guns": 1,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -60.0,
+            160.0
+          ]
+        },
+        {
+          "id": "F",
+          "station": -0.05,
+          "lateral": 0.9,
+          "guns": 1,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -60.0,
+            160.0
+          ]
+        },
+        {
+          "id": "G",
+          "station": 0.05,
+          "lateral": -0.9,
+          "guns": 1,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -160.0,
+            60.0
+          ]
+        },
+        {
+          "id": "H",
+          "station": -0.05,
+          "lateral": -0.9,
+          "guns": 1,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -160.0,
+            60.0
+          ]
+        }
+      ]
+    },
+    "antiAir": [
+      {
+        "name": "40 mm Bofors quad",
+        "count": 72,
+        "calibreMm": 40
+      },
+      {
+        "name": "20 mm Oerlikon",
+        "count": 52,
+        "calibreMm": 20
+      }
+    ],
+    "_antiAirComment": "Summarised as barrel counts. Anti-aircraft fire is modelled statistically against air attacks in Stage 7 rather than as individually tracked mounts."
+  },
+  "armour": {
+    "belt": {
+      "thicknessMm": 102,
+      "material": "usa_class_a",
+      "_note": "A cruiser-scale belt over machinery and magazines only."
+    },
+    "upperBelt": {
+      "thicknessMm": 0,
+      "material": "usa_sts"
+    },
+    "deckWeather": {
+      "thicknessMm": 0,
+      "material": "usa_sts",
+      "_note": "The flight deck was wood over thin plating and offered no protection at all."
+    },
+    "deckMain": {
+      "thicknessMm": 64,
+      "material": "usa_sts",
+      "_note": "The armoured deck is the HANGAR deck, below the hangar, not the flight deck."
+    },
+    "deckSplinter": {
+      "thicknessMm": 38,
+      "material": "usa_sts"
+    },
+    "turretFace": {
+      "thicknessMm": 0,
+      "material": "usa_sts"
+    },
+    "turretSide": {
+      "thicknessMm": 0,
+      "material": "usa_sts"
+    },
+    "turretRoof": {
+      "thicknessMm": 0,
+      "material": "usa_sts"
+    },
+    "barbette": {
+      "thicknessMm": 0,
+      "material": "usa_sts"
+    },
+    "conningTower": {
+      "thicknessMm": 38,
+      "material": "usa_sts"
+    },
+    "bulkheadFore": {
+      "thicknessMm": 102,
+      "material": "usa_class_a"
+    },
+    "bulkheadAft": {
+      "thicknessMm": 102,
+      "material": "usa_class_a"
+    },
+    "torpedoBulkhead": {
+      "thicknessMm": 16,
+      "material": "usa_sts"
+    },
+    "_comment": "Thicknesses in millimetres. Inclination is measured from the vertical: an inclined belt presents more effective thickness to a flat trajectory and less to a plunging one, which is why it is recorded per plate rather than assumed."
+  },
+  "torpedoDefence": {
+    "depthM": 4.9,
+    "layers": 4,
+    "_comment": "Depth of the layered underwater protection system, from the outer plating to the holding bulkhead, and how many layers it is divided into. Modelled as real layered structure in Stage 5, not as a damage-reduction percentage."
+  },
+  "aviation": {
+    "capacity": 90,
+    "hangarLengthM": 200.0,
+    "hangarWidthM": 21.0,
+    "hangarHeightM": 5.3,
+    "flightDeckLengthM": 262.0,
+    "flightDeckWidthM": 32.9,
+    "elevators": 3,
+    "aviationFuelL": 856000,
+    "deckArmourMm": 0
+  },
+  "sources": [
+    "Friedman, US Aircraft Carriers: An Illustrated Design History (1983)"
+  ],
+  "notes": "An unarmoured wooden flight deck bought a far larger air group than an armoured British carrier of similar size. The trade was deliberate: aircraft on deck were the defence."
+}

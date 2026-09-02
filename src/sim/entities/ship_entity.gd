@@ -37,6 +37,14 @@ var throttle: float = 0.0       ## -1 (full astern) .. +1 (full ahead)
 var list_angle: float = 0.0     ## radians, positive to starboard
 var trim_angle: float = 0.0     ## radians, positive bow-down
 
+# -- armament ----------------------------------------------------------------
+## Gun mounts, in the order the design lists them. Built by build_turrets().
+var turrets: Array[Turret] = []
+
+## The ship this one is shooting at, or 0 for none. Set by the player or the AI;
+## never inferred inside the gunnery code, so a replay reproduces target changes.
+var target_id: int = 0
+
 # -- condition ---------------------------------------------------------------
 var status: Status = Status.ACTIVE
 
@@ -66,6 +74,43 @@ static func create(p_id: int, p_spec: ShipSpec, p_team: int = 0) -> ShipEntity:
 
 func hull() -> HullGeometry:
 	return spec.hull()
+
+
+## Build the ship's gun mounts from her design.
+##
+## Separate from create() because it needs the armoury to resolve gun definitions,
+## and a movement-only test has no reason to load one.
+func build_turrets(armory: Armory) -> void:
+	turrets.clear()
+	_add_battery(armory, spec.main_battery, &"main")
+	_add_battery(armory, spec.secondary_battery, &"secondary")
+
+
+func _add_battery(armory: Armory, battery: BatteryDef, label: StringName) -> void:
+	if battery == null or battery.is_empty():
+		return
+	var gun: GunDef = armory.get_gun(battery.gun_id)
+	if gun == null:
+		push_warning("ShipEntity: %s has no definition for gun '%s'" % [display_name, battery.gun_id])
+		return
+	for mount: MountDef in battery.mounts:
+		turrets.append(Turret.create(mount, gun, label))
+
+
+func main_battery_turrets() -> Array[Turret]:
+	var out: Array[Turret] = []
+	for turret: Turret in turrets:
+		if turret.battery == &"main":
+			out.append(turret)
+	return out
+
+
+func operational_main_barrels() -> int:
+	var count: int = 0
+	for turret: Turret in turrets:
+		if turret.battery == &"main" and turret.is_operational():
+			count += turret.barrels()
+	return count
 
 
 func is_afloat() -> bool:
@@ -130,6 +175,9 @@ func hash_into(hasher: StateHasher) -> void:
 	hasher.write_float(shaft_asymmetry)
 	hasher.write_float(rudder_effectiveness)
 	hasher.write_int(int(status))
+	hasher.write_int(target_id)
+	for turret: Turret in turrets:
+		turret.hash_into(hasher)
 
 
 func serialize() -> Dictionary:
@@ -152,7 +200,16 @@ func serialize() -> Dictionary:
 		"shaftAsymmetry": shaft_asymmetry,
 		"rudderEffectiveness": rudder_effectiveness,
 		"rudderJammed": rudder_jammed,
+		"targetId": target_id,
+		"turrets": _serialize_turrets(),
 	}
+
+
+func _serialize_turrets() -> Array:
+	var out: Array = []
+	for turret: Turret in turrets:
+		out.append(turret.serialize())
+	return out
 
 
 func deserialize(data: Dictionary) -> void:
@@ -173,3 +230,7 @@ func deserialize(data: Dictionary) -> void:
 	shaft_asymmetry = float(data.get("shaftAsymmetry", shaft_asymmetry))
 	rudder_effectiveness = float(data.get("rudderEffectiveness", rudder_effectiveness))
 	rudder_jammed = bool(data.get("rudderJammed", rudder_jammed))
+	target_id = int(data.get("targetId", 0))
+	var turret_data: Array = data.get("turrets", []) as Array
+	for i: int in mini(turret_data.size(), turrets.size()):
+		turrets[i].deserialize(turret_data[i] as Dictionary)

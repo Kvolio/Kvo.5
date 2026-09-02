@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "uk_5in25_he_mk1",
+  "name": "5.25\" HE Mark IA",
+  "type": "he",
+  "massKg": 36.3,
+  "diameterMm": 133.4,
+  "muzzleVelocityMs": 792.0,
+  "formFactor": 0.856,
+  "_formFactorComment": "Multiplier on the shared drag curve in data/config/ballistics.json. Shells differ in how sharply pointed they are and how good their ballistic caps were, and that is a per-shell property, not a per-gun one. solved so the model reproduces the published maximum range of 22400 m at 45.0 degrees.",
+  "burstingChargeKg": 3.6,
+  "fuzeDelaySeconds": 0.0,
+  "_fuzeComment": "Time from the fuze triggering to detonation. This is what makes a shell burst deep inside a ship instead of at the plate, and what lets it pass clean through a thin-skinned destroyer without going off at all.",
+  "capType": "none",
+  "_capTypeComment": "apc = armour-piercing cap. A cap improves penetration of face-hardened plate and can be stripped by a thin plate encountered first.",
+  "sources": [
+    "NavWeaps.com naval gun and ammunition data"
+  ],
+  "confidence": "medium"
+}

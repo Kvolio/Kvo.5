@@ -1,0 +1,182 @@
+{
+  "schemaVersion": 1,
+  "id": "ijn_yamato",
+  "name": "IJN Yamato",
+  "class": "Yamato",
+  "nation": "Japan",
+  "type": "battleship",
+  "year": 1941,
+  "crew": 2500,
+  "hull": {
+    "form": "battleship",
+    "lengthM": 263.0,
+    "beamM": 38.9,
+    "draftM": 10.86,
+    "displacementStandardT": 65027,
+    "displacementFullT": 72809
+  },
+  "propulsion": {
+    "powerShp": 150000,
+    "shafts": 4,
+    "maxSpeedKn": 27.0,
+    "boilers": 12,
+    "machineryType": "steam_turbine"
+  },
+  "manoeuvring": {
+    "tacticalDiameterLengths": 3.4,
+    "maxRudderDeg": 35.0,
+    "rudderRateDegPerSec": 2.0
+  },
+  "armament": {
+    "_comment": "Mount positions are given in normalised hull coordinates so they scale with the hull: station runs -0.5 at the stern to +0.5 at the bow, lateral is a fraction of half-beam with 0 on the centreline. Train limits are relative to the mount's rest bearing (0 = facing forward, 180 = facing aft), which is how real turret arcs are specified.",
+    "main": {
+      "gun": "jpn_46cm45_t94",
+      "mounts": [
+        {
+          "id": "1",
+          "station": 0.22,
+          "lateral": 0.0,
+          "guns": 3,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        },
+        {
+          "id": "2",
+          "station": 0.13,
+          "lateral": 0.0,
+          "guns": 3,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        },
+        {
+          "id": "3",
+          "station": -0.25,
+          "lateral": 0.0,
+          "guns": 3,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        }
+      ]
+    },
+    "secondary": {
+      "gun": "jpn_15cm5_60_t41",
+      "mounts": [
+        {
+          "id": "S1",
+          "station": 0.05,
+          "lateral": 0.0,
+          "guns": 3,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        },
+        {
+          "id": "S2",
+          "station": -0.14,
+          "lateral": 0.0,
+          "guns": 3,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        }
+      ]
+    },
+    "antiAir": [
+      {
+        "name": "12.7 cm/40 Type 89",
+        "count": 12,
+        "calibreMm": 127
+      },
+      {
+        "name": "25 mm Type 96",
+        "count": 24,
+        "calibreMm": 25
+      }
+    ],
+    "_antiAirComment": "Summarised as barrel counts. Anti-aircraft fire is modelled statistically against air attacks in Stage 7 rather than as individually tracked mounts."
+  },
+  "armour": {
+    "belt": {
+      "thicknessMm": 410,
+      "material": "jpn_vh",
+      "inclinationDeg": 20,
+      "_note": "The thickest belt ever fitted to a warship, inclined 20 degrees outward."
+    },
+    "upperBelt": {
+      "thicknessMm": 0,
+      "material": "jpn_vh"
+    },
+    "deckWeather": {
+      "thicknessMm": 0,
+      "material": "jpn_ds"
+    },
+    "deckMain": {
+      "thicknessMm": 200,
+      "material": "jpn_nvnc",
+      "_note": "230 mm over the magazines."
+    },
+    "deckSplinter": {
+      "thicknessMm": 0,
+      "material": "jpn_ds"
+    },
+    "turretFace": {
+      "thicknessMm": 650,
+      "material": "jpn_vh",
+      "inclinationDeg": 45,
+      "_note": "Sloped 45 degrees; effectively immune to any gun afloat."
+    },
+    "turretSide": {
+      "thicknessMm": 250,
+      "material": "jpn_vh"
+    },
+    "turretRoof": {
+      "thicknessMm": 270,
+      "material": "jpn_vh"
+    },
+    "barbette": {
+      "thicknessMm": 560,
+      "material": "jpn_vh"
+    },
+    "conningTower": {
+      "thicknessMm": 500,
+      "material": "jpn_vh"
+    },
+    "bulkheadFore": {
+      "thicknessMm": 300,
+      "material": "jpn_vh"
+    },
+    "bulkheadAft": {
+      "thicknessMm": 300,
+      "material": "jpn_vh"
+    },
+    "torpedoBulkhead": {
+      "thicknessMm": 200,
+      "material": "jpn_vh",
+      "_note": "The lower belt itself served as the torpedo bulkhead; the joint between it and the main belt was the scheme's weak point."
+    },
+    "_comment": "Thicknesses in millimetres. Inclination is measured from the vertical: an inclined belt presents more effective thickness to a flat trajectory and less to a plunging one, which is why it is recorded per plate rather than assumed."
+  },
+  "torpedoDefence": {
+    "depthM": 5.1,
+    "layers": 3,
+    "_comment": "Depth of the layered underwater protection system, from the outer plating to the holding bulkhead, and how many layers it is divided into. Modelled as real layered structure in Stage 5, not as a damage-reduction percentage."
+  },
+  "sources": [
+    "Skulski, The Battleship Yamato (1988)",
+    "Garzke & Dulin, Battleships: Axis and Neutral Battleships"
+  ],
+  "notes": "The largest battleship ever built. Note the material quality factor for Japanese VH plate in data/materials/armor.json: it is disputed, and it is what decides whether that 410 mm belt behaves like 410 mm."
+}

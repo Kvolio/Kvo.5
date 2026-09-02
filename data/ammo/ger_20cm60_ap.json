@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "ger_20cm60_ap",
+  "name": "20.3 cm/60 AP L/4,4",
+  "type": "ap",
+  "massKg": 122.0,
+  "diameterMm": 203.0,
+  "muzzleVelocityMs": 925.0,
+  "formFactor": 0.8561,
+  "_formFactorComment": "Multiplier on the shared drag curve in data/config/ballistics.json. Shells differ in how sharply pointed they are and how good their ballistic caps were, and that is a per-shell property, not a per-gun one. solved so the model reproduces the published maximum range of 33540 m at 37.0 degrees.",
+  "burstingChargeKg": 2.3,
+  "fuzeDelaySeconds": 0.035,
+  "_fuzeComment": "Time from the fuze triggering to detonation. This is what makes a shell burst deep inside a ship instead of at the plate, and what lets it pass clean through a thin-skinned destroyer without going off at all.",
+  "capType": "apc",
+  "_capTypeComment": "apc = armour-piercing cap. A cap improves penetration of face-hardened plate and can be stripped by a thin plate encountered first.",
+  "sources": [
+    "NavWeaps.com naval gun and ammunition data"
+  ],
+  "confidence": "high"
+}

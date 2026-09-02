@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "uk_15in42_ap_mk17",
+  "name": "15\"/42 AP 6crh",
+  "type": "ap",
+  "massKg": 879.0,
+  "diameterMm": 381.0,
+  "muzzleVelocityMs": 752.0,
+  "formFactor": 0.8506,
+  "_formFactorComment": "Multiplier on the shared drag curve in data/config/ballistics.json. Shells differ in how sharply pointed they are and how good their ballistic caps were, and that is a per-shell property, not a per-gun one. solved so the model reproduces the published maximum range of 32000 m at 30.0 degrees.",
+  "burstingChargeKg": 20.5,
+  "fuzeDelaySeconds": 0.033,
+  "_fuzeComment": "Time from the fuze triggering to detonation. This is what makes a shell burst deep inside a ship instead of at the plate, and what lets it pass clean through a thin-skinned destroyer without going off at all.",
+  "capType": "apc",
+  "_capTypeComment": "apc = armour-piercing cap. A cap improves penetration of face-hardened plate and can be stripped by a thin plate encountered first.",
+  "sources": [
+    "NavWeaps.com naval gun and ammunition data"
+  ],
+  "confidence": "medium",
+  "notes": "Vanguard's mountings elevated to 30 degrees; sources differ on the exact deep-load range."
+}

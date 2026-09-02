@@ -7,7 +7,6 @@
   "type": "destroyer",
   "year": 1942,
   "crew": 329,
-
   "hull": {
     "form": "destroyer",
     "lengthM": 114.76,
@@ -16,29 +15,159 @@
     "displacementStandardT": 2050,
     "displacementFullT": 2500
   },
-
   "propulsion": {
     "powerShp": 60000,
     "shafts": 2,
     "maxSpeedKn": 36.5,
-    "_speedNote": "38 knots is the commonly quoted design figure at trial displacement. 36.5 is the realistic deep-load speed and is used here, since the simulation fights ships at full load."
+    "boilers": 4,
+    "machineryType": "steam_turbine",
+    "_speedNote": "38 knots is the commonly quoted design figure at trial displacement; 36.5 is the realistic deep-load speed and is what the simulation uses, since ships fight at full load."
   },
-
   "manoeuvring": {
     "tacticalDiameterLengths": 3.5,
     "maxRudderDeg": 35.0,
     "rudderRateDegPerSec": 6.0
   },
-
+  "armament": {
+    "_comment": "Mount positions are given in normalised hull coordinates so they scale with the hull: station runs -0.5 at the stern to +0.5 at the bow, lateral is a fraction of half-beam with 0 on the centreline. Train limits are relative to the mount's rest bearing (0 = facing forward, 180 = facing aft), which is how real turret arcs are specified.",
+    "main": {
+      "gun": "usa_5in38_mk12",
+      "mounts": [
+        {
+          "id": "A",
+          "station": 0.3,
+          "lateral": 0.0,
+          "guns": 1,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        },
+        {
+          "id": "B",
+          "station": 0.2,
+          "lateral": 0.0,
+          "guns": 1,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        },
+        {
+          "id": "C",
+          "station": -0.06,
+          "lateral": 0.0,
+          "guns": 1,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -140.0,
+            140.0
+          ]
+        },
+        {
+          "id": "D",
+          "station": -0.19,
+          "lateral": 0.0,
+          "guns": 1,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        },
+        {
+          "id": "E",
+          "station": -0.28,
+          "lateral": 0.0,
+          "guns": 1,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        }
+      ]
+    },
+    "antiAir": [
+      {
+        "name": "40 mm Bofors twin",
+        "count": 10,
+        "calibreMm": 40
+      },
+      {
+        "name": "20 mm Oerlikon",
+        "count": 7,
+        "calibreMm": 20
+      }
+    ],
+    "_antiAirComment": "Summarised as barrel counts. Anti-aircraft fire is modelled statistically against air attacks in Stage 7 rather than as individually tracked mounts."
+  },
+  "armour": {
+    "belt": {
+      "thicknessMm": 0,
+      "material": "usa_sts"
+    },
+    "upperBelt": {
+      "thicknessMm": 0,
+      "material": "usa_sts"
+    },
+    "deckWeather": {
+      "thicknessMm": 0,
+      "material": "usa_sts"
+    },
+    "deckMain": {
+      "thicknessMm": 13,
+      "material": "usa_sts",
+      "_note": "Splinter plating over machinery spaces. This is not armour and will not stop a shell of any calibre."
+    },
+    "deckSplinter": {
+      "thicknessMm": 0,
+      "material": "usa_sts"
+    },
+    "turretFace": {
+      "thicknessMm": 13,
+      "material": "usa_sts"
+    },
+    "turretSide": {
+      "thicknessMm": 13,
+      "material": "usa_sts"
+    },
+    "turretRoof": {
+      "thicknessMm": 13,
+      "material": "usa_sts"
+    },
+    "barbette": {
+      "thicknessMm": 13,
+      "material": "usa_sts"
+    },
+    "conningTower": {
+      "thicknessMm": 13,
+      "material": "usa_sts"
+    },
+    "bulkheadFore": {
+      "thicknessMm": 0,
+      "material": "usa_sts"
+    },
+    "bulkheadAft": {
+      "thicknessMm": 0,
+      "material": "usa_sts"
+    },
+    "torpedoBulkhead": {
+      "thicknessMm": 0,
+      "material": "usa_sts"
+    },
+    "_comment": "Thicknesses in millimetres. Inclination is measured from the vertical: an inclined belt presents more effective thickness to a flat trajectory and less to a plunging one, which is why it is recorded per plate rather than assumed."
+  },
+  "torpedoDefence": {
+    "depthM": 0.0,
+    "layers": 1,
+    "_comment": "Depth of the layered underwater protection system, from the outer plating to the holding bulkhead, and how many layers it is divided into. Modelled as real layered structure in Stage 5, not as a damage-reduction percentage."
+  },
   "sources": [
     "Friedman, US Destroyers: An Illustrated Design History (2004)",
-    "Destroyer History Foundation, Fletcher-class particulars",
-    "NavWeaps: USA 5\"/38 Mark 12"
+    "Destroyer History Foundation, Fletcher-class particulars"
   ],
-  "confidence": {
-    "displacementFullT": "high",
-    "maxSpeedKn": "medium — 36.5 to 38 knots depending on load",
-    "tacticalDiameterLengths": "low — no trial figure to hand; 3.5 lengths is typical for a single-rudder destroyer of this size"
-  },
   "notes": "The archetypal US wartime destroyer: flush-decked, very fine, and with essentially no armour. Her survivability comes from being small and fast, not from protection."
 }

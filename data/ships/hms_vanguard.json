@@ -1,0 +1,248 @@
+{
+  "schemaVersion": 1,
+  "id": "hms_vanguard",
+  "name": "HMS Vanguard",
+  "class": "Vanguard",
+  "nation": "UK",
+  "type": "battleship",
+  "year": 1946,
+  "crew": 1975,
+  "hull": {
+    "form": "battleship",
+    "lengthM": 248.2,
+    "beamM": 32.9,
+    "draftM": 10.9,
+    "displacementStandardT": 44500,
+    "displacementFullT": 51420
+  },
+  "propulsion": {
+    "powerShp": 130000,
+    "shafts": 4,
+    "maxSpeedKn": 30.0,
+    "boilers": 8,
+    "machineryType": "steam_turbine"
+  },
+  "manoeuvring": {
+    "tacticalDiameterLengths": 3.7,
+    "maxRudderDeg": 35.0,
+    "rudderRateDegPerSec": 2.5
+  },
+  "armament": {
+    "_comment": "Mount positions are given in normalised hull coordinates so they scale with the hull: station runs -0.5 at the stern to +0.5 at the bow, lateral is a fraction of half-beam with 0 on the centreline. Train limits are relative to the mount's rest bearing (0 = facing forward, 180 = facing aft), which is how real turret arcs are specified.",
+    "main": {
+      "gun": "uk_15in42_mk1",
+      "mounts": [
+        {
+          "id": "A",
+          "station": 0.24,
+          "lateral": 0.0,
+          "guns": 2,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        },
+        {
+          "id": "B",
+          "station": 0.15,
+          "lateral": 0.0,
+          "guns": 2,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        },
+        {
+          "id": "X",
+          "station": -0.16,
+          "lateral": 0.0,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        },
+        {
+          "id": "Y",
+          "station": -0.25,
+          "lateral": 0.0,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        }
+      ]
+    },
+    "secondary": {
+      "gun": "uk_5in25_mk1",
+      "mounts": [
+        {
+          "id": "S0",
+          "station": 0.06,
+          "lateral": -0.88,
+          "guns": 2,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -160.0,
+            60.0
+          ]
+        },
+        {
+          "id": "S1",
+          "station": 0.06,
+          "lateral": 0.88,
+          "guns": 2,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -60.0,
+            160.0
+          ]
+        },
+        {
+          "id": "S2",
+          "station": -0.01,
+          "lateral": -0.88,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -160.0,
+            60.0
+          ]
+        },
+        {
+          "id": "S3",
+          "station": -0.01,
+          "lateral": 0.88,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -60.0,
+            160.0
+          ]
+        },
+        {
+          "id": "S4",
+          "station": -0.08,
+          "lateral": -0.88,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -160.0,
+            60.0
+          ]
+        },
+        {
+          "id": "S5",
+          "station": -0.08,
+          "lateral": 0.88,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -60.0,
+            160.0
+          ]
+        },
+        {
+          "id": "S6",
+          "station": -0.15,
+          "lateral": -0.88,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -160.0,
+            60.0
+          ]
+        },
+        {
+          "id": "S7",
+          "station": -0.15,
+          "lateral": 0.88,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -60.0,
+            160.0
+          ]
+        }
+      ]
+    },
+    "antiAir": [
+      {
+        "name": "40 mm Bofors",
+        "count": 73,
+        "calibreMm": 40
+      }
+    ],
+    "_antiAirComment": "Summarised as barrel counts. Anti-aircraft fire is modelled statistically against air attacks in Stage 7 rather than as individually tracked mounts."
+  },
+  "armour": {
+    "belt": {
+      "thicknessMm": 356,
+      "material": "uk_ca",
+      "_note": "356 mm over magazines, 343 mm over machinery."
+    },
+    "upperBelt": {
+      "thicknessMm": 0,
+      "material": "uk_nca"
+    },
+    "deckWeather": {
+      "thicknessMm": 25,
+      "material": "uk_d_steel"
+    },
+    "deckMain": {
+      "thicknessMm": 152,
+      "material": "uk_nca"
+    },
+    "deckSplinter": {
+      "thicknessMm": 0,
+      "material": "uk_nca"
+    },
+    "turretFace": {
+      "thicknessMm": 330,
+      "material": "uk_ca"
+    },
+    "turretSide": {
+      "thicknessMm": 280,
+      "material": "uk_ca"
+    },
+    "turretRoof": {
+      "thicknessMm": 127,
+      "material": "uk_nca"
+    },
+    "barbette": {
+      "thicknessMm": 330,
+      "material": "uk_ca"
+    },
+    "conningTower": {
+      "thicknessMm": 76,
+      "material": "uk_ca"
+    },
+    "bulkheadFore": {
+      "thicknessMm": 305,
+      "material": "uk_ca"
+    },
+    "bulkheadAft": {
+      "thicknessMm": 254,
+      "material": "uk_ca"
+    },
+    "torpedoBulkhead": {
+      "thicknessMm": 44,
+      "material": "uk_nca"
+    },
+    "_comment": "Thicknesses in millimetres. Inclination is measured from the vertical: an inclined belt presents more effective thickness to a flat trajectory and less to a plunging one, which is why it is recorded per plate rather than assumed."
+  },
+  "torpedoDefence": {
+    "depthM": 4.6,
+    "layers": 3,
+    "_comment": "Depth of the layered underwater protection system, from the outer plating to the holding bulkhead, and how many layers it is divided into. Modelled as real layered structure in Stage 5, not as a damage-reduction percentage."
+  },
+  "sources": [
+    "Raven & Roberts, British Battleships of World War Two (1976)"
+  ],
+  "notes": "The last battleship ever completed, carrying 1917-vintage turrets taken out of storage. Fast, superbly seaworthy, and obsolete the day she commissioned."
+}

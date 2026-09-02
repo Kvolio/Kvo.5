@@ -43,6 +43,11 @@ static func parse(data: Dictionary, source_path: String = "<memory>") -> ShipSpe
 	_parse_hull(spec, data.get("hull", {}) as Dictionary, source_path)
 	_parse_propulsion(spec, data.get("propulsion", {}) as Dictionary)
 	_parse_manoeuvring(spec, data.get("manoeuvring", {}) as Dictionary)
+	_parse_armament(spec, data.get("armament", {}) as Dictionary)
+	spec.armour = ArmourSchemeDef.parse(
+		data.get("armour", {}) as Dictionary,
+		data.get("torpedoDefence", {}) as Dictionary)
+	spec.aviation = data.get("aviation", {}) as Dictionary
 
 	spec.derive_defaults()
 	return spec
@@ -96,6 +101,14 @@ static func _parse_manoeuvring(spec: ShipSpec, manoeuvring: Dictionary) -> void:
 	# Left at zero on purpose when unspecified: derive_defaults() then scales it from
 	# the ship's length rather than applying a one-size-fits-all constant.
 	spec.yaw_response_time_s = float(manoeuvring.get("yawResponseTimeS", 0.0))
+
+
+static func _parse_armament(spec: ShipSpec, armament: Dictionary) -> void:
+	if armament.has("main"):
+		spec.main_battery = BatteryDef.parse(armament["main"] as Dictionary)
+	if armament.has("secondary"):
+		spec.secondary_battery = BatteryDef.parse(armament["secondary"] as Dictionary)
+	spec.anti_air = armament.get("antiAir", []) as Array
 
 
 static var _hull_form_cache: Dictionary = {}

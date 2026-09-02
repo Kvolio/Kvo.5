@@ -1,0 +1,217 @@
+{
+  "schemaVersion": 1,
+  "id": "ijn_mogami",
+  "name": "IJN Mogami",
+  "class": "Mogami",
+  "nation": "Japan",
+  "type": "cruiser",
+  "year": 1939,
+  "crew": 850,
+  "hull": {
+    "form": "heavy_cruiser",
+    "lengthM": 200.6,
+    "beamM": 20.2,
+    "draftM": 6.1,
+    "displacementStandardT": 12400,
+    "displacementFullT": 14112
+  },
+  "propulsion": {
+    "powerShp": 152000,
+    "shafts": 4,
+    "maxSpeedKn": 35.0,
+    "boilers": 10,
+    "machineryType": "steam_turbine"
+  },
+  "manoeuvring": {
+    "tacticalDiameterLengths": 3.3,
+    "maxRudderDeg": 35.0,
+    "rudderRateDegPerSec": 4.5
+  },
+  "armament": {
+    "_comment": "Mount positions are given in normalised hull coordinates so they scale with the hull: station runs -0.5 at the stern to +0.5 at the bow, lateral is a fraction of half-beam with 0 on the centreline. Train limits are relative to the mount's rest bearing (0 = facing forward, 180 = facing aft), which is how real turret arcs are specified.",
+    "main": {
+      "gun": "jpn_20cm50_t3",
+      "mounts": [
+        {
+          "id": "1",
+          "station": 0.26,
+          "lateral": 0.0,
+          "guns": 2,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        },
+        {
+          "id": "2",
+          "station": 0.18,
+          "lateral": 0.0,
+          "guns": 2,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        },
+        {
+          "id": "3",
+          "station": 0.09,
+          "lateral": 0.0,
+          "guns": 2,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        },
+        {
+          "id": "4",
+          "station": -0.18,
+          "lateral": 0.0,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        },
+        {
+          "id": "5",
+          "station": -0.26,
+          "lateral": 0.0,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        }
+      ]
+    },
+    "secondary": {
+      "gun": "jpn_12cm7_40_t89",
+      "mounts": [
+        {
+          "id": "S0",
+          "station": 0.02,
+          "lateral": -0.86,
+          "guns": 2,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -160.0,
+            60.0
+          ]
+        },
+        {
+          "id": "S1",
+          "station": 0.02,
+          "lateral": 0.86,
+          "guns": 2,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -60.0,
+            160.0
+          ]
+        },
+        {
+          "id": "S2",
+          "station": -0.06,
+          "lateral": -0.86,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -160.0,
+            60.0
+          ]
+        },
+        {
+          "id": "S3",
+          "station": -0.06,
+          "lateral": 0.86,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -60.0,
+            160.0
+          ]
+        }
+      ]
+    },
+    "antiAir": [
+      {
+        "name": "25 mm Type 96",
+        "count": 30,
+        "calibreMm": 25
+      }
+    ],
+    "_antiAirComment": "Summarised as barrel counts. Anti-aircraft fire is modelled statistically against air attacks in Stage 7 rather than as individually tracked mounts."
+  },
+  "armour": {
+    "belt": {
+      "thicknessMm": 100,
+      "material": "jpn_nvnc",
+      "_note": "140 mm over the magazines."
+    },
+    "upperBelt": {
+      "thicknessMm": 0,
+      "material": "jpn_ds"
+    },
+    "deckWeather": {
+      "thicknessMm": 0,
+      "material": "jpn_ds"
+    },
+    "deckMain": {
+      "thicknessMm": 35,
+      "material": "jpn_nvnc",
+      "_note": "60 mm over the magazines."
+    },
+    "deckSplinter": {
+      "thicknessMm": 0,
+      "material": "jpn_ds"
+    },
+    "turretFace": {
+      "thicknessMm": 25,
+      "material": "jpn_ds",
+      "_note": "Splinter plating only. Japanese cruiser turrets were essentially unarmoured, which made them very vulnerable to hits that a Baltimore would shrug off."
+    },
+    "turretSide": {
+      "thicknessMm": 25,
+      "material": "jpn_ds"
+    },
+    "turretRoof": {
+      "thicknessMm": 25,
+      "material": "jpn_ds"
+    },
+    "barbette": {
+      "thicknessMm": 100,
+      "material": "jpn_nvnc"
+    },
+    "conningTower": {
+      "thicknessMm": 100,
+      "material": "jpn_nvnc"
+    },
+    "bulkheadFore": {
+      "thicknessMm": 100,
+      "material": "jpn_nvnc"
+    },
+    "bulkheadAft": {
+      "thicknessMm": 100,
+      "material": "jpn_nvnc"
+    },
+    "torpedoBulkhead": {
+      "thicknessMm": 58,
+      "material": "jpn_nvnc"
+    },
+    "_comment": "Thicknesses in millimetres. Inclination is measured from the vertical: an inclined belt presents more effective thickness to a flat trajectory and less to a plunging one, which is why it is recorded per plate rather than assumed."
+  },
+  "torpedoDefence": {
+    "depthM": 2.5,
+    "layers": 2,
+    "_comment": "Depth of the layered underwater protection system, from the outer plating to the holding bulkhead, and how many layers it is divided into. Modelled as real layered structure in Stage 5, not as a damage-reduction percentage."
+  },
+  "sources": [
+    "Lacroix & Wells, Japanese Cruisers of the Pacific War (1997)"
+  ],
+  "notes": "Built as a 15-gun light cruiser inside treaty limits, then rearmed with 20.3 cm guns. Fast and heavily armed; her unarmoured turrets and large torpedo battery both made her fragile."
+}

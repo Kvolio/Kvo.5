@@ -82,6 +82,8 @@ combat code.
 
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — how the pieces fit and why
 - [`docs/DETERMINISM.md`](docs/DETERMINISM.md) — the reproducibility contract and its limits
+- [`docs/BALLISTICS.md`](docs/BALLISTICS.md) — the trajectory model and how it was calibrated
+- [`docs/SOURCES.md`](docs/SOURCES.md) — where the historical figures came from, and which to doubt
 
 ---
 
@@ -91,7 +93,7 @@ Built in stages, each one tested before the next begins.
 
 - [x] **Stage 0** — foundations: determinism, spatial abstraction, test harness
 - [x] **Stage 1** — battlefield, ocean, hull geometry, movement physics
-- [ ] **Stage 2** — data layer, historical ship presets, weapons
+- [x] **Stage 2** — data layer, historical ship presets, weapons
 - [ ] **Stage 3** — ballistics, ship structure, trajectory tracing, penetration
 - [ ] **Stage 4** — damage, compartments, flooding, fire, derived integrity
 - [ ] **Stage 5** — magazine detonation, torpedoes, capsize, damage control

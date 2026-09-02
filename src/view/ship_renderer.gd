@@ -20,6 +20,9 @@ extends Node2D
 const MIN_SILHOUETTE_PIXELS: float = 14.0
 const SYMBOL_PIXELS: float = 9.0
 
+## Below this apparent hull length, turrets are too small to read and are skipped.
+const MIN_TURRET_PIXELS: float = 90.0
+
 var world: SimWorld = null
 var selected_id: int = 0
 var show_headings: bool = true
@@ -67,6 +70,49 @@ func _draw_silhouette(ship: ShipEntity, colour: Color, is_selected: bool) -> voi
 
 	if show_headings:
 		_draw_heading_vector(ship, colour)
+	if ship.spec.length_m * _zoom >= MIN_TURRET_PIXELS:
+		_draw_turrets(ship, colour)
+
+
+## Gun mounts, drawn where they are and pointing where they are trained.
+##
+## Worth the pixels: a ship with her turrets trained hard round is visibly engaging
+## something off the bow, and one whose after turret sits fore and aft while the
+## forward pair are trained out is visibly unable to bring it to bear. Both are real
+## tactical facts that would otherwise be buried in a panel.
+func _draw_turrets(ship: ShipEntity, colour: Color) -> void:
+	var transform: Transform2D = Transform2D(ship.heading, ship.position)
+	var line_width: float = 1.0 / _zoom
+
+	for turret: Turret in ship.turrets:
+		# Scale the mount with its gun: a 16-inch turret should look like one next to
+		# a 5-inch mount on the same ship.
+		var size: float = maxf(turret.gun.calibre_m * 12.0, ship.spec.beam_m * 0.10)
+		var centre: Vector2 = turret.mount.local_position(ship.spec.length_m, ship.spec.beam_m)
+		var facing: Vector2 = Vector2(cos(turret.bearing), sin(turret.bearing))
+		var side: Vector2 = Vector2(-facing.y, facing.x)
+
+		var body: PackedVector2Array = PackedVector2Array([
+			transform * (centre + facing * size * 0.5 + side * size * 0.45),
+			transform * (centre + facing * size * 0.5 - side * size * 0.45),
+			transform * (centre - facing * size * 0.6 - side * size * 0.45),
+			transform * (centre - facing * size * 0.6 + side * size * 0.45),
+		])
+		var fill: Color = colour
+		fill.a = 0.55 if turret.is_operational() else 0.20
+		draw_colored_polygon(body, fill)
+
+		if not turret.is_operational():
+			continue
+		# One line per barrel, spread across the turret face.
+		var barrel_length: float = turret.gun.barrel_length_m() * 0.6
+		for i: int in turret.barrels():
+			var spread: float = 0.0
+			if turret.barrels() > 1:
+				spread = (float(i) / float(turret.barrels() - 1) - 0.5) * size * 0.6
+			var root: Vector2 = centre + side * spread
+			draw_line(transform * root, transform * (root + facing * barrel_length),
+				colour, line_width, true)
 
 
 func _draw_symbol(ship: ShipEntity, colour: Color, is_selected: bool) -> void:

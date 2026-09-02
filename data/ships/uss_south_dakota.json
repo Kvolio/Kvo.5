@@ -1,0 +1,245 @@
+{
+  "schemaVersion": 1,
+  "id": "uss_south_dakota",
+  "name": "USS South Dakota",
+  "class": "South Dakota",
+  "nation": "USA",
+  "type": "battleship",
+  "year": 1942,
+  "crew": 2500,
+  "hull": {
+    "form": "battleship",
+    "lengthM": 207.26,
+    "beamM": 32.97,
+    "draftM": 10.7,
+    "displacementStandardT": 37970,
+    "displacementFullT": 44519
+  },
+  "propulsion": {
+    "powerShp": 130000,
+    "shafts": 4,
+    "maxSpeedKn": 27.5,
+    "boilers": 8,
+    "machineryType": "steam_turbine"
+  },
+  "manoeuvring": {
+    "tacticalDiameterLengths": 3.6,
+    "maxRudderDeg": 35.0,
+    "rudderRateDegPerSec": 2.5
+  },
+  "armament": {
+    "_comment": "Mount positions are given in normalised hull coordinates so they scale with the hull: station runs -0.5 at the stern to +0.5 at the bow, lateral is a fraction of half-beam with 0 on the centreline. Train limits are relative to the mount's rest bearing (0 = facing forward, 180 = facing aft), which is how real turret arcs are specified.",
+    "main": {
+      "gun": "usa_16in45_mk6",
+      "mounts": [
+        {
+          "id": "A",
+          "station": 0.22,
+          "lateral": 0.0,
+          "guns": 3,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        },
+        {
+          "id": "B",
+          "station": 0.13,
+          "lateral": 0.0,
+          "guns": 3,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        },
+        {
+          "id": "C",
+          "station": -0.24,
+          "lateral": 0.0,
+          "guns": 3,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        }
+      ]
+    },
+    "secondary": {
+      "gun": "usa_5in38_mk12",
+      "mounts": [
+        {
+          "id": "S0",
+          "station": 0.06,
+          "lateral": -0.85,
+          "guns": 2,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -160.0,
+            60.0
+          ]
+        },
+        {
+          "id": "S1",
+          "station": 0.06,
+          "lateral": 0.85,
+          "guns": 2,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -60.0,
+            160.0
+          ]
+        },
+        {
+          "id": "S2",
+          "station": -0.02,
+          "lateral": -0.85,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -160.0,
+            60.0
+          ]
+        },
+        {
+          "id": "S3",
+          "station": -0.02,
+          "lateral": 0.85,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -60.0,
+            160.0
+          ]
+        },
+        {
+          "id": "S4",
+          "station": -0.1,
+          "lateral": -0.85,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -160.0,
+            60.0
+          ]
+        },
+        {
+          "id": "S5",
+          "station": -0.1,
+          "lateral": 0.85,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -60.0,
+            160.0
+          ]
+        },
+        {
+          "id": "S6",
+          "station": -0.17,
+          "lateral": -0.85,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -160.0,
+            60.0
+          ]
+        },
+        {
+          "id": "S7",
+          "station": -0.17,
+          "lateral": 0.85,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -60.0,
+            160.0
+          ]
+        }
+      ]
+    },
+    "antiAir": [
+      {
+        "name": "40 mm Bofors quad",
+        "count": 68,
+        "calibreMm": 40
+      },
+      {
+        "name": "20 mm Oerlikon",
+        "count": 76,
+        "calibreMm": 20
+      }
+    ],
+    "_antiAirComment": "Summarised as barrel counts. Anti-aircraft fire is modelled statistically against air attacks in Stage 7 rather than as individually tracked mounts."
+  },
+  "armour": {
+    "belt": {
+      "thicknessMm": 310,
+      "material": "usa_class_a",
+      "inclinationDeg": 19,
+      "_note": "Internal inclined belt, tapering to 218 mm at its lower edge."
+    },
+    "upperBelt": {
+      "thicknessMm": 0,
+      "material": "usa_sts"
+    },
+    "deckWeather": {
+      "thicknessMm": 38,
+      "material": "usa_sts"
+    },
+    "deckMain": {
+      "thicknessMm": 146,
+      "material": "usa_class_b"
+    },
+    "deckSplinter": {
+      "thicknessMm": 16,
+      "material": "usa_sts"
+    },
+    "turretFace": {
+      "thicknessMm": 457,
+      "material": "usa_class_a"
+    },
+    "turretSide": {
+      "thicknessMm": 241,
+      "material": "usa_class_a"
+    },
+    "turretRoof": {
+      "thicknessMm": 184,
+      "material": "usa_class_b"
+    },
+    "barbette": {
+      "thicknessMm": 439,
+      "material": "usa_class_a"
+    },
+    "conningTower": {
+      "thicknessMm": 406,
+      "material": "usa_class_a"
+    },
+    "bulkheadFore": {
+      "thicknessMm": 287,
+      "material": "usa_class_a"
+    },
+    "bulkheadAft": {
+      "thicknessMm": 287,
+      "material": "usa_class_a"
+    },
+    "torpedoBulkhead": {
+      "thicknessMm": 19,
+      "material": "usa_sts",
+      "_note": "Innermost of a four-layer system about 5.3 m deep."
+    },
+    "_comment": "Thicknesses in millimetres. Inclination is measured from the vertical: an inclined belt presents more effective thickness to a flat trajectory and less to a plunging one, which is why it is recorded per plate rather than assumed."
+  },
+  "torpedoDefence": {
+    "depthM": 5.3,
+    "layers": 4,
+    "_comment": "Depth of the layered underwater protection system, from the outer plating to the holding bulkhead, and how many layers it is divided into. Modelled as real layered structure in Stage 5, not as a damage-reduction percentage."
+  },
+  "sources": [
+    "Friedman, US Battleships (1985)",
+    "Garzke & Dulin, Battleships: United States Battleships 1935-1992"
+  ],
+  "notes": "The most heavily protected of the treaty battleships, achieved by making her 20 m shorter than an Iowa and accepting six fewer knots."
+}

@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "usa_8in55_he_mk25",
+  "name": "8\"/55 HC Mark 25",
+  "type": "he",
+  "massKg": 117.9,
+  "diameterMm": 203.2,
+  "muzzleVelocityMs": 823.0,
+  "formFactor": 0.9024,
+  "_formFactorComment": "Multiplier on the shared drag curve in data/config/ballistics.json. Shells differ in how sharply pointed they are and how good their ballistic caps were, and that is a per-shell property, not a per-gun one. solved so the model reproduces the published maximum range of 27400 m at 41.0 degrees.",
+  "burstingChargeKg": 9.0,
+  "fuzeDelaySeconds": 0.0,
+  "_fuzeComment": "Time from the fuze triggering to detonation. This is what makes a shell burst deep inside a ship instead of at the plate, and what lets it pass clean through a thin-skinned destroyer without going off at all.",
+  "capType": "none",
+  "_capTypeComment": "apc = armour-piercing cap. A cap improves penetration of face-hardened plate and can be stripped by a thin plate encountered first.",
+  "sources": [
+    "NavWeaps.com naval gun and ammunition data"
+  ],
+  "confidence": "medium"
+}

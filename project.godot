@@ -17,6 +17,7 @@ config/features=PackedStringArray("4.4", "GL Compatibility")
 AppBus="*res://src/core/app_bus.gd"
 GameConfig="*res://src/core/game_config.gd"
 ShipDatabase="*res://src/core/ship_database.gd"
+WeaponDatabase="*res://src/core/weapon_database.gd"
 
 [display]
 

@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "id": "ijn_kagero",
+  "name": "IJN Kagero",
+  "class": "Kagero",
+  "nation": "Japan",
+  "type": "destroyer",
+  "year": 1939,
+  "crew": 240,
+  "hull": {
+    "form": "destroyer",
+    "lengthM": 118.5,
+    "beamM": 10.8,
+    "draftM": 3.76,
+    "displacementStandardT": 2033,
+    "displacementFullT": 2500
+  },
+  "propulsion": {
+    "powerShp": 52000,
+    "shafts": 2,
+    "maxSpeedKn": 35.5,
+    "boilers": 3,
+    "machineryType": "steam_turbine"
+  },
+  "manoeuvring": {
+    "tacticalDiameterLengths": 3.4,
+    "maxRudderDeg": 35.0,
+    "rudderRateDegPerSec": 6.0
+  },
+  "armament": {
+    "_comment": "Mount positions are given in normalised hull coordinates so they scale with the hull: station runs -0.5 at the stern to +0.5 at the bow, lateral is a fraction of half-beam with 0 on the centreline. Train limits are relative to the mount's rest bearing (0 = facing forward, 180 = facing aft), which is how real turret arcs are specified.",
+    "main": {
+      "gun": "jpn_12cm7_50_t3",
+      "mounts": [
+        {
+          "id": "A",
+          "station": 0.26,
+          "lateral": 0.0,
+          "guns": 2,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        },
+        {
+          "id": "B",
+          "station": -0.16,
+          "lateral": 0.0,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        },
+        {
+          "id": "C",
+          "station": -0.25,
+          "lateral": 0.0,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        }
+      ]
+    },
+    "antiAir": [
+      {
+        "name": "25 mm Type 96",
+        "count": 4,
+        "calibreMm": 25
+      }
+    ],
+    "_antiAirComment": "Summarised as barrel counts. Anti-aircraft fire is modelled statistically against air attacks in Stage 7 rather than as individually tracked mounts."
+  },
+  "armour": {
+    "belt": {
+      "thicknessMm": 0,
+      "material": "jpn_ds"
+    },
+    "upperBelt": {
+      "thicknessMm": 0,
+      "material": "jpn_ds"
+    },
+    "deckWeather": {
+      "thicknessMm": 0,
+      "material": "jpn_ds"
+    },
+    "deckMain": {
+      "thicknessMm": 0,
+      "material": "jpn_ds"
+    },
+    "deckSplinter": {
+      "thicknessMm": 0,
+      "material": "jpn_ds"
+    },
+    "turretFace": {
+      "thicknessMm": 8,
+      "material": "jpn_ds"
+    },
+    "turretSide": {
+      "thicknessMm": 8,
+      "material": "jpn_ds"
+    },
+    "turretRoof": {
+      "thicknessMm": 8,
+      "material": "jpn_ds"
+    },
+    "barbette": {
+      "thicknessMm": 0,
+      "material": "jpn_ds"
+    },
+    "conningTower": {
+      "thicknessMm": 0,
+      "material": "jpn_ds"
+    },
+    "bulkheadFore": {
+      "thicknessMm": 0,
+      "material": "jpn_ds"
+    },
+    "bulkheadAft": {
+      "thicknessMm": 0,
+      "material": "jpn_ds"
+    },
+    "torpedoBulkhead": {
+      "thicknessMm": 0,
+      "material": "jpn_ds"
+    },
+    "_comment": "Thicknesses in millimetres. Inclination is measured from the vertical: an inclined belt presents more effective thickness to a flat trajectory and less to a plunging one, which is why it is recorded per plate rather than assumed."
+  },
+  "torpedoDefence": {
+    "depthM": 0.0,
+    "layers": 1,
+    "_comment": "Depth of the layered underwater protection system, from the outer plating to the holding bulkhead, and how many layers it is divided into. Modelled as real layered structure in Stage 5, not as a damage-reduction percentage."
+  },
+  "sources": [
+    "Stille, Imperial Japanese Navy Destroyers 1919-45 (2013)"
+  ],
+  "notes": "Built around the Type 93 torpedo rather than her guns. Fast, long-legged, and with an anti-aircraft outfit that was inadequate from the first day of the war."
+}

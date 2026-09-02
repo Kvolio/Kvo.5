@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "ger_15cm55_ap",
+  "name": "15 cm/55 AP L/3,7",
+  "type": "ap",
+  "massKg": 45.5,
+  "diameterMm": 149.1,
+  "muzzleVelocityMs": 875.0,
+  "formFactor": 0.9563,
+  "_formFactorComment": "Multiplier on the shared drag curve in data/config/ballistics.json. Shells differ in how sharply pointed they are and how good their ballistic caps were, and that is a per-shell property, not a per-gun one. solved so the model reproduces the published maximum range of 23000 m at 40.0 degrees.",
+  "burstingChargeKg": 1.2,
+  "fuzeDelaySeconds": 0.02,
+  "_fuzeComment": "Time from the fuze triggering to detonation. This is what makes a shell burst deep inside a ship instead of at the plate, and what lets it pass clean through a thin-skinned destroyer without going off at all.",
+  "capType": "none",
+  "_capTypeComment": "apc = armour-piercing cap. A cap improves penetration of face-hardened plate and can be stripped by a thin plate encountered first.",
+  "sources": [
+    "NavWeaps.com naval gun and ammunition data"
+  ],
+  "confidence": "medium"
+}

@@ -19,6 +19,8 @@ const CMD_SET_RUDDER: StringName = &"set_rudder"
 const CMD_SET_SPEED_KNOTS: StringName = &"set_speed_knots"
 const CMD_STEER_HEADING: StringName = &"steer_heading"
 const CMD_STEER_POINT: StringName = &"steer_point"
+const CMD_SET_TARGET: StringName = &"set_target"
+const CMD_SELECT_SHELL: StringName = &"select_shell"
 
 var clock: SimClock = SimClock.new()
 var ids: IdAllocator = IdAllocator.new()
@@ -26,6 +28,10 @@ var rng: RngStreams = null
 var events: SimEventBus = null
 var commands: CommandQueue = CommandQueue.new()
 var spatial: SpatialIndex = null
+
+## Guns, shells and range tables. Optional: a movement-only test has no reason to
+## load one, and ships built without it simply have no mounts.
+var armory: Armory = null
 
 var map_size: Vector2 = Vector2(40000.0, 40000.0)
 
@@ -56,6 +62,14 @@ static func create(seed_value: int = 0, config: Dictionary = {}) -> SimWorld:
 	return world
 
 
+## Attach the armoury. Ships added afterwards get their mounts built automatically;
+## ships already present are rebuilt, so the order of setup calls does not matter.
+func set_armory(p_armory: Armory) -> void:
+	armory = p_armory
+	for ship: ShipEntity in ships:
+		ship.build_turrets(armory)
+
+
 func get_seed() -> int:
 	return _seed
 
@@ -75,6 +89,8 @@ func add_ship(spec: ShipSpec, position: Vector2, heading: float, team: int = 0,
 	# inserts a ship with a hand-picked ID.
 	assert(ships.is_empty() or ships[ships.size() - 1].id < ship.id,
 		"ships must stay sorted by id")
+	if armory != null:
+		ship.build_turrets(armory)
 	ships.append(ship)
 	_ships_by_id[ship.id] = ship
 	spatial.insert(ship.id, ship.position, ship.hull().bounding_radius(), SpatialIndex.Layer.SHIP)
@@ -125,12 +141,41 @@ func ships_of_team(team: int) -> Array[ShipEntity]:
 # --------------------------------------------------------------------- step --
 
 ## Advance exactly one fixed tick.
+## Advance exactly one fixed tick.
+##
+## The order below is the simulation's contract and is written out here rather than
+## discovered from a registry, because "which system ran first" is exactly the kind of
+## detail that silently decides outcomes.
+##
+##   1. commands      external intent enters, and only here
+##   2. movement      ships take up their new positions
+##   3. fire control  gunnery solves against those new positions, not last tick's
+##   4. mounts        turrets train, elevate and load towards their orders
+##   5. spatial       the index is brought up to date for next tick's queries
 func step() -> void:
 	events.begin_tick(clock.tick)
 	_apply_commands()
 	_movement.step(ships, clock.dt)
+	_direct_gunnery()
+	_step_turrets()
 	_sync_spatial()
 	clock.consume_tick()
+
+
+func _direct_gunnery() -> void:
+	if armory == null:
+		return
+	for ship: ShipEntity in ships:
+		if not ship.is_afloat() or ship.turrets.is_empty():
+			continue
+		var target: ShipEntity = get_ship(ship.target_id) if ship.target_id != 0 else null
+		FireControlSystem.direct_battery(ship, ship.turrets, target, armory)
+
+
+func _step_turrets() -> void:
+	for ship: ShipEntity in ships:
+		if not ship.turrets.is_empty():
+			FireControlSystem.step_turrets(ship.turrets, clock.dt)
 
 
 ## Run `count` ticks. The renderer calls this with whatever SimClock.advance() asked
@@ -161,8 +206,25 @@ func _apply_command(command: SimCommand) -> void:
 			MovementSystem.steer_to_heading(ship, float(params.get("value", 0.0)))
 		CMD_STEER_POINT:
 			MovementSystem.steer_to_point(ship, Serializer.array_to_vec2(params.get("value")))
+		CMD_SET_TARGET:
+			ship.target_id = int(params.get("value", 0))
+		CMD_SELECT_SHELL:
+			_select_shell(ship, str(params.get("battery", "main")), str(params.get("value", "")))
 		_:
 			push_warning("SimWorld: unhandled command type '%s'" % command.type)
+
+
+## Change what a battery is loading. Refused rather than silently ignored if the gun
+## cannot fire that shell, since an order that quietly does nothing is worse than one
+## that reports why.
+func _select_shell(ship: ShipEntity, battery: String, shell_id: String) -> void:
+	for turret: Turret in ship.turrets:
+		if String(turret.battery) != battery:
+			continue
+		if not turret.gun.ammunition.has(shell_id):
+			push_warning("SimWorld: %s cannot fire '%s'" % [turret.gun.display_name, shell_id])
+			return
+		turret.selected_shell = shell_id
 
 
 func _sync_spatial() -> void:

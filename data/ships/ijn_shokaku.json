@@ -1,0 +1,212 @@
+{
+  "schemaVersion": 1,
+  "id": "ijn_shokaku",
+  "name": "IJN Shokaku",
+  "class": "Shokaku",
+  "nation": "Japan",
+  "type": "carrier",
+  "year": 1941,
+  "crew": 1660,
+  "hull": {
+    "form": "carrier",
+    "lengthM": 257.5,
+    "beamM": 26.0,
+    "draftM": 8.87,
+    "displacementStandardT": 25675,
+    "displacementFullT": 32105
+  },
+  "propulsion": {
+    "powerShp": 160000,
+    "shafts": 4,
+    "maxSpeedKn": 34.2,
+    "boilers": 8,
+    "machineryType": "steam_turbine"
+  },
+  "manoeuvring": {
+    "tacticalDiameterLengths": 3.8,
+    "maxRudderDeg": 35.0,
+    "rudderRateDegPerSec": 3.0
+  },
+  "armament": {
+    "_comment": "Mount positions are given in normalised hull coordinates so they scale with the hull: station runs -0.5 at the stern to +0.5 at the bow, lateral is a fraction of half-beam with 0 on the centreline. Train limits are relative to the mount's rest bearing (0 = facing forward, 180 = facing aft), which is how real turret arcs are specified.",
+    "main": {
+      "gun": "jpn_12cm7_40_t89",
+      "mounts": [
+        {
+          "id": "P0",
+          "station": 0.19,
+          "lateral": -0.92,
+          "guns": 2,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -160.0,
+            60.0
+          ]
+        },
+        {
+          "id": "P1",
+          "station": 0.19,
+          "lateral": 0.92,
+          "guns": 2,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -60.0,
+            160.0
+          ]
+        },
+        {
+          "id": "P2",
+          "station": 0.07,
+          "lateral": -0.92,
+          "guns": 2,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -160.0,
+            60.0
+          ]
+        },
+        {
+          "id": "P3",
+          "station": 0.07,
+          "lateral": 0.92,
+          "guns": 2,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -60.0,
+            160.0
+          ]
+        },
+        {
+          "id": "P4",
+          "station": -0.09,
+          "lateral": -0.92,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -160.0,
+            60.0
+          ]
+        },
+        {
+          "id": "P5",
+          "station": -0.09,
+          "lateral": 0.92,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -60.0,
+            160.0
+          ]
+        },
+        {
+          "id": "P6",
+          "station": -0.2,
+          "lateral": -0.92,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -160.0,
+            60.0
+          ]
+        },
+        {
+          "id": "P7",
+          "station": -0.2,
+          "lateral": 0.92,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -60.0,
+            160.0
+          ]
+        }
+      ]
+    },
+    "antiAir": [
+      {
+        "name": "25 mm Type 96 triple",
+        "count": 36,
+        "calibreMm": 25
+      }
+    ],
+    "_antiAirComment": "Summarised as barrel counts. Anti-aircraft fire is modelled statistically against air attacks in Stage 7 rather than as individually tracked mounts."
+  },
+  "armour": {
+    "belt": {
+      "thicknessMm": 46,
+      "material": "jpn_nvnc",
+      "_note": "46 mm over machinery, thickening to 165 mm over the magazines."
+    },
+    "upperBelt": {
+      "thicknessMm": 0,
+      "material": "jpn_ds"
+    },
+    "deckWeather": {
+      "thicknessMm": 0,
+      "material": "jpn_ds",
+      "_note": "Unarmoured wooden flight deck."
+    },
+    "deckMain": {
+      "thicknessMm": 65,
+      "material": "jpn_nvnc",
+      "_note": "132 mm over the magazines."
+    },
+    "deckSplinter": {
+      "thicknessMm": 0,
+      "material": "jpn_ds"
+    },
+    "turretFace": {
+      "thicknessMm": 0,
+      "material": "jpn_ds"
+    },
+    "turretSide": {
+      "thicknessMm": 0,
+      "material": "jpn_ds"
+    },
+    "turretRoof": {
+      "thicknessMm": 0,
+      "material": "jpn_ds"
+    },
+    "barbette": {
+      "thicknessMm": 0,
+      "material": "jpn_ds"
+    },
+    "conningTower": {
+      "thicknessMm": 0,
+      "material": "jpn_ds"
+    },
+    "bulkheadFore": {
+      "thicknessMm": 46,
+      "material": "jpn_nvnc"
+    },
+    "bulkheadAft": {
+      "thicknessMm": 46,
+      "material": "jpn_nvnc"
+    },
+    "torpedoBulkhead": {
+      "thicknessMm": 25,
+      "material": "jpn_ds"
+    },
+    "_comment": "Thicknesses in millimetres. Inclination is measured from the vertical: an inclined belt presents more effective thickness to a flat trajectory and less to a plunging one, which is why it is recorded per plate rather than assumed."
+  },
+  "torpedoDefence": {
+    "depthM": 4.0,
+    "layers": 3,
+    "_comment": "Depth of the layered underwater protection system, from the outer plating to the holding bulkhead, and how many layers it is divided into. Modelled as real layered structure in Stage 5, not as a damage-reduction percentage."
+  },
+  "aviation": {
+    "capacity": 72,
+    "hangarLengthM": 190.0,
+    "hangarWidthM": 20.0,
+    "hangarHeightM": 4.8,
+    "flightDeckLengthM": 242.2,
+    "flightDeckWidthM": 29.0,
+    "elevators": 3,
+    "aviationFuelL": 496000,
+    "deckArmourMm": 0
+  },
+  "sources": [
+    "Lengerer, 'The Aircraft Carriers Shokaku and Zuikaku', Warship series"
+  ],
+  "notes": "Fast, large and well protected by carrier standards, but with the aviation petrol stowage integral to the hull that made Japanese carriers so vulnerable to fire."
+}

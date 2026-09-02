@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "usa_6in47_he_mk34",
+  "name": "6\"/47 HC Mark 34",
+  "type": "he",
+  "massKg": 47.6,
+  "diameterMm": 152.4,
+  "muzzleVelocityMs": 823.0,
+  "formFactor": 0.8378,
+  "_formFactorComment": "Multiplier on the shared drag curve in data/config/ballistics.json. Shells differ in how sharply pointed they are and how good their ballistic caps were, and that is a per-shell property, not a per-gun one. solved so the model reproduces the published maximum range of 23900 m at 47.5 degrees.",
+  "burstingChargeKg": 5.9,
+  "fuzeDelaySeconds": 0.0,
+  "_fuzeComment": "Time from the fuze triggering to detonation. This is what makes a shell burst deep inside a ship instead of at the plate, and what lets it pass clean through a thin-skinned destroyer without going off at all.",
+  "capType": "none",
+  "_capTypeComment": "apc = armour-piercing cap. A cap improves penetration of face-hardened plate and can be stripped by a thin plate encountered first.",
+  "sources": [
+    "NavWeaps.com naval gun and ammunition data"
+  ],
+  "confidence": "medium"
+}

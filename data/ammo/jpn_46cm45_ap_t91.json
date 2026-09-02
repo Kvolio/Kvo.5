@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "jpn_46cm45_ap_t91",
+  "name": "46 cm/45 AP Type 91",
+  "type": "ap",
+  "massKg": 1460.0,
+  "diameterMm": 460.0,
+  "muzzleVelocityMs": 780.0,
+  "formFactor": 0.8333,
+  "_formFactorComment": "Multiplier on the shared drag curve in data/config/ballistics.json. Shells differ in how sharply pointed they are and how good their ballistic caps were, and that is a per-shell property, not a per-gun one. solved so the model reproduces the published maximum range of 42026 m at 45.0 degrees.",
+  "burstingChargeKg": 33.85,
+  "fuzeDelaySeconds": 0.08,
+  "_fuzeComment": "Time from the fuze triggering to detonation. This is what makes a shell burst deep inside a ship instead of at the plate, and what lets it pass clean through a thin-skinned destroyer without going off at all.",
+  "capType": "apc",
+  "_capTypeComment": "apc = armour-piercing cap. A cap improves penetration of face-hardened plate and can be stripped by a thin plate encountered first.",
+  "sources": [
+    "NavWeaps.com naval gun and ammunition data"
+  ],
+  "confidence": "high",
+  "notes": "The Type 91 cap gave it a long fine ogive and a diving-shell capability; its low form factor here reflects that."
+}

@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "uk_4in7_he_mk12",
+  "name": "4.7\" HE Mark IX",
+  "type": "he",
+  "massKg": 22.7,
+  "diameterMm": 120.0,
+  "muzzleVelocityMs": 808.0,
+  "formFactor": 1.2137,
+  "_formFactorComment": "Multiplier on the shared drag curve in data/config/ballistics.json. Shells differ in how sharply pointed they are and how good their ballistic caps were, and that is a per-shell property, not a per-gun one. solved so the model reproduces the published maximum range of 15520 m at 40.0 degrees.",
+  "burstingChargeKg": 1.5,
+  "fuzeDelaySeconds": 0.0,
+  "_fuzeComment": "Time from the fuze triggering to detonation. This is what makes a shell burst deep inside a ship instead of at the plate, and what lets it pass clean through a thin-skinned destroyer without going off at all.",
+  "capType": "none",
+  "_capTypeComment": "apc = armour-piercing cap. A cap improves penetration of face-hardened plate and can be stripped by a thin plate encountered first.",
+  "sources": [
+    "NavWeaps.com naval gun and ammunition data"
+  ],
+  "confidence": "low",
+  "notes": " The solved form factor of 1.214 falls outside the plausible 0.78-1.20 band for a shell of this shape, which means one of the published figures used here (mass, muzzle velocity or maximum range) is unreliable. Treat the range behaviour of this shell as approximate until the source is confirmed."
+}

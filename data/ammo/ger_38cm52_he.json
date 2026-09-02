@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "ger_38cm52_he",
+  "name": "38 cm/52 HE L/4,5 Bdz",
+  "type": "he",
+  "massKg": 800.0,
+  "diameterMm": 380.0,
+  "muzzleVelocityMs": 820.0,
+  "formFactor": 0.8531,
+  "_formFactorComment": "Multiplier on the shared drag curve in data/config/ballistics.json. Shells differ in how sharply pointed they are and how good their ballistic caps were, and that is a per-shell property, not a per-gun one. solved so the model reproduces the published maximum range of 35550 m at 30.0 degrees.",
+  "burstingChargeKg": 45.0,
+  "fuzeDelaySeconds": 0.0,
+  "_fuzeComment": "Time from the fuze triggering to detonation. This is what makes a shell burst deep inside a ship instead of at the plate, and what lets it pass clean through a thin-skinned destroyer without going off at all.",
+  "capType": "none",
+  "_capTypeComment": "apc = armour-piercing cap. A cap improves penetration of face-hardened plate and can be stripped by a thin plate encountered first.",
+  "sources": [
+    "NavWeaps.com naval gun and ammunition data"
+  ],
+  "confidence": "medium"
+}

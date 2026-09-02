@@ -48,6 +48,20 @@ var max_rudder_rad: float = deg_to_rad(DEFAULT_MAX_RUDDER_DEG)
 var rudder_rate_rad_s: float = deg_to_rad(DEFAULT_RUDDER_RATE_DEG_S)
 var yaw_response_time_s: float = DEFAULT_YAW_RESPONSE_S
 
+# -- armament ----------------------------------------------------------------
+var main_battery: BatteryDef = null
+var secondary_battery: BatteryDef = null
+
+## Anti-aircraft outfit, summarised as barrel counts. Air attack is resolved
+## statistically in Stage 7 rather than by tracking individual mounts.
+var anti_air: Array = []
+
+# -- protection --------------------------------------------------------------
+var armour: ArmourSchemeDef = null
+
+# -- aviation (carriers) -----------------------------------------------------
+var aviation: Dictionary = {}
+
 # -- crew --------------------------------------------------------------------
 var crew: int = 300
 
@@ -126,4 +140,24 @@ func duplicate_spec() -> ShipSpec:
 	copy.rudder_rate_rad_s = rudder_rate_rad_s
 	copy.yaw_response_time_s = yaw_response_time_s
 	copy.crew = crew
+	# Armament and armour are immutable descriptions shared between every ship of a
+	# design; only the mutable per-ship state lives on ShipEntity, so these are shared
+	# by reference rather than deep-copied.
+	copy.main_battery = main_battery
+	copy.secondary_battery = secondary_battery
+	copy.anti_air = anti_air
+	copy.armour = armour
+	copy.aviation = aviation
 	return copy
+
+
+func has_main_battery() -> bool:
+	return main_battery != null and not main_battery.is_empty()
+
+
+func has_secondary_battery() -> bool:
+	return secondary_battery != null and not secondary_battery.is_empty()
+
+
+func is_carrier() -> bool:
+	return ship_type == "carrier" and not aviation.is_empty()

@@ -21,6 +21,7 @@ var _labels: Control = null
 var _hud: Control = null
 var _selected_id: int = 0
 var _time_scale_before_pause: float = 1.0
+var _engagements: Array[ShipEntity] = []
 
 
 func _ready() -> void:
@@ -98,21 +99,37 @@ func _start_demo_battle() -> void:
 	world = SimWorld.create(20260902, {
 		"sim": GameConfig.get_dict("sim"),
 		"physics": GameConfig.get_dict("physics"),
+		"ballistics": GameConfig.get_dict("ballistics"),
 	})
+	world.set_armory(WeaponDatabase.armory())
 
+	# Two lines passing on opposite courses about 9 km apart — the classic gun action
+	# geometry, and the one that actually shows the guns doing something, since both
+	# sides can bring a full broadside to bear.
 	var line_up: Array[String] = ["uss_iowa", "uss_fletcher"]
 	for team: int in 2:
 		var facing: float = 0.0 if team == 0 else PI
-		var x: float = -9000.0 if team == 0 else 9000.0
+		var x: float = -11000.0 if team == 0 else 11000.0
+		var y_offset: float = -4500.0 if team == 0 else 4500.0
 		for i: int in line_up.size():
 			var spec: ShipSpec = ShipDatabase.get_spec(line_up[i])
 			if spec == null:
 				continue
 			if team == 1:
 				spec.display_name = "%s (Red)" % spec.display_name
+			# Ships in each line follow one another, spaced astern.
+			var along: float = float(i) * (-1400.0 if team == 0 else 1400.0)
 			var ship: ShipEntity = world.add_ship(
-				spec, Vector2(x, float(i) * 1400.0), facing, team)
+				spec, Vector2(x + along, y_offset), facing, team)
 			MovementSystem.order_speed(ship, SimUnits.knots_to_ms(24.0))
+			_engagements.append(ship)
+
+	# Each side engages its opposite number. Stage 7 replaces this with target
+	# selection by the AI; the mechanism is the same either way.
+	var half: int = _engagements.size() / 2
+	for i: int in half:
+		_engagements[i].target_id = _engagements[i + half].id
+		_engagements[i + half].target_id = _engagements[i].id
 
 	_ships.world = world
 	_labels.world = world

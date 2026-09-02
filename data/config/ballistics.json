@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Exterior ballistics. Every constant a shell's flight depends on lives here, so the trajectory model can be corrected without touching engine code. Calibrated against published range tables: see docs/BALLISTICS.md.",
+
+  "drag": {
+    "_comment": "Drag coefficient against Mach number for a capped naval projectile. Shared by every shell as the SHAPE of the curve; each shell then scales it by its own formFactor, because how sharply pointed a shell is and how good its ballistic cap was are properties of the shell, not the gun. The curve shows the expected transonic rise: drag roughly doubles through Mach 1 and falls away again supersonically.",
+    "coefficientVsMach": [
+      [0.00, 0.1676], [0.60, 0.1676], [0.80, 0.1832], [0.90, 0.2272],
+      [0.98, 0.3692], [1.05, 0.4260], [1.20, 0.4232], [1.50, 0.3862],
+      [2.00, 0.3408], [2.50, 0.3152], [3.00, 0.3010], [4.00, 0.2840],
+      [6.00, 0.2783]
+    ]
+  },
+
+  "atmosphere": {
+    "_comment": "International Standard Atmosphere, tabulated rather than computed. A long-range shell spends most of its flight above 3 km where the air is a third thinner, and ignoring that shortens 40 km ranges by kilometres. Tabulating it also keeps exp() out of the trajectory loop, which matters for reproducibility: exp and log are not required to be correctly rounded, so they are where two platforms would first disagree.",
+    "altitudeM": [0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000, 14000, 16000, 20000],
+    "densityKgM3": [1.2250, 1.1117, 1.0066, 0.9093, 0.8194, 0.7364, 0.6601, 0.5900, 0.5258, 0.4671, 0.4135, 0.3648, 0.3119, 0.2279, 0.1665, 0.0889],
+    "speedOfSoundMs": [340.3, 336.4, 332.5, 328.6, 324.6, 320.5, 316.5, 312.3, 308.1, 303.8, 299.5, 295.1, 295.1, 295.1, 295.1, 295.1]
+  },
+
+  "integration": {
+    "_comment": "Runge-Kutta 4 is used everywhere. It is stable enough that a quarter-second step costs under half a metre over 33 km, so range tables can be built cheaply at load while shells in flight integrate at the simulation tick for smooth motion and swept hit tests.",
+    "rangeTableStepSeconds": 0.25,
+    "rangeTableElevationStepDeg": 0.5,
+    "maxFlightSeconds": 400.0,
+    "_maxFlightComment": "A safety stop. The longest real naval trajectory in this data set is about 100 seconds."
+  },
+
+  "penetration": {
+    "_comment": "Selects the armour penetration model. The simulation depends only on the PenetrationModel interface, so a more sophisticated empirical model can be substituted here without any change to HitResolver or DamageResolver. Model-specific coefficients live under a key matching the model id. Stage 3 fills this in.",
+    "model": "de_marre"
+  }
+}

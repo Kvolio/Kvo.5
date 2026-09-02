@@ -51,6 +51,17 @@ static func angle_delta(from: float, to: float) -> float:
 	return diff
 
 
-## Wrap an angle into [0, TAU).
+## Wrap an angle into [0, TAU). Use for headings, which are naturally a compass value.
 static func normalise_angle(angle: float) -> float:
 	return fposmod(angle, TAU)
+
+
+## Wrap an angle into (-PI, PI].
+##
+## Use for anything RELATIVE — a bearing from the bow, a training offset, a heading
+## error. Signed is the natural form there: negative is to port, positive to
+## starboard, and the magnitude is how far off you are. Wrapping such a value into
+## [0, TAU) instead turns "80 degrees to port" into "280 degrees", which reads as
+## enormous to any comparison against a limit.
+static func wrap_signed(angle: float) -> float:
+	return fposmod(angle + PI, TAU) - PI
