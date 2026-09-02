@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Core simulation timing and world defaults. Every value here is tunable without touching engine code (spec section 45).",
+
+  "tick": {
+    "_comment": "Fixed timestep. The simulation NEVER integrates with a frame delta; time scaling changes how many fixed ticks run per rendered frame, not the size of a tick.",
+    "rateHz": 60,
+    "maxStepsPerFrame": 40,
+    "_maxStepsPerFrameComment": "Upper bound on catch-up work in one frame. When 10x speed cannot keep up, the sim runs in slow motion instead of spiralling."
+  },
+
+  "timeScales": {
+    "_comment": "Selectable simulation speeds (spec section 37).",
+    "available": [0.0, 0.25, 0.5, 1.0, 2.0, 5.0, 10.0],
+    "default": 1.0
+  },
+
+  "world": {
+    "defaultMapSizeM": [40000, 40000],
+    "minMapSizeM": [5000, 5000],
+    "maxMapSizeM": [200000, 200000]
+  },
+
+  "events": {
+    "historyLimit": 4096
+  },
+
+  "replay": {
+    "_comment": "Snapshot cadence for rewind. A snapshot every N ticks bounds how far the engine must re-simulate to reach an arbitrary point.",
+    "snapshotIntervalTicks": 600,
+    "checksumIntervalTicks": 60
+  },
+
+  "lod": {
+    "_comment": "Stage 9 level of detail. These throttle AI and damage-control update RATES only. Ballistics, trajectory tracing and penetration are never simplified, because spec section 39 requires combat outcomes to stay consistent regardless of camera distance.",
+    "aiTickIntervalNear": 6,
+    "aiTickIntervalFar": 30,
+    "farDistanceM": 25000,
+    "damageControlTickInterval": 30
+  }
+}
