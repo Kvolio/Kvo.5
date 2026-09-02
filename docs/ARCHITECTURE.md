@@ -42,7 +42,16 @@ still sees a clean top-down tactical view.
 ### 3. Ships are geometry, not stats
 
 A ship is built from data into an immutable `ShipStructureTemplate` (shared by every
-ship of that design) plus a per-ship mutable `ShipStructureState`. The template holds
+ship of that design) plus a per-ship mutable `ShipStructureState` (Stage 4).
+
+`ShipStructureBuilder` is the generator, and it runs identically for a historical
+preset and a player design — there is no separate path. Roles are assigned from
+POSITION rather than from a list: magazines end up under the turrets because that is
+where a turret's ammunition has to be, machinery ends up amidships between them, and
+the outboard strip below the waterline becomes torpedo protection where the design
+has any and fuel where it does not. Do the same thing to a player's design and the
+same reasoning applies, which is what makes a badly laid out custom ship genuinely
+badly laid out rather than merely labelled so. The template holds
 distinct primitive types, each matching its physical role — crucially, **a compartment
 boundary is not automatically an armour barrier**:
 
@@ -218,12 +227,14 @@ src/sim/
   spatial/            SpatialIndex interface and implementations
   events/             SimEvent, SimEventBus
   replay/             SimCommand, CommandQueue, recorder, snapshots
-  interfaces/         SimEntity, Damageable, Detectable, OrdnanceSource
-  entities/           ship, projectile, torpedo, island
-  geometry/           hull, structure template/state, faces, volumes, tracer
-  damage/             hit resolver, damage resolver, reports, survivability
-    penetration/      model interface, De Marre model, outcomes, registry
-  systems/            movement, fire control, gunnery, detection, flooding, fire, AI...
+  serialization/      canonical JSON encoder
+  ballistics/         atmosphere, drag model, RK4 solver, range tables
+  weapons/            Armory: guns, shells and their range tables
+  entities/           ship spec, ship, turret, projectile, torpedo, island
+  geometry/           hull, geometry primitives, structure template + builder, tracer
+  damage/             hit report, damage report, armour materials, resolvers
+    penetration/      model interface, De Marre model, outcome, context, registry
+  systems/            movement, fire control, gunnery, projectiles, detection, flooding...
   air/                OPTIONAL aircraft module
   naval_arch/         weights, stability, speed, design validation
 src/view/             rendering; reads sim state, never writes it

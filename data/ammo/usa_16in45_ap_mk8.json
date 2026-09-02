@@ -12,6 +12,9 @@
   "fuzeDelaySeconds": 0.033,
   "_fuzeComment": "Time from the fuze triggering to detonation. This is what makes a shell burst deep inside a ship instead of at the plate, and what lets it pass clean through a thin-skinned destroyer without going off at all.",
   "capType": "apc",
+  "penetrationK": 1380,
+  "_penetrationKComment": "De Marre coefficient: the constant in V_limit = K * T^0.7 * d^0.75 / sqrt(W), in the imperial units the formula is published in. NOTE THE DIRECTION: K is the velocity a shell NEEDS per unit of plate, so a HIGHER K means a WORSE penetrator. It expresses how good this projectile is at getting through armour, as distinct from how well it carries its velocity on the way there, which is formFactor. Class default, derived so this shell type reaches about 100% of the penetration an armour-piercing shell of the same size and speed would manage. No published penetration table was available to fit against.",
+  "_penetrationKConfidence": "low",
   "_capTypeComment": "apc = armour-piercing cap. A cap improves penetration of face-hardened plate and can be stripped by a thin plate encountered first.",
   "sources": [
     "NavWeaps.com naval gun and ammunition data"

@@ -30,6 +30,10 @@ var bursting_charge_kg: float = 0.0
 var fuze_delay_s: float = 0.0
 
 var cap: Cap = Cap.NONE
+
+## De Marre coefficient. NOTE THE DIRECTION: it is the velocity this shell NEEDS per
+## unit of plate, so a HIGHER value means a WORSE penetrator.
+var penetration_k: float = 1380.0
 var confidence: String = "medium"
 var notes: String = ""
 
@@ -105,6 +109,7 @@ static func parse(data: Dictionary, source_path: String = "<memory>") -> ShellDe
 	shell.bursting_charge_kg = float(data.get("burstingChargeKg", 0.0))
 	shell.fuze_delay_s = float(data.get("fuzeDelaySeconds", 0.0))
 	shell.cap = cap_from_string(str(data.get("capType", "none")))
+	shell.penetration_k = float(data.get("penetrationK", 1380.0))
 	shell.confidence = str(data.get("confidence", "medium"))
 	shell.notes = str(data.get("notes", ""))
 	return shell

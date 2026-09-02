@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 # Run the headless test suite.
 #
-#   tools/test.sh                 all suites
-#   tools/test.sh --filter=rng    only suites whose filename contains "rng"
+#   tools/test.sh                       all suites
+#   tools/test.sh --filter=rng          only suites whose filename contains "rng"
+#   tools/test.sh --exclude=gun_action  everything except the integration suite
+#
+# The integration suite runs whole battles and takes a couple of minutes on its own,
+# so splitting the run with --exclude is useful when iterating on the unit suites.
 #
 # The import pass is not optional. Godot resolves `class_name` types from a cache
 # built during import; running --script against a stale cache makes every suite that

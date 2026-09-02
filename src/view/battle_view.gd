@@ -17,6 +17,7 @@ var _camera: Camera2D = null
 var _ocean: ColorRect = null
 var _grid: Node2D = null
 var _ships: Node2D = null
+var _effects: Node2D = null
 var _labels: Control = null
 var _hud: Control = null
 var _selected_id: int = 0
@@ -46,6 +47,11 @@ func _build_scene() -> void:
 	_ships = _instantiate("res://src/view/ship_renderer.gd") as Node2D
 	if _ships != null:
 		add_child(_ships)
+
+	# Above the ships: shells in flight, splashes and hit flashes.
+	_effects = _instantiate("res://src/view/effects_renderer.gd") as Node2D
+	if _effects != null:
+		add_child(_effects)
 
 	_camera = _instantiate("res://src/view/battle_camera.gd") as Camera2D
 	if _camera != null:
@@ -132,6 +138,7 @@ func _start_demo_battle() -> void:
 		_engagements[i + half].target_id = _engagements[i].id
 
 	_ships.world = world
+	_effects.world = world
 	_labels.world = world
 	_hud.world = world
 	(_grid as Object).set("map_size", world.map_size)
@@ -141,7 +148,11 @@ func _process(delta: float) -> void:
 	if world == null:
 		return
 	# A whole number of fixed ticks. The frame delta decides HOW MANY, never how big.
-	world.step_many(world.clock.advance(delta))
+	var ticks: int = world.clock.advance(delta)
+	world.step_many(ticks)
+	# Effects age in SIMULATED time, so a splash lasts the same number of simulated
+	# seconds at 1x and at 10x instead of littering the sea at high speed.
+	(_effects as Object).call("advance", float(ticks) * world.clock.dt)
 	_sync_view()
 
 
@@ -157,6 +168,7 @@ func _sync_view() -> void:
 	(_ships as Object).set("selected_id", _selected_id)
 	(_ships as Object).call("set_zoom", zoom)
 	_ships.queue_redraw()
+	(_effects as Object).call("set_zoom", zoom)
 
 	# The canvas transform is the exact mapping the world layer was drawn with, so
 	# screen-space labels stay locked to their hulls at every zoom.

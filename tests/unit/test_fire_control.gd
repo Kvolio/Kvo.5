@@ -15,8 +15,11 @@ func suite_name() -> String:
 
 
 ## Shooter at the origin heading east; target `range_m` away on the given bearing,
-## running at `target_knots` on the given heading. Run up to steady speed first, so
-## the straight-line lead is being tested rather than the target's acceleration.
+## running at `target_knots` on the given heading.
+##
+## Both ships are placed already making way rather than accelerated from rest: this
+## suite is testing the lead computed for a ship on a steady course, not the minutes
+## she would take to reach it.
 func _engagement(
 	range_m: float, target_knots: float, target_heading: float,
 	bearing_from_shooter: float = 0.0
@@ -25,8 +28,8 @@ func _engagement(
 	world.add_ship(TestShips.iowa(), Vector2.ZERO, 0.0, 0)
 	var offset: Vector2 = Vector2(range_m, 0.0).rotated(bearing_from_shooter)
 	var target: ShipEntity = world.add_ship(TestShips.fletcher(), offset, target_heading, 1)
-	MovementSystem.order_speed(target, SimUnits.knots_to_ms(target_knots))
-	TestShips.run_seconds(world, 400.0)
+	MovementSystem.set_steady_speed(target, SimUnits.knots_to_ms(target_knots))
+	TestShips.run_seconds(world, 2.0)
 	return world
 
 
@@ -103,8 +106,10 @@ func test_a_target_that_turns_defeats_the_solution() -> void:
 
 	MovementSystem.order_rudder(target, 1.0)   # hard a-starboard the moment we fire
 	TestShips.run_seconds(world, solution.time_of_flight)
-	gt(target.position.distance_to(solution.aim_point), 500.0,
-		"she is nowhere near where the guns were laid")
+	# A Fletcher is 115 m long, so being three ship-lengths from the aim point means
+	# the salvo lands in open water.
+	gt(target.position.distance_to(solution.aim_point), target.spec.length_m * 3.0,
+		"she is several ship-lengths from where the guns were laid")
 
 
 # ----------------------------------------------------------------------- arcs --

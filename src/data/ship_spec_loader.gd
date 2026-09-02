@@ -85,6 +85,8 @@ static func _parse_propulsion(spec: ShipSpec, propulsion: Dictionary) -> void:
 		spec.max_speed_ms = SimUnits.knots_to_ms(float(propulsion["maxSpeedKn"]))
 
 	spec.shafts = int(propulsion.get("shafts", spec.shafts))
+	spec.boilers = int(propulsion.get("boilers", maxi(spec.shafts * 2, 2)))
+	spec.machinery_type = str(propulsion.get("machineryType", spec.machinery_type))
 	spec.astern_power_fraction = float(
 		propulsion.get("asternPowerFraction", spec.astern_power_fraction))
 	spec.max_sternway_fraction = float(

@@ -21,6 +21,13 @@ structural integrity — though it may still wreck the radar, kill a gun crew, a
 deform the plate. The same shell that gets through into a magazine ends the ship.
 Where it hits matters more than what fired it.
 
+Two consequences of that design show up without anyone writing a rule for them. A
+battleship shell fired at a destroyer passes clean through and out the far side,
+because the fuze runs on distance travelled and a destroyer is not thick enough to
+use it up. And a shell meets the shell plating before it meets the belt, which is
+enough to tear its armour-piercing cap off — so the belt faces an uncapped
+projectile. Both fall out of resolving layers in the order the shell meets them.
+
 Structural integrity is a *derived summary* of the ship's actual condition, shown
 because one headline number is useful. It is never what decides whether a ship
 lives: that comes from flooding, stability, girder strength, fire, and the state of
@@ -37,9 +44,15 @@ Open the project folder in Godot 4.4 and press play.
 The simulation core is Node-free, so the whole thing is testable headless:
 
 ```bash
-tools/test.sh                 # all suites
-tools/test.sh --filter=rng    # only suites whose filename contains "rng"
+tools/test.sh                        # all suites
+tools/test.sh --filter=rng           # only suites whose filename contains "rng"
+tools/test.sh --exclude=gun_action   # everything except the integration suite
 ```
+
+Each suite reports how long it took, because a suite that has quietly become slow is
+usually a system that has quietly become slow. The integration suite fights whole
+battles and takes a minute or two on its own, so `--exclude` is useful while
+iterating on the unit suites.
 
 Exit code is non-zero on failure. Lint suites run before unit suites so an
 architectural violation is reported before the behaviour it breaks.
@@ -94,7 +107,7 @@ Built in stages, each one tested before the next begins.
 - [x] **Stage 0** — foundations: determinism, spatial abstraction, test harness
 - [x] **Stage 1** — battlefield, ocean, hull geometry, movement physics
 - [x] **Stage 2** — data layer, historical ship presets, weapons
-- [ ] **Stage 3** — ballistics, ship structure, trajectory tracing, penetration
+- [x] **Stage 3** — ballistics, ship structure, trajectory tracing, penetration
 - [ ] **Stage 4** — damage, compartments, flooding, fire, derived integrity
 - [ ] **Stage 5** — magazine detonation, torpedoes, capsize, damage control
 - [ ] **Stage 6** — ship designer and naval architecture

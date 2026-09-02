@@ -214,6 +214,18 @@ static func order_speed(ship: ShipEntity, target_ms: float) -> void:
 	ship.throttle = -(astern_fraction * astern_fraction * astern_fraction)
 
 
+## Put a ship at a steady speed immediately, as though she had been making it for
+## some time.
+##
+## A real ship takes minutes to work up to speed, which is exactly right in a battle
+## and exactly wrong at the start of one: a scenario that begins with both fleets dead
+## in the water is not the engagement anyone set up. This is how a scenario places
+## ships already making way, and how a test skips a spin-up it is not testing.
+static func set_steady_speed(ship: ShipEntity, target_ms: float) -> void:
+	order_speed(ship, target_ms)
+	ship.speed = clampf(target_ms, -ship.max_sternway_speed(), ship.effective_max_speed())
+
+
 ## Order a rudder angle as a fraction of hard-over, -1 (hard a-port) to +1.
 static func order_rudder(ship: ShipEntity, fraction: float) -> void:
 	ship.rudder_order = clampf(fraction, -1.0, 1.0) * ship.spec.max_rudder_rad

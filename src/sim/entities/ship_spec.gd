@@ -39,6 +39,8 @@ var vertical_fullness: float = 0.8
 var max_speed_ms: float = 15.0
 var propulsion_power_w: float = 1.0e7
 var shafts: int = 2
+var boilers: int = 4
+var machinery_type: String = "steam_turbine"
 var astern_power_fraction: float = 0.35
 var max_sternway_fraction: float = 0.30
 
@@ -87,6 +89,24 @@ func derive_defaults() -> void:
 		rudder_rate_rad_s = deg_to_rad(DEFAULT_RUDDER_RATE_DEG_S)
 
 
+## Draft the hull must actually sit at to displace its stated tonnage.
+##
+## Reported drafts and reported displacements often disagree, because published
+## draft figures frequently include the propellers, a skeg or a sonar dome rather
+## than the moulded hull — Fletcher's quoted 5.28 m against 2,500 tonnes implies a
+## block coefficient of 0.34, which no destroyer has. Displacement is the sounder
+## number of the two, so the internal geometry is built from the draft that
+## reproduces it. The reported draft is kept for grounding and for display.
+func hydrostatic_draft() -> float:
+	var waterplane: float = hull().waterplane_area()
+	if waterplane <= 0.0 or vertical_fullness <= 0.0:
+		return draft_m
+	var displaced_volume: float = displacement_t * SimUnits.TONNE_TO_KG / SimUnits.SEAWATER_DENSITY
+	var derived: float = displaced_volume / (waterplane * vertical_fullness)
+	# Guard against a wildly inconsistent data file producing absurd geometry.
+	return clampf(derived, draft_m * 0.5, draft_m * 1.5)
+
+
 func mass_kg() -> float:
 	return displacement_t * SimUnits.TONNE_TO_KG
 
@@ -133,6 +153,8 @@ func duplicate_spec() -> ShipSpec:
 	copy.max_speed_ms = max_speed_ms
 	copy.propulsion_power_w = propulsion_power_w
 	copy.shafts = shafts
+	copy.boilers = boilers
+	copy.machinery_type = machinery_type
 	copy.astern_power_fraction = astern_power_fraction
 	copy.max_sternway_fraction = max_sternway_fraction
 	copy.tactical_diameter_lengths = tactical_diameter_lengths

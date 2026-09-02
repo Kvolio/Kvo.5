@@ -121,6 +121,115 @@ actually takes is a systematic miss.
 
 ---
 
+## Armour penetration
+
+The trajectory model exists to hand the armour model two numbers: **striking
+velocity** and **descent angle**. What happens next is
+`src/sim/damage/penetration/`.
+
+### The interface comes first
+
+`PenetrationModel` is an interface, and the simulation depends only on it.
+`DeMarreModel` is one implementation, chosen by id in
+`data/config/ballistics.json`. Replacing it with a fuller analytical treatment means
+writing a class and changing one line of configuration — `HitResolver`,
+`DamageResolver`, the tracer and every `HitReport` consumer stay as they are.
+
+A model returns a `PenetrationOutcome`, never a boolean. "Did it get through" is the
+least interesting part of an armour interaction: what the next layer needs to know is
+how fast the shell is still going, whether it is still in one piece, whether its cap
+survived, whether its fuze has started running, and what came off the back of the
+plate. A shell's journey through a ship is a sequence of these, and an outcome that
+reported only true or false would make the second plate unresolvable.
+
+### De Marre
+
+```
+V_limit = K · T^0.7 · d^0.75 / √W
+```
+
+evaluated in the imperial units the formula is published in, so `K` here is the same
+`K` a gunnery manual quotes and can be checked against one.
+
+**Note the direction: K is the velocity a shell *needs* per unit of plate, so a
+higher K means a worse penetrator.** It lives per-shell in `data/ammo/`, fitted
+against published penetration tables where they exist:
+
+| Shell | K | fitted against |
+|---|---|---|
+| 16"/50 AP Mark 8 | 1371 | 20,000–35,000 yd |
+| 46 cm AP Type 91 | 1304 | 20 and 30 km |
+| 8"/55 AP Mark 21 | 1383 | 20,000–25,000 yd |
+
+The Type 91's lower figure is not noise. Its very long cap was optimised for an
+underwater trajectory against a ship's unarmoured bottom, at some cost to straight
+penetration — the model recovering that from published data is a useful sign it is
+measuring something real.
+
+Shells with no published table get a class default derived so that each type reaches
+the fraction of AP penetration it historically managed (SAP 60%, common 50%, HE 28%,
+AA 18%), and are marked `confidence: low`.
+
+Zero-range figures were excluded from the fits: no gun fires at zero range, and they
+are the visible outliers in every set.
+
+### What sits on top of the formula
+
+None of this is a law of physics. It is this model's account of what happens, all of
+it configured, and another model is free to disagree:
+
+- **Normalization** — a capped shell bites and turns towards the normal. Strong
+  against plate thinner than the shell's calibre, negligible against plate thicker.
+- **Ricochet** — past a critical angle a shell skids off. The critical angle falls as
+  the plate thickens relative to the calibre, and a shell that hugely overmatches the
+  plate drives through regardless of angle.
+- **Shatter** — the classic shatter gap: a fast shell against face-hardened plate near
+  its own calibre in thickness can break up even with the energy to get through. The
+  plate wins by destroying the projectile rather than by stopping it.
+- **The marginal band** — a ballistic limit is a 50% probability, not a wall. Within
+  12% either side of it the outcome is a roll, drawn from the simulation's own RNG
+  stream so it stays reproducible. With no stream supplied the model returns its
+  central prediction, which is exactly the quantity published tables report — and is
+  what the validation tests compare against.
+- **Partial penetration** — below the band but above 88% of the limit, the plate is
+  holed and the shell breaks up going through: fragments enter, an intact bursting
+  charge does not. **That 0.88 is a heuristic of this model, not a universal law.**
+- **Cap stripping** — a thin plate met first tears the armour-piercing cap off, and
+  the belt then sees an uncapped shell. This needs no special case; it falls out of
+  the tracer resolving layers in order.
+- **Spall** — even a plate that holds sheds fragments off its inner face, which is how
+  a non-penetrating hit still wrecks equipment behind armour that was never beaten.
+
+### How well it does
+
+Against Iowa's and Yamato's published penetration tables, within 15% across combat
+ranges — which is what an empirical fit of this age is worth, and precisely why it
+sits behind an interface rather than being the model.
+
+---
+
+## Following a shell through a ship
+
+`TrajectoryTracer` intersects the shell's path against every plate, bulkhead,
+compartment and component, sorts the results by distance, and resolves each in turn
+with the projectile's state carried forward. It is an **ordered geometric
+resolution**, not a grid march, and the ordering is the point: a shell stops at the
+first plate that beats it, and what lies behind that plate is never consulted.
+
+Two behaviours usually written as special cases fall out of this for free:
+
+- **Overpenetration.** The fuze runs on distance travelled since arming, so a shell
+  that crosses a thin-skinned destroyer and leaves the far side before the fuze
+  expires simply does very little. No rule says so.
+- **Decapping.** The plating is resolved before the belt, and it is thin enough
+  relative to the shell to tear the cap off. Two layers, in order.
+
+Ship list and trim enter through the coordinate transform, so a heeling ship
+genuinely presents more deck and less belt — a flooding ship becomes progressively
+easier to hurt without any rule to that effect.
+
+---
+
 ## Tuning
 
 Every number is in `data/config/ballistics.json` (drag curve, atmosphere, integration

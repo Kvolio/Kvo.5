@@ -33,6 +33,23 @@ var spatial: SpatialIndex = null
 ## load one, and ships built without it simply have no mounts.
 var armory: Armory = null
 
+## Armour materials and the configured penetration model. Held here rather than
+## reached for globally, so a battle carries everything it needs to be reproduced.
+var materials: ArmourMaterials = null
+var penetration_model: PenetrationModel = null
+
+## Shells in the air.
+var projectiles: Array[Projectile] = []
+
+## Hits resolved recently, newest last. The debug overlay and the combat log read
+## these; Stage 4's damage resolver writes their consequences back into them.
+var recent_hits: Array[HitReport] = []
+
+var _structure_config: Dictionary = {}
+var _structures: Dictionary = {}
+var _projectile_pool: Array[Projectile] = []
+var _hit_history_limit: int = 128
+
 var map_size: Vector2 = Vector2(40000.0, 40000.0)
 
 ## Ships in ascending ID order. The ordering is load-bearing: every system that
@@ -41,6 +58,8 @@ var ships: Array[ShipEntity] = []
 
 var _ships_by_id: Dictionary = {}
 var _movement: MovementSystem = MovementSystem.new()
+var _ready_to_fire: Dictionary = {}
+var _fire_control_interval: int = 6
 var _seed: int = 0
 
 
@@ -59,7 +78,65 @@ static func create(seed_value: int = 0, config: Dictionary = {}) -> SimWorld:
 
 	world.spatial = BruteForceIndex.new()
 	world._movement.configure(config.get("physics", {}) as Dictionary)
+	world._structure_config = config.get("structure", {}) as Dictionary
+	var lod: Dictionary = sim_config.get("lod", {}) as Dictionary
+	world._fire_control_interval = maxi(int(lod.get("fireControlIntervalTicks", 6)), 1)
+	world.materials = ArmourMaterials.load_from("res://data/materials/armor.json")
+	world.penetration_model = PenetrationModelRegistry.create(
+		config.get("ballistics", {}) as Dictionary)
 	return world
+
+
+## Internal geometry for a ship's design, built once per design and shared.
+##
+## Shared because it is immutable: a twelve-destroyer squadron traces against one copy
+## of the same geometry rather than twelve. Stage 4 adds the per-ship mutable state —
+## plate deformation, flooding, wrecked machinery — alongside it.
+func structure_for(ship: ShipEntity) -> ShipStructureTemplate:
+	var cached: Variant = _structures.get(ship.spec.spec_id)
+	if cached != null:
+		return cached as ShipStructureTemplate
+	var built: ShipStructureTemplate = ShipStructureBuilder.build(ship.spec, _structure_config)
+	_structures[ship.spec.spec_id] = built
+	return built
+
+
+# ------------------------------------------------------------- projectiles --
+
+## Take a projectile from the pool, or make one if the pool is empty.
+func spawn_projectile(shell: ShellDef, gun: GunDef, origin: Vector3, velocity: Vector3,
+		shooter_id: int, target_id: int, team: int) -> Projectile:
+	var projectile: Projectile = (_projectile_pool.pop_back() as Projectile
+		if not _projectile_pool.is_empty() else Projectile.new())
+	projectile.reset(ids.allocate(), shell, shell.penetration_k, origin, velocity,
+		shooter_id, target_id, team, gun.gun_id)
+	projectiles.append(projectile)
+	return projectile
+
+
+func retire_projectile(projectile: Projectile) -> void:
+	projectile.active = false
+	projectile.shell = null
+	_projectile_pool.append(projectile)
+
+
+## Record a resolved hit. Stage 4 hangs the damage it caused off the same report.
+func record_hit(report: HitReport, target: ShipEntity) -> void:
+	recent_hits.append(report)
+	if recent_hits.size() > _hit_history_limit:
+		recent_hits = recent_hits.slice(recent_hits.size() - _hit_history_limit)
+
+	var severity: SimEvent.Severity = SimEvent.Severity.INFO
+	if report.detonated:
+		severity = SimEvent.Severity.NOTABLE
+	events.emit_event(&"shell_hit", report.shooter_id, target.id, severity, {
+		"shell": report.shell_name,
+		"rangeM": report.range_m,
+		"termination": HitReport.termination_to_string(report.termination),
+		"penetrated": report.penetrated_armour(),
+		"detonated": report.detonated,
+		"aboveWater": report.hit_above_water,
+	})
 
 
 ## Attach the armoury. Ships added afterwards get their mounts built automatically;
@@ -151,25 +228,60 @@ func ships_of_team(team: int) -> Array[ShipEntity]:
 ##   2. movement      ships take up their new positions
 ##   3. fire control  gunnery solves against those new positions, not last tick's
 ##   4. mounts        turrets train, elevate and load towards their orders
-##   5. spatial       the index is brought up to date for next tick's queries
+##   5. gunnery       mounts that are laid, loaded and bearing put shells in the air
+##   6. projectiles   shells fly, and the ones that arrive are resolved against armour
+##   7. spatial       the index is brought up to date for next tick's queries
 func step() -> void:
 	events.begin_tick(clock.tick)
 	_apply_commands()
 	_movement.step(ships, clock.dt)
 	_direct_gunnery()
 	_step_turrets()
+	_fire_guns()
+	if armory != null:
+		ProjectileSystem.step(self, clock.dt)
 	_sync_spatial()
 	clock.consume_tick()
 
 
+## Solve gunnery for the ships due an update this tick.
+##
+## A main battery turret trains at a few degrees a second, so re-solving the intercept
+## every tick moves the ordered bearing by under a tenth of a degree between updates —
+## all cost, no effect. Ships are staggered by id so the work spreads evenly across
+## ticks rather than every ship solving on the same one.
+##
+## Turrets still TRAIN every tick; only the solution they are training towards is
+## refreshed less often.
 func _direct_gunnery() -> void:
 	if armory == null:
 		return
+	_ready_to_fire.clear()
 	for ship: ShipEntity in ships:
 		if not ship.is_afloat() or ship.turrets.is_empty():
 			continue
+		if (clock.tick + ship.id) % _fire_control_interval != 0:
+			continue
 		var target: ShipEntity = get_ship(ship.target_id) if ship.target_id != 0 else null
-		FireControlSystem.direct_battery(ship, ship.turrets, target, armory)
+		var ready: Array[FireControlSystem.ReadyMount] = FireControlSystem.direct_battery(
+			ship, ship.turrets, target, armory)
+		if not ready.is_empty():
+			_ready_to_fire[ship.id] = ready
+
+
+## Ships fire in ascending id order, and each mount in the order its design lists it,
+## so a salvo's shells are always created in the same sequence.
+func _fire_guns() -> void:
+	if armory == null or _ready_to_fire.is_empty():
+		return
+	for ship: ShipEntity in ships:
+		var ready: Variant = _ready_to_fire.get(ship.id)
+		if ready == null:
+			continue
+		var target: ShipEntity = get_ship(ship.target_id)
+		GunnerySystem.fire_ready_mounts(
+			self, ship, ready as Array[FireControlSystem.ReadyMount], target)
+	_ready_to_fire.clear()
 
 
 func _step_turrets() -> void:
@@ -244,6 +356,8 @@ func checksum() -> int:
 	hasher.write_int(ids.peek_next())
 	for ship: ShipEntity in ships:
 		ship.hash_into(hasher)
+	for projectile: Projectile in projectiles:
+		projectile.hash_into(hasher)
 	return hasher.value()
 
 

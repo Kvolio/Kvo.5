@@ -99,15 +99,25 @@ static func mount_world_position(ship: ShipEntity, turret: Turret) -> Vector2:
 	return ship.position + local.rotated(ship.heading)
 
 
+## One mount that is laid, loaded, bearing, and the solution it is laid on.
+class ReadyMount extends RefCounted:
+	var turret: Turret = null
+	var solution: Solution = null
+
+
 ## Lay every mount on the ship's current target, and report which are ready to fire.
 ##
 ## Mounts that cannot bear are trained as far round as their stops allow rather than
 ## left where they were, so they are already close when the ship's turn brings the
 ## target into arc.
+##
+## The solution is returned with the mount rather than being recomputed at the moment
+## of firing: solving an intercept means four passes over a range table, and doing it
+## twice for the same shot is pure waste.
 static func direct_battery(
 	shooter: ShipEntity, turrets: Array[Turret], target: ShipEntity, armory: Armory
-) -> Array[Turret]:
-	var ready: Array[Turret] = []
+) -> Array[ReadyMount]:
+	var ready: Array[ReadyMount] = []
 	if target == null or not target.is_afloat():
 		for turret: Turret in turrets:
 			turret.stand_down()
@@ -123,7 +133,10 @@ static func direct_battery(
 			continue
 		turret.order_lay(solution.relative_bearing, solution.elevation)
 		if solution.bears and turret.is_ready_to_fire(BEARING_TOLERANCE, ELEVATION_TOLERANCE):
-			ready.append(turret)
+			var entry: ReadyMount = ReadyMount.new()
+			entry.turret = turret
+			entry.solution = solution
+			ready.append(entry)
 	return ready
 
 

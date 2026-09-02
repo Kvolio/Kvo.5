@@ -52,6 +52,19 @@ static func armed_world(seed_value: int = 1234) -> SimWorld:
 	return world
 
 
+static var _structures: Dictionary = {}
+
+
+## Internal geometry for a design, built once and cached across the whole test run.
+static func structure(spec_id: String) -> ShipStructureTemplate:
+	if _structures.has(spec_id):
+		return _structures[spec_id] as ShipStructureTemplate
+	var built: ShipStructureTemplate = ShipStructureBuilder.build(
+		load_ship(spec_id), JsonLoader.load_dict("res://data/config/structure.json"))
+	_structures[spec_id] = built
+	return built
+
+
 ## Run a world forward by `seconds` of simulated time.
 static func run_seconds(world: SimWorld, seconds: float) -> void:
 	world.step_many(int(round(seconds / world.clock.dt)))

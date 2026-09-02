@@ -4,6 +4,10 @@ extends SceneTree
 ##
 ##   godot --headless --path . --script res://tests/run_tests.gd
 ##   godot --headless --path . --script res://tests/run_tests.gd -- --filter=rng
+##   godot --headless --path . --script res://tests/run_tests.gd -- --exclude=gun_action
+##
+## Each suite reports how long it took, because a suite that has quietly become slow
+## is usually a system that has quietly become slow.
 ##
 ## Exits non-zero if anything failed, so CI and the per-stage gate can rely on it.
 ##
@@ -34,8 +38,9 @@ func _process(_delta: float) -> bool:
 
 
 func _initialize() -> void:
-	var filter: String = _parse_filter()
-	var suite_paths: Array[String] = _discover(filter)
+	var filter: String = _parse_argument("--filter=")
+	var exclude: String = _parse_argument("--exclude=")
+	var suite_paths: Array[String] = _discover(filter, exclude)
 
 	if suite_paths.is_empty():
 		print("No test suites found%s." % ("" if filter.is_empty() else " matching filter '%s'" % filter))
@@ -69,14 +74,17 @@ func _initialize() -> void:
 			continue
 
 		var suite: SimTest = instance as SimTest
+		var started: int = Time.get_ticks_msec()
 		var result: Dictionary = suite.run_all()
+		var elapsed: int = Time.get_ticks_msec() - started
 		var failures: Array = result["failures"] as Array
 		total_tests += int(result["tests"])
 		total_assertions += int(result["assertions"])
 
 		var marker: String = "ok  " if failures.is_empty() else "FAIL"
-		print("  [%s] %-46s %3d tests, %4d assertions" % [
-			marker, result["suite"], int(result["tests"]), int(result["assertions"])
+		print("  [%s] %-42s %3d tests, %5d assertions %7.1f s" % [
+			marker, result["suite"], int(result["tests"]), int(result["assertions"]),
+			float(elapsed) / 1000.0
 		])
 		if not failures.is_empty():
 			suites_failed += 1
@@ -104,17 +112,17 @@ func _initialize() -> void:
 	quit(1)
 
 
-func _parse_filter() -> String:
+func _parse_argument(prefix: String) -> String:
 	for arg: String in OS.get_cmdline_user_args():
-		if arg.begins_with("--filter="):
-			return arg.trim_prefix("--filter=")
+		if arg.begins_with(prefix):
+			return arg.trim_prefix(prefix)
 	return ""
 
 
 ## Suites are collected directory by directory and sorted within each, so lint
 ## runs before unit tests and unit before integration — a structural violation is
 ## reported before the behavioural fallout it causes.
-func _discover(filter: String) -> Array[String]:
+func _discover(filter: String, exclude: String = "") -> Array[String]:
 	var paths: Array[String] = []
 	for dir_path: String in TEST_DIRS:
 		if not DirAccess.dir_exists_absolute(dir_path):
@@ -126,6 +134,8 @@ func _discover(filter: String) -> Array[String]:
 			if not file_name.ends_with(".gd"):
 				continue
 			if not filter.is_empty() and not file_name.contains(filter):
+				continue
+			if not exclude.is_empty() and file_name.contains(exclude):
 				continue
 			paths.append(dir_path.path_join(file_name))
 	return paths

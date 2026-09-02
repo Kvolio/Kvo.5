@@ -10,8 +10,16 @@ extends RefCounted
 ## Making the form factor per-shell is what lets a Type 91 with its long fine ogive
 ## out-range an American shell of higher sectional density, which it genuinely did.
 
+## Resolution of the resampled lookup. The transonic rise is the sharpest feature in
+## the curve and 0.01 Mach follows it closely.
+const SAMPLE_STEP_MACH: float = 0.01
+const SAMPLE_CEILING_MACH: float = 8.0
+
 var _machs: PackedFloat64Array = PackedFloat64Array()
 var _coefficients: PackedFloat64Array = PackedFloat64Array()
+
+## Uniformly resampled copy, indexed rather than searched. See Atmosphere.sample().
+var _fast: PackedFloat64Array = PackedFloat64Array()
 
 
 static func from_config(config: Dictionary) -> DragModel:
@@ -26,10 +34,18 @@ static func from_config(config: Dictionary) -> DragModel:
 		push_error("DragModel: curve missing or too short; using a flat coefficient")
 		model._machs = PackedFloat64Array([0.0, 10.0])
 		model._coefficients = PackedFloat64Array([0.30, 0.30])
+	model._resample()
 	return model
 
 
-func coefficient_at(mach: float) -> float:
+func _resample() -> void:
+	var count: int = int(SAMPLE_CEILING_MACH / SAMPLE_STEP_MACH) + 1
+	_fast.resize(count)
+	for i: int in count:
+		_fast[i] = _interpolate(float(i) * SAMPLE_STEP_MACH)
+
+
+func _interpolate(mach: float) -> float:
 	var count: int = _machs.size()
 	if mach <= _machs[0]:
 		return _coefficients[0]
@@ -41,3 +57,15 @@ func coefficient_at(mach: float) -> float:
 			var t: float = 0.0 if span <= 0.0 else (mach - _machs[i]) / span
 			return lerpf(_coefficients[i], _coefficients[i + 1], t)
 	return _coefficients[count - 1]
+
+
+func coefficient_at(mach: float) -> float:
+	var last: int = _fast.size() - 1
+	if mach <= 0.0:
+		return _fast[0]
+	var scaled: float = mach / SAMPLE_STEP_MACH
+	var index: int = int(scaled)
+	if index >= last:
+		return _fast[last]
+	var t: float = scaled - float(index)
+	return _fast[index] + (_fast[index + 1] - _fast[index]) * t
