@@ -111,6 +111,7 @@ combat code.
 - [`docs/TACTICS.md`](docs/TACTICS.md) — the horizon, contact plots, immunity zones, captains and formations
 - [`docs/AIR_MODULE.md`](docs/AIR_MODULE.md) — carrier aviation, and the line it does not cross
 - [`docs/REPLAY.md`](docs/REPLAY.md) — scenarios, saves, replays, and the three ways of looking at a battle
+- [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md) — what a fleet action costs, and the two things it may not cost
 - [`docs/SOURCES.md`](docs/SOURCES.md) — where the historical figures came from, and which to doubt
 
 ---
@@ -128,4 +129,4 @@ Built in stages, each one tested before the next begins.
 - [x] **Stage 6** — ship designer and naval architecture
 - [x] **Stage 7** — fire control quality, detection, AI, formations, the optional air module
 - [x] **Stage 8** — scenarios, save/load, replay, ship inspector, debug mode, combat log
-- [ ] **Stage 9** — performance and visual polish
+- [x] **Stage 9** — spatial hash index, deterministic level of detail, aircraft rendering

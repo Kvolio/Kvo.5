@@ -641,6 +641,16 @@ func _retire(world: SimWorld) -> void:
 	groups = survivors
 
 
+## What is in the air, for anything that wants to draw it.
+##
+## Named rather than exposing `groups` directly because this is the method the view
+## looks for through `SimWorld.module_providing()`: the contract between the module and
+## whatever wants to render it is one method, and the core mediates it without knowing
+## what either side is.
+func air_groups() -> Array[AirGroup]:
+	return groups
+
+
 func hash_into(hasher: StateHasher) -> void:
 	for group: AirGroup in groups:
 		group.hash_into(hasher)

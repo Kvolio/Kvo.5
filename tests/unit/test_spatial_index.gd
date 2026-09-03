@@ -2,19 +2,21 @@ extends SimTest
 
 ## Contract tests for the spatial-query abstraction.
 ##
-## These run against BruteForceIndex now. When SpatialHashIndex arrives in Stage 9
-## it is added to `_indexes()` and must satisfy exactly the same assertions — the
-## point of the abstraction is that swapping the implementation cannot change a
-## single query result, and therefore cannot change a single battle.
+## Every implementation must satisfy every assertion here, and the equivalence tests at
+## the bottom go further: the two must return BYTE-IDENTICAL results over randomised
+## workloads. The point of the abstraction is that swapping the implementation cannot
+## change a single query result, and therefore cannot change a single battle — an
+## acceleration structure that is merely almost right produces a subtly different naval
+## action, which is indistinguishable from a correct one until it matters.
 
 
 func suite_name() -> String:
 	return "SpatialIndex contract"
 
 
-## Every implementation under test. Stage 9 appends SpatialHashIndex here.
+## Every implementation under test.
 func _indexes() -> Array[SpatialIndex]:
-	return [BruteForceIndex.new()]
+	return [BruteForceIndex.new(), SpatialHashIndex.new()]
 
 
 func _populate(index: SpatialIndex) -> void:
@@ -149,3 +151,103 @@ func test_point_to_segment_distance_helper() -> void:
 		30.0, 0.0001, "clamped to the end point")
 	almost(SpatialIndex.distance_point_to_segment(Vector2(3, 4), Vector2(0, 0), Vector2(0, 0)),
 		5.0, 0.0001, "degenerate segment falls back to point distance")
+
+
+# -- equivalence ---------------------------------------------------------------
+
+## Ids, positions and radii spread across a battlefield-sized area, including negative
+## coordinates: a battlefield is centred on the origin, so half of it is negative, and a
+## grid that packed its cell keys naively would fold the two halves together.
+func _randomised(index: SpatialIndex, rng: DeterministicRng, count: int) -> void:
+	for i: int in count:
+		var layer: int = [SpatialIndex.Layer.SHIP, SpatialIndex.Layer.PROJECTILE,
+			SpatialIndex.Layer.TORPEDO, SpatialIndex.Layer.AIRCRAFT][rng.next_int(4)]
+		index.insert(i + 1,
+			Vector2(rng.next_range(-30000.0, 30000.0), rng.next_range(-30000.0, 30000.0)),
+			rng.next_range(1.0, 300.0), layer)
+
+
+func test_both_indexes_answer_every_radius_query_identically() -> void:
+	var brute: SpatialIndex = BruteForceIndex.new()
+	var hashed: SpatialIndex = SpatialHashIndex.new()
+	_randomised(brute, DeterministicRng.new(4242), 400)
+	_randomised(hashed, DeterministicRng.new(4242), 400)
+
+	var rng: DeterministicRng = DeterministicRng.new(77)
+	for _i: int in 120:
+		var centre: Vector2 = Vector2(
+			rng.next_range(-32000.0, 32000.0), rng.next_range(-32000.0, 32000.0))
+		var radius: float = rng.next_range(50.0, 8000.0)
+		var mask: int = [SpatialIndex.LAYER_ALL, SpatialIndex.Layer.SHIP,
+			SpatialIndex.Layer.SHIP | SpatialIndex.Layer.TORPEDO][rng.next_int(3)]
+		arrays_equal(hashed.query_radius(centre, radius, mask),
+			brute.query_radius(centre, radius, mask),
+			"radius query at %s r=%.0f mask=%d must agree" % [centre, radius, mask])
+
+
+func test_both_indexes_answer_every_segment_query_identically() -> void:
+	# The one the projectile broadphase uses on every shell on every tick, and the one
+	# where a disagreement would silently lose hits rather than cost time.
+	var brute: SpatialIndex = BruteForceIndex.new()
+	var hashed: SpatialIndex = SpatialHashIndex.new()
+	_randomised(brute, DeterministicRng.new(99), 300)
+	_randomised(hashed, DeterministicRng.new(99), 300)
+
+	var rng: DeterministicRng = DeterministicRng.new(1234)
+	for _i: int in 120:
+		var a: Vector2 = Vector2(
+			rng.next_range(-30000.0, 30000.0), rng.next_range(-30000.0, 30000.0))
+		var b: Vector2 = a + Vector2(rng.next_range(-4000.0, 4000.0),
+			rng.next_range(-4000.0, 4000.0))
+		arrays_equal(hashed.query_segment(a, b, 0.0, SpatialIndex.Layer.SHIP),
+			brute.query_segment(a, b, 0.0, SpatialIndex.Layer.SHIP),
+			"segment query %s -> %s must agree" % [a, b])
+
+
+func test_both_indexes_agree_after_things_move_and_leave() -> void:
+	# Entities are updated every tick and removed when they are spent, so the grid's
+	# bookkeeping is exercised far harder than its queries.
+	var brute: SpatialIndex = BruteForceIndex.new()
+	var hashed: SpatialIndex = SpatialHashIndex.new()
+	_randomised(brute, DeterministicRng.new(7), 200)
+	_randomised(hashed, DeterministicRng.new(7), 200)
+
+	var rng: DeterministicRng = DeterministicRng.new(31)
+	for step: int in 300:
+		var id: int = rng.next_int(200) + 1
+		if step % 7 == 0:
+			brute.remove(id)
+			hashed.remove(id)
+		else:
+			var to: Vector2 = Vector2(
+				rng.next_range(-30000.0, 30000.0), rng.next_range(-30000.0, 30000.0))
+			var radius: float = rng.next_range(1.0, 300.0)
+			brute.update(id, to, radius)
+			hashed.update(id, to, radius)
+	eq(hashed.size(), brute.size(), "the same entities should remain")
+	arrays_equal(hashed.query_radius(Vector2.ZERO, 60000.0),
+		brute.query_radius(Vector2.ZERO, 60000.0),
+		"and a sweep of the whole battlefield should return the same list")
+
+
+func test_a_whole_battle_is_the_same_battle_with_either_index() -> void:
+	# The assertion that actually matters. Two identical actions, one fought with each
+	# index, must end bit for bit the same — because if they do not, the index is a
+	# balance change dressed as an optimisation.
+	var checksums: Array[int] = []
+	for use_hash: bool in [false, true]:
+		var world: SimWorld = SimWorld.create(20260907, TestShips.config())
+		if use_hash:
+			world.spatial = SpatialHashIndex.new()
+		world.set_armory(TestWeapons.armory())
+		var a: ShipEntity = world.add_ship(TestShips.iowa(), Vector2.ZERO, 0.0, 0)
+		var b: ShipEntity = world.add_ship(
+			TestShips.iowa(), Vector2(0.0, 16000.0), PI, 1)
+		a.target_id = b.id
+		b.target_id = a.id
+		MovementSystem.set_steady_speed(a, SimUnits.knots_to_ms(22.0))
+		MovementSystem.set_steady_speed(b, SimUnits.knots_to_ms(22.0))
+		world.step_many(60 * 150)
+		checksums.append(world.checksum())
+	eq(checksums[1], checksums[0],
+		"the same battle, whichever index found the targets")

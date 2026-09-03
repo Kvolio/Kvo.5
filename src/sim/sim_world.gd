@@ -102,6 +102,10 @@ var _ready_to_fire: Dictionary = {}
 var _fire_control_interval: int = 6
 var _detection_interval: int = 15
 var _ai_interval: int = 6
+
+## Level-of-detail settings the AI reads. Held on the world so a saved battle carries
+## the cadence it was actually fought at, and so nothing has to reach for the config.
+var ai_lod: Dictionary = {}
 var _seed: int = 0
 
 
@@ -118,7 +122,15 @@ static func create(seed_value: int = 0, config: Dictionary = {}) -> SimWorld:
 	var world_config: Dictionary = sim_config.get("world", {}) as Dictionary
 	world.map_size = Serializer.array_to_vec2(world_config.get("defaultMapSizeM"), world.map_size)
 
-	world.spatial = BruteForceIndex.new()
+	# Both indexes satisfy the same contract and are asserted to produce bit-identical
+	# battles, so this is a performance choice and nothing else. Brute force stays
+	# available as the correctness oracle: if a spatial result is ever in doubt, switch
+	# to it and see whether the doubt goes away.
+	var spatial_config: Dictionary = sim_config.get("spatial", {}) as Dictionary
+	if str(spatial_config.get("index", "hash")) == "brute":
+		world.spatial = BruteForceIndex.new()
+	else:
+		world.spatial = SpatialHashIndex.new(float(spatial_config.get("cellSizeM", 500.0)))
 	world._movement.configure(config.get("physics", {}) as Dictionary)
 	world._structure_config = config.get("structure", {}) as Dictionary
 	world.damage_config = config.get("damage", {}) as Dictionary
@@ -136,6 +148,7 @@ static func create(seed_value: int = 0, config: Dictionary = {}) -> SimWorld:
 		(world.detection_config.get("plot", {}) as Dictionary)
 	world._detection_interval = maxi(int(detection_plot.get("updateIntervalTicks", 15)), 1)
 	world._ai_interval = maxi(int(lod.get("aiTickIntervalNear", 6)), 1)
+	world.ai_lod = lod
 	world.materials = ArmourMaterials.load_from("res://data/materials/armor.json")
 	world.penetration_model = PenetrationModelRegistry.create(
 		config.get("ballistics", {}) as Dictionary)
@@ -342,6 +355,18 @@ func register_module(module: Object) -> void:
 
 func module_count() -> int:
 	return _modules.size()
+
+
+## The first registered module that implements `method`, or null.
+##
+## How the view finds out whether there is anything to draw beyond ships and shells,
+## without the core naming a module type or the view assuming one is there. A build
+## with `src/sim/air/` deleted simply gets null back and draws no aircraft.
+func module_providing(method: StringName) -> Object:
+	for module: Object in _modules:
+		if module.has_method(method):
+			return module
+	return null
 
 
 func _step_modules() -> void:

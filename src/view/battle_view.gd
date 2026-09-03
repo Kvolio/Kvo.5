@@ -28,6 +28,7 @@ var _ocean: ColorRect = null
 var _grid: Node2D = null
 var _ships: Node2D = null
 var _effects: Node2D = null
+var _air: Node2D = null
 var _labels: Control = null
 var _hud: Control = null
 var _selected_id: int = 0
@@ -81,6 +82,12 @@ func _build_scene() -> void:
 	_effects = _instantiate("res://src/view/effects_renderer.gd") as Node2D
 	if _effects != null:
 		add_child(_effects)
+
+	# Aircraft, if anything registered a module that has any. Drawn above the effects
+	# because they are the only thing on the plot that is not on the water.
+	_air = _instantiate("res://src/view/air_renderer.gd") as Node2D
+	if _air != null:
+		add_child(_air)
 
 	_camera = _instantiate("res://src/view/battle_camera.gd") as Camera2D
 	if _camera != null:
@@ -197,6 +204,8 @@ func _start_battle() -> void:
 
 	_ships.world = world
 	_effects.world = world
+	if _air != null:
+		_air.world = world
 	_labels.world = world
 	_hud.world = world
 	if _combat_log != null:
@@ -312,6 +321,9 @@ func _sync_view() -> void:
 	(_ships as Object).call("set_zoom", zoom)
 	_ships.queue_redraw()
 	(_effects as Object).call("set_zoom", zoom)
+	if _air != null:
+		(_air as Object).call("set_zoom", zoom)
+		_air.queue_redraw()
 
 	# The canvas transform is the exact mapping the world layer was drawn with, so
 	# screen-space labels stay locked to their hulls at every zoom.

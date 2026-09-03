@@ -74,14 +74,41 @@ class State extends RefCounted:
 static func step(world: SimWorld, dt: float, interval: int) -> void:
 	if world.contacts == null:
 		return
+	var far_interval: int = maxi(int(world.ai_lod.get("aiTickIntervalFar", interval)), interval)
+	var far_distance: float = float(world.ai_lod.get("farDistanceM", 25000.0))
+
 	for ship: ShipEntity in world.ships:
 		if not ship.ai_controlled or not ship.is_afloat():
 			continue
-		if (world.clock.tick + ship.id) % interval != 0:
+		# Level of detail, driven by the SIMULATION and never by the camera.
+		#
+		# A captain with no enemy within twenty-five kilometres has nothing to decide
+		# in a tenth of a second, and in a sixty-ship action most captains are in that
+		# position most of the time. Thinking less often is worth a great deal there and
+		# nothing at all where the fighting is.
+		#
+		# What decides "distant" is the range to the nearest thing his side has found,
+		# which is simulation state. Deciding it from the camera would be the obvious
+		# implementation and it would be a disaster: the battle would depend on where
+		# the player happened to be looking, two players watching the same action would
+		# see different outcomes, and every replay would be wrong.
+		var cadence: int = interval
+		if far_distance > 0.0 and _nearest_contact_range(world, ship) > far_distance:
+			cadence = far_interval
+		if (world.clock.tick + ship.id) % cadence != 0:
 			continue
 		if ship.ai == null:
 			ship.ai = State.new()
-		_decide(world, ship, dt * float(interval))
+		_decide(world, ship, dt * float(cadence))
+
+
+## Range to the nearest contact this ship's side is holding, or infinity for a captain
+## who knows of nobody at all.
+static func _nearest_contact_range(world: SimWorld, ship: ShipEntity) -> float:
+	var nearest: float = INF
+	for contact: ContactPlot.Contact in world.contacts.contacts_for(ship.team):
+		nearest = minf(nearest, ship.position.distance_to(contact.estimated_position))
+	return nearest
 
 
 static func _decide(world: SimWorld, ship: ShipEntity, dt: float) -> void:
