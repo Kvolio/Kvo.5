@@ -183,8 +183,9 @@
   "armour": {
     "belt": {
       "thicknessMm": 356,
+      "lowerEdgeThicknessMm": 114,
       "material": "uk_ca",
-      "_note": "356 mm over magazines, 343 mm over machinery."
+      "_note": "356 mm over magazines, 343 mm over machinery, tapering to 114 mm at the lower edge."
     },
     "upperBelt": {
       "thicknessMm": 0,

@@ -171,8 +171,9 @@
   "armour": {
     "belt": {
       "thicknessMm": 320,
+      "lowerEdgeThicknessMm": 170,
       "material": "ger_kcna",
-      "_note": "Vertical and deep, covering an unusually long citadel."
+      "_note": "Vertical and deep, covering an unusually long citadel, tapering to 170 mm at the lower edge."
     },
     "upperBelt": {
       "thicknessMm": 145,

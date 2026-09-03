@@ -131,16 +131,44 @@ func _build_hull_faces(t: ShipStructureTemplate, spec: ShipSpec) -> void:
 				segment_length * 0.5, height * 0.5,
 				_plating_thickness(spec), "structural_steel"))
 
-	# Weather deck and bottom, spanning the whole ship.
+	# The weather deck, in three parts: an armoured stretch over the citadel and thin
+	# plating fore and aft of it. Armour was worked over the vitals, not from stem to
+	# stern — carrying it the whole length was thousands of tonnes on a battleship, and
+	# it also meant a shell landing on the forecastle met deck armour that was never
+	# there. The ends are plating, and the tracer treats them as such.
 	var deck_material: String = spec.armour.plate("deckWeather").material_id
 	var deck_mm: float = spec.armour.thickness_mm("deckWeather")
-	t.add_face(GeometryPrimitives.make_face(
-		0, GeometryPrimitives.FaceKind.ARMOR if deck_mm > 0.0 else GeometryPrimitives.FaceKind.HULL,
-		"deckWeather",
-		Vector3(0.0, 0.0, t.main_deck_z), Vector3.UP, Vector3(1.0, 0.0, 0.0),
-		spec.length_m * 0.5, spec.beam_m * 0.5,
-		maxf(deck_mm, _plating_thickness(spec)),
-		deck_material if deck_mm > 0.0 else "structural_steel"))
+	var plating: float = _plating_thickness(spec)
+	var deck_sections: Array = []
+	if deck_mm > 0.0:
+		var mid: float = (t.citadel_fore + t.citadel_aft) * 0.5 * spec.length_m
+		var half: float = (t.citadel_fore - t.citadel_aft) * 0.5 * spec.length_m
+		deck_sections.append([mid, half, maxf(deck_mm, plating), deck_material, true])
+		# Forward of the citadel, then aft of it.
+		var fore_half: float = (0.5 - t.citadel_fore) * 0.5 * spec.length_m
+		var aft_half: float = (t.citadel_aft + 0.5) * 0.5 * spec.length_m
+		deck_sections.append([mid + half + fore_half, fore_half, plating, "structural_steel", false])
+		deck_sections.append([mid - half - aft_half, aft_half, plating, "structural_steel", false])
+	else:
+		deck_sections.append([0.0, spec.length_m * 0.5, plating, "structural_steel", false])
+
+	for section: Array in deck_sections:
+		if float(section[1]) <= 0.01:
+			continue
+		# Width follows the hull's mean beam over the stretch, not the widest section.
+		var station_centre: float = float(section[0]) / spec.length_m
+		var station_half: float = float(section[1]) / spec.length_m
+		var mean_half_beam: float = 0.0
+		for i: int in 5:
+			mean_half_beam += hull.half_beam_at(
+				station_centre + lerpf(-station_half, station_half, float(i) / 4.0))
+		mean_half_beam /= 5.0
+		t.add_face(GeometryPrimitives.make_face(
+			0, GeometryPrimitives.FaceKind.ARMOR if bool(section[4]) else GeometryPrimitives.FaceKind.HULL,
+			"deckWeather",
+			Vector3(float(section[0]), 0.0, t.main_deck_z), Vector3.UP, Vector3(1.0, 0.0, 0.0),
+			float(section[1]), mean_half_beam,
+			float(section[2]), str(section[3])))
 
 	t.add_face(GeometryPrimitives.make_face(
 		0, GeometryPrimitives.FaceKind.HULL, "bottomPlating",
@@ -163,13 +191,53 @@ func _build_armour_faces(t: ShipStructureTemplate, spec: ShipSpec) -> void:
 	var citadel_half: float = (t.citadel_fore - t.citadel_aft) * 0.5 * spec.length_m
 	var citadel_x: float = citadel_mid * spec.length_m
 	var citadel_half_beam: float = hull.half_beam_at(citadel_mid)
+	# Decks span the citadel, but the hull narrows towards its ends, so the plate area
+	# follows the AVERAGE half-beam rather than the widest section. Using the maximum
+	# added several thousand tonnes of deck armour that was never fitted.
+	var citadel_mean_beam: float = 0.0
+	for i: int in 9:
+		citadel_mean_beam += hull.half_beam_at(
+			lerpf(t.citadel_aft, t.citadel_fore, float(i) / 8.0))
+	citadel_mean_beam /= 9.0
 
 	# --- main belt -----------------------------------------------------------
+	#
+	# A belt is not a slab. It carries its full thickness over the strake around the
+	# waterline, where it has to stop a shell arriving directly, and tapers away below
+	# that, where its job is only to catch shells that fell short and travelled on
+	# underwater. Building it as one full-thickness plate was worth thousands of tonnes
+	# of armour no ship ever carried, and — worse — meant a hit low on the belt met the
+	# full plate. The taper is recorded per ship; where a scheme does not state one,
+	# `lower_edge_thickness_mm` defaults to the full thickness and this emits one plate
+	# exactly as before.
+	var belt_bottom: float = -spec.draft_m * float(
+		_hull_config.get("beltBottomDraftFraction", 0.55))
 	var belt: ArmourSchemeDef.Plate = spec.armour.plate("belt")
 	if belt.is_armoured():
-		var belt_bottom: float = -spec.draft_m * float(_hull_config.get("beltBottomDraftFraction", 0.55))
-		var belt_top: float = t.main_deck_z
+		# The belt's top edge meets the armoured deck, because between them they ARE the
+		# citadel: a box of vertical plate closed by a horizontal one. Running the belt
+		# on up to the main deck made it a storey taller than the box it encloses, which
+		# was the single largest source of phantom armour weight. What covers the side
+		# above the armoured deck is the upper belt, where the design has one, and thin
+		# plating where it does not.
+		var belt_top: float = t.armour_deck_z
 		var belt_height: float = belt_top - belt_bottom
+		# How much of the belt, measured down from the top, is at full thickness.
+		var full_fraction: float = clampf(
+			float(_hull_config.get("beltFullThicknessFraction", 0.45)), 0.05, 1.0)
+		var strakes: Array = []
+		if belt.is_tapered():
+			var full_height: float = belt_height * full_fraction
+			strakes.append([belt_top - full_height * 0.5, full_height, belt.thickness_mm])
+			# The tapering strake is one plate at its MEAN thickness. Its weight and its
+			# average resistance are both right; resolving the true wedge would mean a
+			# thickness that varies across a single face, which no other plate needs.
+			var taper_height: float = belt_height - full_height
+			strakes.append([belt_bottom + taper_height * 0.5, taper_height,
+				(belt.thickness_mm + belt.lower_edge_thickness_mm) * 0.5])
+		else:
+			strakes.append([(belt_top + belt_bottom) * 0.5, belt_height, belt.thickness_mm])
+
 		for side: int in [-1, 1]:
 			# An inclined belt leans inboard at the top, which is why it presents more
 			# effective thickness to a flat trajectory and LESS to a plunging one.
@@ -178,18 +246,21 @@ func _build_armour_faces(t: ShipStructureTemplate, spec: ShipSpec) -> void:
 				0.0,
 				float(side) * cos(belt.inclination_rad),
 				sin(belt.inclination_rad)).normalized()
-			t.add_face(GeometryPrimitives.make_face(
-				0, GeometryPrimitives.FaceKind.ARMOR, "belt",
-				Vector3(citadel_x, citadel_half_beam * 0.97 * float(side),
-					(belt_top + belt_bottom) * 0.5),
-				normal, Vector3(1.0, 0.0, 0.0),
-				citadel_half, belt_height * 0.5,
-				belt.thickness_mm, belt.material_id))
+			for strake: Array in strakes:
+				t.add_face(GeometryPrimitives.make_face(
+					0, GeometryPrimitives.FaceKind.ARMOR, "belt",
+					Vector3(citadel_x, citadel_half_beam * 0.97 * float(side),
+						float(strake[0])),
+					normal, Vector3(1.0, 0.0, 0.0),
+					citadel_half, float(strake[1]) * 0.5,
+					float(strake[2]), belt.material_id))
 
 	# --- upper belt ----------------------------------------------------------
 	var upper: ArmourSchemeDef.Plate = spec.armour.plate("upperBelt")
 	if upper.is_armoured():
-		var upper_bottom: float = t.main_deck_z
+		# Starts where the main belt stops, so the two together cover the side without
+		# a gap and without overlapping.
+		var upper_bottom: float = t.armour_deck_z
 		var upper_top: float = t.main_deck_z + (t.superstructure_top_z - t.main_deck_z) * 0.55
 		for side: int in [-1, 1]:
 			t.add_face(GeometryPrimitives.make_face(
@@ -201,25 +272,33 @@ func _build_armour_faces(t: ShipStructureTemplate, spec: ShipSpec) -> void:
 				upper.thickness_mm, upper.material_id))
 
 	# --- armoured decks ------------------------------------------------------
-	_add_deck(t, spec, "deckMain", t.armour_deck_z, citadel_x, citadel_half, citadel_half_beam)
+	_add_deck(t, spec, "deckMain", t.armour_deck_z, citadel_x, citadel_half, citadel_mean_beam)
 	_add_deck(t, spec, "deckSplinter",
 		t.armour_deck_z - t.draft_m * float(_hull_config.get("splinterDeckDraftFraction", 0.18)),
-		citadel_x, citadel_half, citadel_half_beam)
+		citadel_x, citadel_half, citadel_mean_beam)
 
 	# --- transverse bulkheads closing the citadel ----------------------------
-	_add_bulkhead(t, spec, "bulkheadFore", t.citadel_fore, hull)
-	_add_bulkhead(t, spec, "bulkheadAft", t.citadel_aft, hull)
+	_add_bulkhead(t, spec, "bulkheadFore", t.citadel_fore, hull, belt_bottom)
+	_add_bulkhead(t, spec, "bulkheadAft", t.citadel_aft, hull, belt_bottom)
 
 	# --- torpedo bulkhead ----------------------------------------------------
+	# The holding bulkhead runs from the bottom up to where the main belt takes over.
+	# The two together cover the side from keel to armoured deck, and the joint between
+	# them is a real weak point rather than a modelling artefact — Yamato's data says so
+	# in as many words. Running it all the way to the waterline instead overlapped the
+	# belt and, on a ship whose lower belt IS her holding bulkhead, doubled the heaviest
+	# plate she carried below water.
 	var torpedo: ArmourSchemeDef.Plate = spec.armour.plate("torpedoBulkhead")
 	if torpedo.is_armoured() and spec.armour.has_torpedo_defence():
 		var inboard: float = maxf(citadel_half_beam - spec.armour.torpedo_defence_depth_m, 1.0)
+		var tb_top: float = minf(belt_bottom, -0.5)
+		var tb_height: float = maxf(tb_top - t.keel_z, 1.0)
 		for side: int in [-1, 1]:
 			t.add_face(GeometryPrimitives.make_face(
 				0, GeometryPrimitives.FaceKind.ARMOR, "torpedoBulkhead",
-				Vector3(citadel_x, inboard * float(side), (t.keel_z + 0.0) * 0.5),
+				Vector3(citadel_x, inboard * float(side), tb_top - tb_height * 0.5),
 				Vector3(0.0, float(side), 0.0), Vector3(1.0, 0.0, 0.0),
-				citadel_half, absf(t.keel_z) * 0.5,
+				citadel_half, tb_height * 0.5,
 				torpedo.thickness_mm, torpedo.material_id))
 
 	# --- conning tower -------------------------------------------------------
@@ -229,8 +308,9 @@ func _build_armour_faces(t: ShipStructureTemplate, spec: ShipSpec) -> void:
 		var ct_centre: Vector3 = Vector3(
 			spec.length_m * 0.06, 0.0,
 			t.main_deck_z + (t.superstructure_top_z - t.main_deck_z) * 0.45)
-		_add_box_armour(t, "conningTower", ct_centre, Vector3(ct_size, ct_size, ct_size * 1.2),
-			conning.thickness_mm, conning.material_id)
+		_add_cylinder_armour(t, "conningTower", ct_centre,
+			Vector3(ct_size, ct_size, ct_size * 1.2),
+			conning.thickness_mm, conning.material_id, true)
 
 
 func _add_deck(t: ShipStructureTemplate, spec: ShipSpec, zone: String, z: float,
@@ -245,14 +325,20 @@ func _add_deck(t: ShipStructureTemplate, spec: ShipSpec, zone: String, z: float,
 		plate.thickness_mm, plate.material_id))
 
 
+## A transverse bulkhead closing one end of the armoured citadel.
+##
+## It spans the citadel's own envelope — from the belt's lower edge up to the armoured
+## deck — because that is the box it closes. Running it all the way to the keel made it
+## a full-depth slab of belt-grade plate across the ship, which is neither what was
+## fitted nor what a shell entering the citadel actually has to get through.
 func _add_bulkhead(t: ShipStructureTemplate, spec: ShipSpec, zone: String,
-		station: float, hull: HullGeometry) -> void:
+		station: float, hull: HullGeometry, belt_bottom: float) -> void:
 	var plate: ArmourSchemeDef.Plate = spec.armour.plate(zone)
 	if not plate.is_armoured():
 		return
 	var half_beam: float = hull.half_beam_at(station)
 	var top: float = t.armour_deck_z
-	var bottom: float = t.keel_z
+	var bottom: float = minf(belt_bottom, top - 1.0)
 	t.add_face(GeometryPrimitives.make_face(
 		0, GeometryPrimitives.FaceKind.ARMOR, zone,
 		Vector3(station * spec.length_m, 0.0, (top + bottom) * 0.5),
@@ -261,20 +347,31 @@ func _add_bulkhead(t: ShipStructureTemplate, spec: ShipSpec, zone: String,
 		plate.thickness_mm, plate.material_id))
 
 
-## Six faces forming an armoured box. Used for conning towers and barbettes, where
-## approximating a cylinder with four flat sides is well inside the accuracy of
-## everything else in the chain.
-func _add_box_armour(t: ShipStructureTemplate, zone: String, centre: Vector3,
-		size: Vector3, thickness_mm: float, material: String) -> void:
+## An armoured cylinder, approximated by four flat sides. Used for barbettes and
+## conning towers.
+##
+## The four faces are sized so their total area equals the CYLINDER'S, not the box's.
+## Four faces the full width of the trunk would give 4d of circumference where a
+## cylinder has pi*d — 27% too much plate, which on three barbettes of 439 mm is over
+## a thousand tonnes of armour a real ship never carried.
+##
+## `roofed` controls whether a top plate is fitted. A barbette has none: it is a trunk
+## through the decks with a turret sitting on top of it, and giving it a floor and a
+## ceiling of belt-thickness armour was most of why Iowa first came out 14,000 tonnes
+## overweight.
+func _add_cylinder_armour(t: ShipStructureTemplate, zone: String, centre: Vector3,
+		size: Vector3, thickness_mm: float, material: String, roofed: bool = false) -> void:
 	var half: Vector3 = size * 0.5
+	# A quarter of the circumference per face, halved again for the half-extent.
+	var arc_half: float = size.x * PI * 0.25 * 0.5
 	var sides: Array = [
-		[Vector3(1, 0, 0), Vector3(0, 1, 0), half.y, half.z, half.x],
-		[Vector3(-1, 0, 0), Vector3(0, 1, 0), half.y, half.z, half.x],
-		[Vector3(0, 1, 0), Vector3(1, 0, 0), half.x, half.z, half.y],
-		[Vector3(0, -1, 0), Vector3(1, 0, 0), half.x, half.z, half.y],
-		[Vector3(0, 0, 1), Vector3(1, 0, 0), half.x, half.y, half.z],
-		[Vector3(0, 0, -1), Vector3(1, 0, 0), half.x, half.y, half.z],
+		[Vector3(1, 0, 0), Vector3(0, 1, 0), arc_half, half.z, half.x],
+		[Vector3(-1, 0, 0), Vector3(0, 1, 0), arc_half, half.z, half.x],
+		[Vector3(0, 1, 0), Vector3(1, 0, 0), arc_half, half.z, half.y],
+		[Vector3(0, -1, 0), Vector3(1, 0, 0), arc_half, half.z, half.y],
 	]
+	if roofed:
+		sides.append([Vector3(0, 0, 1), Vector3(1, 0, 0), half.x * 0.886, half.y * 0.886, half.z])
 	for entry: Array in sides:
 		var normal: Vector3 = entry[0]
 		t.add_face(GeometryPrimitives.make_face(
@@ -338,7 +435,7 @@ func _build_turrets_and_barbettes(t: ShipStructureTemplate, spec: ShipSpec) -> v
 		if barbette.is_armoured():
 			var trunk_top: float = t.main_deck_z
 			var trunk_bottom: float = t.armour_deck_z - t.draft_m * 0.4
-			_add_box_armour(t, "barbette",
+			_add_cylinder_armour(t, "barbette",
 				Vector3(position.x, position.y, (trunk_top + trunk_bottom) * 0.5),
 				Vector3(width * 0.85, width * 0.85, trunk_top - trunk_bottom),
 				barbette.thickness_mm, barbette.material_id)

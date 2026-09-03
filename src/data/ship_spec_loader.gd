@@ -60,6 +60,7 @@ static func _parse_hull(spec: ShipSpec, hull: Dictionary, source_path: String) -
 
 	var full_load: float = float(hull.get("displacementFullT", 0.0))
 	var standard: float = float(hull.get("displacementStandardT", 0.0))
+	spec.standard_displacement_t = standard
 	if full_load > 0.0:
 		spec.displacement_t = full_load
 	elif standard > 0.0:

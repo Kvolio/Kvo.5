@@ -139,6 +139,28 @@ func waterplane_coefficient() -> float:
 	return 0.0 if box <= 0.0 else _waterplane_area / box
 
 
+## Second moment of area of the waterplane about the centreline, in m^4.
+##
+## This is the `I` in `BM = I / V`, and it is what makes beam the cheapest stability
+## there is: it goes as the CUBE of the local beam, integrated along the length.
+##
+## Computed from the hull's own stations rather than from a form coefficient, because a
+## single coefficient cannot describe both a destroyer's fine waterplane and a
+## battleship's full one — and getting it from the real shape is what makes a design's
+## stability follow from its hull form instead of from its type.
+func waterplane_inertia() -> float:
+	# I = integral of b^3/12 dx over the length, with b = 2y the full beam at a station.
+	var samples: int = OUTLINE_STATIONS * 2
+	var total: float = 0.0
+	for i: int in samples + 1:
+		var station: float = lerpf(-0.5, 0.5, float(i) / float(samples))
+		var half: float = half_beam_at(station)
+		# Trapezoid rule: the end samples count half.
+		var weight: float = 0.5 if (i == 0 or i == samples) else 1.0
+		total += weight * pow(2.0 * half, 3.0) / 12.0
+	return total * (length / float(samples))
+
+
 ## Approximate submerged volume, and hence displacement, from the waterplane area.
 ## The vertical fullness factor accounts for the hull narrowing towards the keel.
 func estimated_displacement_tonnes(vertical_fullness: float = 0.85) -> float:

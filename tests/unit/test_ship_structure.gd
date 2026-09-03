@@ -62,8 +62,20 @@ func test_a_battleship_has_the_armour_zones_her_data_describes() -> void:
 			"conningTower", "bulkheadFore", "torpedoBulkhead"]:
 		gt(float(_faces_in_zone(t, zone).size()), 0.0, "Iowa has %s armour" % zone)
 
-	# Both sides, not just one.
-	eq(_faces_in_zone(t, "belt").size(), 2, "a belt on each beam")
+	# Both sides, and each side in two strakes: full thickness around the waterline,
+	# tapering below it. A belt was never a slab of one thickness.
+	var belt_faces: Array[GeometryPrimitives.Face] = _faces_in_zone(t, "belt")
+	eq(belt_faces.size(), 4, "two belt strakes on each beam")
+	var thickest: float = 0.0
+	var thinnest: float = 1.0e9
+	for face: GeometryPrimitives.Face in belt_faces:
+		thickest = maxf(thickest, face.thickness_mm)
+		thinnest = minf(thinnest, face.thickness_mm)
+	eq(thickest, 307.0, "the upper strake carries her full 307 mm")
+	lt(thinnest, thickest, "and the lower strake is thinner, as Iowa's data says it was")
+	for face: GeometryPrimitives.Face in belt_faces:
+		le(face.centre.z, t.armour_deck_z + 0.01,
+			"no belt plate stands above the armoured deck it closes against")
 	almost(_faces_in_zone(t, "belt")[0].thickness_mm, 307.0, 0.1, "at her stated thickness")
 
 

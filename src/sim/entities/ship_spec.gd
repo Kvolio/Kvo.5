@@ -31,6 +31,13 @@ var length_m: float = 100.0
 var beam_m: float = 10.0
 var draft_m: float = 4.0
 var displacement_t: float = 2000.0
+
+## Standard (Washington) displacement: the ship complete and ready for sea but WITHOUT
+## fuel or reserve feed water. The difference between this and the full load is her
+## bunkerage, which is why it is worth carrying separately — it turns fuel into a
+## figure the data states rather than whatever is left over after everything else has
+## been weighed. Zero where a source gives no standard figure.
+var standard_displacement_t: float = 0.0
 var hull_form_id: String = "destroyer"
 var hull_profile: PackedVector2Array = PackedVector2Array()
 var vertical_fullness: float = 0.8

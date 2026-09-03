@@ -155,6 +155,7 @@
   "armour": {
     "belt": {
       "thicknessMm": 152,
+      "lowerEdgeThicknessMm": 102,
       "material": "usa_class_a",
       "_note": "Tapering to 102 mm at the lower edge."
     },

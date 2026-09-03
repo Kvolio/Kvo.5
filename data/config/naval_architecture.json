@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Weights, stability and speed for a ship design. This is what makes armour expensive: every millimetre is weighed, and the weight has to be carried by a hull that then needs more power to push it. The tradeoffs the specification asks for are not scripted anywhere \u2014 they come from these sums.",
+  "hull": {
+    "structureCoefficient": 105.0,
+    "_structureComment": "Hull structure weight in tonnes as C * (L * B * depth) / 1000, the classic cubic-number method. Calibrated against Iowa, whose structure came to about 17,000 tonnes on a cubic number of 162,000.",
+    "structureVerticalCentreFraction": 0.57,
+    "_structureVcgComment": "Hull steel's centre of gravity as a fraction of keel-to-main-deck depth. Standard practice puts it around 0.55-0.60 for a warship: the continuous decks are heavy and high, while below the waterline there is little but the double bottom and framing.",
+    "minimumStrengthFactor": 0.7,
+    "_strengthComment": "A hull built lighter than this fraction of the standard scantling is structurally unsound however well it floats. The designer warns; it does not forbid."
+  },
+  "superstructure": {
+    "_comment": "Everything standing above the main deck. Light, but higher above the keel than anything else aboard, so it is what decides whether a ship is stiff or tender. Weighed from the superstructure block's own geometry rather than estimated.",
+    "platingDensityKgM3": 7850.0,
+    "fitOutTonnesPerM3": 0.075,
+    "_fitOutComment": "Internal decks, bridge, wiring, boats, masts and funnel uptakes, per cubic metre of superstructure. A superstructure is mostly air, which is why this is small.",
+    "internalStructureFactor": 2.6,
+    "_factorComment": "Multiplier on the outer plating and fit-out together, covering the internal decks and bulkheads the enclosure geometry does not represent."
+  },
+  "machinery": {
+    "_comment": "Specific power by plant type, in kilowatts per tonne of machinery. This is the single number that decides whether a fast ship is possible: a WWII steam plant needed roughly a tonne of machinery for every 28 kW, so 33 knots on a 45,000-tonne hull meant 5,000 tonnes of engines before a single gun was fitted.",
+    "specificPowerKwPerTonne": {
+      "steam_turbine": 28.7,
+      "steam_reciprocating": 12.0,
+      "diesel": 15.0,
+      "gas_turbine": 85.0,
+      "nuclear": 11.0,
+      "combined_diesel_gas": 45.0,
+      "default": 25.0
+    },
+    "_nuclearComment": "Nuclear plant is heavy for its power because of shielding, and buys endurance rather than speed. Included as a designer option per the specification; no historical ship here uses it.",
+    "verticalCentreFraction": 0.3,
+    "_vcgComment": "Machinery sits low, which is what makes it good ballast and bad news when it floods.",
+    "spacePerKwM3": 0.055,
+    "_spaceComment": "Volume the machinery needs, in cubic metres per kilowatt. A design without the internal volume to hold its own engines is warned about.",
+    "referenceDisplacementT": 57540.0,
+    "displacementExponent": 0.256,
+    "_scalingComment": "The figures above are quoted at the reference displacement (Iowa, 57,540 tonnes, 28.7 kW per tonne of machinery). Lighter ships got markedly more power per tonne of plant, because a destroyer's machinery was optimised for weight above all else while a battleship's carried redundancy, enormous reduction gears and subdivided armoured spaces. Scaling by (reference / displacement)^0.256 reproduces Fletcher at about 64 kW/t and Baltimore at 39, both of which match their real machinery weights."
+  },
+  "armament": {
+    "barrelTonnesPerCalibreCubed": 1.8,
+    "_barrelComment": "Barrel and breech mass in tonnes as k * (calibre in mm)^3 / 1e6. A 16\"/50 barrel comes to about 121 tonnes, which is right.",
+    "mountingFactor": 3.5,
+    "_mountingComment": "Mounting, hoists, training gear and handling rooms, as a multiple of barrel weight. Armour is NOT included here \u2014 it is weighed separately from the actual plate geometry.",
+    "verticalCentreFraction": 0.8,
+    "_vcgComment": "Guns sit high, which is exactly why a heavily armed ship on a narrow hull is unstable.",
+    "ammunitionTonnesPerBarrel": {
+      "_comment": "Outfit weight per barrel, scaled by calibre. Magazine capacity is a real weight and a real volume.",
+      "perCalibreCubed": 0.9
+    },
+    "torpedoMountTonnesPerTube": 3.2
+  },
+  "armour": {
+    "_comment": "Armour weight is computed from the ACTUAL PLATE GEOMETRY \u2014 every face the structure builder produced, its area, its thickness and its material density. There is no armour weight coefficient to tune, because there is nothing to estimate: the plates either exist in the design or they do not.",
+    "verticalCentreFraction": 0.52,
+    "fittingAllowance": 1.08,
+    "_fittingComment": "Backing structure, bolts and the framing that carries the plate, as a multiplier on bare plate weight."
+  },
+  "complement": {
+    "tonnesPerPerson": 0.18,
+    "_comment": "Crew, their accommodation, provisions and fresh water. A battleship's 2,800 men are 500 tonnes before anyone brings a kitbag aboard.",
+    "verticalCentreFraction": 0.62
+  },
+  "fuel": {
+    "verticalCentreFraction": 0.22,
+    "_comment": "Fuel sits low and doubles as torpedo protection, which is why ships ran with outboard tanks full. It is also the weight group that changes most between standard and full load.",
+    "fractionOfFullLoad": 0.16,
+    "_fractionComment": "Bunkerage as a fraction of full load, used only where a ship's sources give no standard displacement to subtract. Around a sixth is typical of a WWII warship."
+  },
+  "stability": {
+    "_comment": "Transverse stability from the hull form. GM = KB + BM - KG. The designer computes it from the weight groups rather than assuming it, which is what makes a top-heavy design genuinely top-heavy.",
+    "kbDraftFraction": 0.55,
+    "_kbComment": "Height of the centre of buoyancy above the keel, as a fraction of draft. About 0.53 for a warship form.",
+    "_inertiaComment": "BM = I/V. I is integrated over the hull's own stations by HullGeometry.waterplane_inertia() rather than taken from a form coefficient, so a fine hull and a full one differ because their shapes differ.",
+    "minimumGmM": 0.9,
+    "_minimumGmComment": "Below this a ship is tender: she rolls slowly and lazily and is at risk of capsizing from flooding or free surface.",
+    "comfortableGmM": 1.8,
+    "maximumGmM": 3.6,
+    "_maximumGmComment": "Above this she is stiff: a violently quick roll that makes her a poor gun platform and strains the structure. Excessive beam usually causes it."
+  },
+  "speed": {
+    "_comment": "Speed from power via the Admiralty coefficient: V = (P * C / displacement^(2/3))^(1/3). C depends on how fine the hull is, which is why a long thin destroyer gets far more speed per kilowatt than a beamy battleship.",
+    "admiraltyCoefficient": {
+      "destroyer": 150.0,
+      "cruiser": 200.0,
+      "battleship": 245.0,
+      "carrier": 240.0,
+      "default": 210.0
+    },
+    "lengthToBeamBonusPerUnit": 0.0,
+    "_bonusComment": "Disabled. Fineness is already folded into the per-type coefficients, and adding it again on top made every long ship absurdly fast \u2014 Baltimore came out at 37.6 knots against a real 33.",
+    "_calibrationComment": "Solved from the real ships: Iowa 250, Yamato 228, Bismarck 247, Baltimore 199, Fletcher 149. The coefficient FALLS with size because a small fast ship runs at a far higher Froude number and pays much more heavily for her speed \u2014 which is why a destroyer needs 60,000 shp to make 36 knots on 2,500 tonnes while a battleship makes 33 on 57,000 with only three times as much."
+  },
+  "validation": {
+    "_comment": "Thresholds for the designer's warnings. The player may build whatever they like \u2014 the simulation then shows the consequences \u2014 but it says plainly what is wrong.",
+    "maxLengthToBeam": 12.0,
+    "minLengthToBeam": 4.5,
+    "maxDraftToBeam": 0.55,
+    "minFreeboardM": 2.0,
+    "machinerySpaceMarginFraction": 0.85,
+    "_magazineComment": "A magazine closer to the shell plating than this fraction of the beam is warned about. Not forbidden: plenty of real ships were built this way and paid for it, and the tracer will find it either way.",
+    "overweightToleranceFraction": 0.06,
+    "armourFractionWarning": 0.55,
+    "_armourFractionComment": "Armour as a fraction of full displacement above which the designer warns. Historic battleships spent about a third. Set above that because the plate geometry still weighs somewhat heavy against published totals (see docs/SOURCES.md), and a validator that fires on Yamato is a validator nobody reads.",
+    "minFreeboardLengthFraction": 0.018,
+    "_freeboardComment": "Minimum freeboard is the greater of the absolute figure and this fraction of length. Two and a half metres is normal on a destroyer and alarming on a battleship, so an absolute limit alone either passes everything or condemns every small ship ever built.",
+    "magazineExposureBeamFraction": 0.1,
+    "_overweightComment": "How far over her stated displacement a design may come out before the designer calls it overweight. Six per cent covers the plate model's own bias: armour is weighed from generated geometry, which still runs somewhat heavy against published totals, so a tighter limit would condemn ships that were actually built. See docs/SOURCES.md."
+  }
+}

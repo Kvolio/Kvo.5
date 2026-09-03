@@ -52,6 +52,34 @@ data rather than quietly accepted. See `docs/BALLISTICS.md`.
 figure is used, because ships fight at full load. Fletcher is entered at 36.5 knots
 rather than the 38 usually quoted for exactly this reason.
 
+## Belt tapers
+
+A belt is not a slab. It carries its full thickness over the strake around the waterline
+and tapers below it, where its job is to catch shells that fell short and travelled on
+underwater rather than to resist a direct hit. `lowerEdgeThicknessMm` records the lower
+figure; where a scheme states none the plate is modelled as uniform.
+
+| Ship | Belt | Lower edge |
+|---|---|---|
+| USS Iowa | 307 mm | 41 mm — doubles as torpedo protection |
+| USS South Dakota | 310 mm | 218 mm |
+| IJN Yamato | 410 mm | 75 mm — the lower belt *was* her holding bulkhead |
+| Bismarck | 320 mm | 170 mm |
+| HMS King George V | 374 mm | 140 mm |
+| HMS Vanguard | 356 mm | 114 mm |
+| USS Baltimore | 152 mm | 102 mm |
+
+Ships absent from this table (Cleveland, Mogami, Admiral Hipper, the carriers) are
+modelled as uniform because no lower-edge figure was to hand — not because they had
+none. Adding one is adding a number to `data/ships/`.
+
+## Where the weight model still misses
+
+`docs/NAVAL_ARCHITECTURE.md` records the calibration against five ships and the residual
+bias: armour weighed from generated plate geometry runs somewhat heavy against published
+totals, worst on the most heavily armoured ships. Bismarck is the outlier at +17%, and
+that is asserted by test rather than excluded, so it will stop being true visibly.
+
 ## Principal references
 
 - Friedman, *US Battleships / US Cruisers / US Destroyers / US Aircraft Carriers: An Illustrated Design History*

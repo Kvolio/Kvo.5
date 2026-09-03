@@ -177,6 +177,7 @@
   "armour": {
     "belt": {
       "thicknessMm": 310,
+      "lowerEdgeThicknessMm": 218,
       "material": "usa_class_a",
       "inclinationDeg": 19,
       "_note": "Internal inclined belt, tapering to 218 mm at its lower edge."

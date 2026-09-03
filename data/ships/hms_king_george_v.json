@@ -177,8 +177,9 @@
   "armour": {
     "belt": {
       "thicknessMm": 374,
+      "lowerEdgeThicknessMm": 140,
       "material": "uk_ca",
-      "_note": "Vertical, external, and unusually deep: 374 mm over the magazines, 356 mm over machinery."
+      "_note": "Vertical, external, and unusually deep: 374 mm over the magazines, 356 mm over machinery, tapering to 140 mm at the lower edge."
     },
     "upperBelt": {
       "thicknessMm": 0,

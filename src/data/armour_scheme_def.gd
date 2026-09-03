@@ -19,8 +19,18 @@ class Plate extends RefCounted:
 	var inclination_rad: float = 0.0
 	var note: String = ""
 
+	## Thickness at the plate's lower edge, where it tapers. Belts were thick at the
+	## waterline and thin at the bottom, because the lower strake exists to stop shells
+	## that fall short and travel on underwater rather than to resist a direct hit.
+	## Defaults to the full thickness, so a scheme that states no taper is a slab.
+	var lower_edge_thickness_mm: float = 0.0
+
 	func is_armoured() -> bool:
 		return thickness_mm > 0.0
+
+	## True where the plate is meaningfully thinner at the bottom than at the top.
+	func is_tapered() -> bool:
+		return is_armoured() and lower_edge_thickness_mm < thickness_mm * 0.98
 
 	func thickness_m() -> float:
 		return thickness_mm * SimUnits.MM_TO_M
@@ -79,6 +89,8 @@ static func parse(armour: Dictionary, torpedo_defence: Dictionary) -> ArmourSche
 			plate_def.material_id = str(d.get("material", "generic_homogeneous"))
 			plate_def.inclination_rad = deg_to_rad(float(d.get("inclinationDeg", 0.0)))
 			plate_def.note = str(d.get("_note", ""))
+			plate_def.lower_edge_thickness_mm = float(
+				d.get("lowerEdgeThicknessMm", plate_def.thickness_mm))
 		scheme.plates[zone] = plate_def
 
 	scheme.torpedo_defence_depth_m = float(torpedo_defence.get("depthM", 0.0))

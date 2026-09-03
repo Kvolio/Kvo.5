@@ -111,9 +111,10 @@
   "armour": {
     "belt": {
       "thicknessMm": 410,
+      "lowerEdgeThicknessMm": 75,
       "material": "jpn_vh",
       "inclinationDeg": 20,
-      "_note": "The thickest belt ever fitted to a warship, inclined 20 degrees outward."
+      "_note": "The thickest belt ever fitted to a warship, inclined 20 degrees outward, tapering to 75 mm at the lower edge."
     },
     "upperBelt": {
       "thicknessMm": 0,

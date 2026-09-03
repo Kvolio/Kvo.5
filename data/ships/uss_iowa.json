@@ -201,9 +201,10 @@
   "armour": {
     "belt": {
       "thicknessMm": 307,
+      "lowerEdgeThicknessMm": 41,
       "material": "usa_class_a",
       "inclinationDeg": 19,
-      "_note": "Internal inclined belt over a 22 mm STS backing plate, tapering to 41 mm at the lower edge where it doubles as torpedo protection."
+      "_note": "Tapering to 41 mm at the lower edge, where it doubles as torpedo protection."
     },
     "upperBelt": {
       "thicknessMm": 0,

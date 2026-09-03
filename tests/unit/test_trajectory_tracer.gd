@@ -177,8 +177,12 @@ func test_a_hit_above_the_waterline_is_distinguished_from_one_below() -> void:
 func test_plunging_fire_arrives_on_the_deck_and_flat_fire_on_the_belt() -> void:
 	# The reason range matters so much in a gun action, and it comes from the
 	# geometry: at 40 degrees of descent the deck is simply what the shell meets first.
+	# Aimed at the belt rather than at the centreline. A shell coming in at 8 degrees
+	# crosses the ship's side some sixteen metres before it reaches the centreline, and
+	# so a couple of metres higher — enough, now the belt stops at the armoured deck
+	# where it belongs, to pass over the top of it. Aiming where a gunner aims.
 	var flat: HitReport = _fire("uss_iowa", "usa_16in50_ap_mk8",
-		Vector3(0.0, 0.0, 1.0), 90.0, 8.0, 560.0)
+		_belt_point("uss_iowa"), 90.0, 8.0, 560.0)
 	var plunging: HitReport = _fire("uss_iowa", "usa_16in50_ap_mk8",
 		Vector3(0.0, 0.0, 1.0), 90.0, 45.0, 470.0)
 
