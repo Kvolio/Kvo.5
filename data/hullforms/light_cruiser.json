@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "light_cruiser",
+  "name": "Light cruiser hull",
+  "description": "Finer than a heavy cruiser and carrying less belt over the same length.",
+  "profile": [
+    [-0.5, 0.36],
+    [-0.4417, 0.4996],
+    [-0.3833, 0.6116],
+    [-0.325, 0.7151],
+    [-0.2667, 0.8134],
+    [-0.2083, 0.9081],
+    [-0.15, 1.0],
+    [0.09, 1.0],
+    [0.1583, 0.8456],
+    [0.2267, 0.6886],
+    [0.295, 0.5285],
+    [0.3633, 0.364],
+    [0.4317, 0.1924],
+    [0.5, 0.0]
+  ],
+  "waterplaneCoefficient": 0.6998,
+  "_waterplaneCoefficientComment": "Derived from the profile above; recorded for reference. Warship values sit around 0.70-0.75.",
+  "verticalFullness": 0.76,
+  "_verticalFullnessComment": "Fraction of the waterplane-area x draft prism the submerged hull actually fills. Multiplied by the waterplane coefficient this gives the block coefficient: about 0.59 for a fast battleship, 0.50 for a destroyer."
+}

@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "id": "usn_fast_carrier_task_group",
+  "name": "Fast Carrier Task Group",
+  "nation": "usa",
+  "team": 0,
+  "notes": "An Essex, a fast battleship, cruisers and a destroyer screen \u2014 the formation that fought the Pacific from 1943. The screen is stationed ahead because that is where the submarines and the torpedo bombers came from.",
+  "divisions": [
+    {
+      "id": "carriers",
+      "name": "Carrier Group",
+      "formation": "column",
+      "spacingM": 900,
+      "stationM": [
+        0,
+        0
+      ],
+      "ships": [
+        {
+          "spec": "uss_essex",
+          "name": "Essex"
+        }
+      ]
+    },
+    {
+      "id": "heavy",
+      "name": "Battle Line",
+      "formation": "column",
+      "spacingM": 800,
+      "stationM": [
+        -2500,
+        1200
+      ],
+      "ships": [
+        {
+          "spec": "uss_iowa",
+          "name": "Iowa"
+        },
+        {
+          "spec": "uss_south_dakota",
+          "name": "South Dakota"
+        }
+      ]
+    },
+    {
+      "id": "cruisers",
+      "name": "Cruiser Division",
+      "formation": "column",
+      "spacingM": 700,
+      "stationM": [
+        2500,
+        -1500
+      ],
+      "ships": [
+        {
+          "spec": "uss_baltimore",
+          "name": "Baltimore"
+        },
+        {
+          "spec": "uss_cleveland",
+          "name": "Cleveland"
+        }
+      ]
+    },
+    {
+      "id": "screen",
+      "name": "Destroyer Screen",
+      "formation": "screen",
+      "spacingM": 5000,
+      "stationM": [
+        4000,
+        0
+      ],
+      "ships": [
+        {
+          "spec": "uss_fletcher",
+          "name": "Fletcher",
+          "count": 3
+        },
+        {
+          "spec": "uss_gearing",
+          "name": "Gearing",
+          "count": 2
+        }
+      ]
+    }
+  ]
+}

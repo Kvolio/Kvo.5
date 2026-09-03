@@ -1,0 +1,231 @@
+{
+  "schemaVersion": 1,
+  "id": "uss_cleveland",
+  "name": "USS Cleveland",
+  "class": "Cleveland",
+  "nation": "USA",
+  "type": "cruiser",
+  "year": 1942,
+  "crew": 1285,
+  "hull": {
+    "form": "light_cruiser",
+    "lengthM": 185.95,
+    "beamM": 20.22,
+    "draftM": 7.5,
+    "displacementStandardT": 11744,
+    "displacementFullT": 14131
+  },
+  "propulsion": {
+    "powerShp": 100000,
+    "shafts": 4,
+    "maxSpeedKn": 32.5,
+    "boilers": 4,
+    "machineryType": "steam_turbine",
+    "funnels": 2
+  },
+  "manoeuvring": {
+    "tacticalDiameterLengths": 3.4,
+    "maxRudderDeg": 35.0,
+    "rudderRateDegPerSec": 5.0
+  },
+  "armament": {
+    "_comment": "Mount positions are given in normalised hull coordinates so they scale with the hull: station runs -0.5 at the stern to +0.5 at the bow, lateral is a fraction of half-beam with 0 on the centreline. Train limits are relative to the mount's rest bearing (0 = facing forward, 180 = facing aft), which is how real turret arcs are specified.",
+    "main": {
+      "gun": "usa_6in47_mk16",
+      "mounts": [
+        {
+          "id": "A",
+          "station": 0.25,
+          "lateral": 0.0,
+          "guns": 3,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        },
+        {
+          "id": "B",
+          "station": 0.15,
+          "lateral": 0.0,
+          "guns": 3,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        },
+        {
+          "id": "C",
+          "station": -0.15,
+          "lateral": 0.0,
+          "guns": 3,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        },
+        {
+          "id": "D",
+          "station": -0.25,
+          "lateral": 0.0,
+          "guns": 3,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        }
+      ]
+    },
+    "secondary": {
+      "gun": "usa_5in38_mk12",
+      "mounts": [
+        {
+          "id": "S0",
+          "station": 0.05,
+          "lateral": -0.84,
+          "guns": 2,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -160.0,
+            60.0
+          ]
+        },
+        {
+          "id": "S1",
+          "station": 0.05,
+          "lateral": 0.84,
+          "guns": 2,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -60.0,
+            160.0
+          ]
+        },
+        {
+          "id": "S2",
+          "station": -0.04,
+          "lateral": -0.84,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -160.0,
+            60.0
+          ]
+        },
+        {
+          "id": "S3",
+          "station": -0.04,
+          "lateral": 0.84,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -60.0,
+            160.0
+          ]
+        },
+        {
+          "id": "S4",
+          "station": 0.0,
+          "lateral": 0.0,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -60.0,
+            160.0
+          ]
+        },
+        {
+          "id": "S5",
+          "station": -0.09,
+          "lateral": 0.0,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -60.0,
+            160.0
+          ]
+        }
+      ]
+    },
+    "antiAir": [
+      {
+        "name": "40 mm Bofors quad",
+        "count": 28,
+        "calibreMm": 40
+      },
+      {
+        "name": "20 mm Oerlikon",
+        "count": 21,
+        "calibreMm": 20
+      }
+    ],
+    "_antiAirComment": "Summarised as barrel counts. Anti-aircraft fire is modelled statistically against air attacks in Stage 7 rather than as individually tracked mounts."
+  },
+  "armour": {
+    "belt": {
+      "thicknessMm": 127,
+      "material": "usa_class_a"
+    },
+    "upperBelt": {
+      "thicknessMm": 0,
+      "material": "usa_sts"
+    },
+    "deckWeather": {
+      "thicknessMm": 0,
+      "material": "usa_sts"
+    },
+    "deckMain": {
+      "thicknessMm": 51,
+      "material": "usa_class_b"
+    },
+    "deckSplinter": {
+      "thicknessMm": 0,
+      "material": "usa_sts"
+    },
+    "turretFace": {
+      "thicknessMm": 165,
+      "material": "usa_class_a"
+    },
+    "turretSide": {
+      "thicknessMm": 76,
+      "material": "usa_class_a"
+    },
+    "turretRoof": {
+      "thicknessMm": 76,
+      "material": "usa_class_b"
+    },
+    "barbette": {
+      "thicknessMm": 152,
+      "material": "usa_class_a"
+    },
+    "conningTower": {
+      "thicknessMm": 165,
+      "material": "usa_class_a"
+    },
+    "bulkheadFore": {
+      "thicknessMm": 127,
+      "material": "usa_class_a"
+    },
+    "bulkheadAft": {
+      "thicknessMm": 127,
+      "material": "usa_class_a"
+    },
+    "torpedoBulkhead": {
+      "thicknessMm": 0,
+      "material": "usa_sts"
+    },
+    "_comment": "Thicknesses in millimetres. Inclination is measured from the vertical: an inclined belt presents more effective thickness to a flat trajectory and less to a plunging one, which is why it is recorded per plate rather than assumed."
+  },
+  "torpedoDefence": {
+    "depthM": 0.0,
+    "layers": 1,
+    "_comment": "Depth of the layered underwater protection system, from the outer plating to the holding bulkhead, and how many layers it is divided into. Modelled as real layered structure in Stage 5, not as a damage-reduction percentage."
+  },
+  "sources": [
+    "Friedman, US Cruisers: An Illustrated Design History (1984)"
+  ],
+  "notes": "Twelve fast-firing 6-inch guns made her lethal to destroyers and dangerous to heavy cruisers, at the cost of being notoriously top-heavy."
+}

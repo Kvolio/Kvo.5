@@ -1,0 +1,23 @@
+{
+  "id": "usn_tbf_avenger",
+  "name": "TBF-1 Avenger",
+  "nation": "usa",
+  "year": 1942,
+  "role": "torpedo_bomber",
+  "maxSpeedKn": 239,
+  "cruiseSpeedKn": 132,
+  "combatRadiusKm": 550,
+  "ceilingM": 6830,
+  "crew": 3,
+  "guns": 2,
+  "gunCalibreMm": 12.7,
+  "agility": 0.4,
+  "toughness": 0.8,
+  "groupSize": 6,
+  "torpedoId": "usa_mk13",
+  "releaseAltitudeM": 45,
+  "releaseSpeedKn": 110,
+  "releaseRangeM": 900,
+  "notes": "A torpedo attack means flying straight and level, low and slow, directly at a ship that is shooting at you. The release parameters are why torpedo squadrons were destroyed and why their attacks decided battles when they got through.",
+  "schemaVersion": 1
+}

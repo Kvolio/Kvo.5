@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "battleship",
+  "name": "Battleship hull",
+  "description": "Full-bodied capital ship form. The long parallel midbody is what makes an armoured citadel possible: it is the only part of a hull where a belt can run at constant thickness and machinery can sit in a rectangular box.",
+  "profile": [
+    [-0.5, 0.42],
+    [-0.4433, 0.5465],
+    [-0.3867, 0.648],
+    [-0.33, 0.7418],
+    [-0.2733, 0.8309],
+    [-0.2167, 0.9167],
+    [-0.16, 1.0],
+    [0.14, 1.0],
+    [0.2, 0.8564],
+    [0.26, 0.7085],
+    [0.32, 0.5548],
+    [0.38, 0.393],
+    [0.44, 0.2181],
+    [0.5, 0.0]
+  ],
+  "waterplaneCoefficient": 0.7428,
+  "_waterplaneCoefficientComment": "Derived from the profile above; recorded for reference. Warship values sit around 0.70-0.75.",
+  "verticalFullness": 0.85,
+  "_verticalFullnessComment": "Fraction of the waterplane-area x draft prism the submerged hull actually fills. Multiplied by the waterplane coefficient this gives the block coefficient: about 0.59 for a fast battleship, 0.50 for a destroyer."
+}

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "heavy_cruiser",
+  "name": "Heavy cruiser hull",
+  "description": "Long, moderately fine form balancing sustained speed against the beam a useful armour belt needs.",
+  "profile": [
+    [-0.5, 0.38],
+    [-0.4417, 0.5152],
+    [-0.3833, 0.6237],
+    [-0.325, 0.724],
+    [-0.2667, 0.8193],
+    [-0.2083, 0.911],
+    [-0.15, 1.0],
+    [0.1, 1.0],
+    [0.1667, 0.8487],
+    [0.2333, 0.6943],
+    [0.3, 0.5359],
+    [0.3667, 0.372],
+    [0.4333, 0.1994],
+    [0.5, 0.0]
+  ],
+  "waterplaneCoefficient": 0.7099,
+  "_waterplaneCoefficientComment": "Derived from the profile above; recorded for reference. Warship values sit around 0.70-0.75.",
+  "verticalFullness": 0.78,
+  "_verticalFullnessComment": "Fraction of the waterplane-area x draft prism the submerged hull actually fills. Multiplied by the waterplane coefficient this gives the block coefficient: about 0.59 for a fast battleship, 0.50 for a destroyer."
+}

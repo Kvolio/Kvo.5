@@ -1,0 +1,283 @@
+{
+  "schemaVersion": 1,
+  "id": "admiral_hipper",
+  "name": "Admiral Hipper",
+  "class": "Admiral Hipper",
+  "nation": "Germany",
+  "type": "cruiser",
+  "year": 1939,
+  "crew": 1600,
+  "hull": {
+    "form": "heavy_cruiser",
+    "lengthM": 202.8,
+    "beamM": 21.3,
+    "draftM": 7.2,
+    "displacementStandardT": 14247,
+    "displacementFullT": 18200
+  },
+  "propulsion": {
+    "powerShp": 132000,
+    "shafts": 3,
+    "maxSpeedKn": 32.5,
+    "boilers": 12,
+    "machineryType": "steam_turbine",
+    "funnels": 1
+  },
+  "manoeuvring": {
+    "tacticalDiameterLengths": 3.5,
+    "maxRudderDeg": 35.0,
+    "rudderRateDegPerSec": 4.0
+  },
+  "armament": {
+    "_comment": "Mount positions are given in normalised hull coordinates so they scale with the hull: station runs -0.5 at the stern to +0.5 at the bow, lateral is a fraction of half-beam with 0 on the centreline. Train limits are relative to the mount's rest bearing (0 = facing forward, 180 = facing aft), which is how real turret arcs are specified.",
+    "main": {
+      "gun": "ger_20cm60_skc34",
+      "mounts": [
+        {
+          "id": "Anton",
+          "station": 0.25,
+          "lateral": 0.0,
+          "guns": 2,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        },
+        {
+          "id": "Bruno",
+          "station": 0.15,
+          "lateral": 0.0,
+          "guns": 2,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        },
+        {
+          "id": "Caesar",
+          "station": -0.16,
+          "lateral": 0.0,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        },
+        {
+          "id": "Dora",
+          "station": -0.25,
+          "lateral": 0.0,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -150.0,
+            150.0
+          ]
+        }
+      ]
+    },
+    "secondary": {
+      "gun": "ger_10cm5_skc33",
+      "mounts": [
+        {
+          "id": "S0",
+          "station": 0.05,
+          "lateral": -0.86,
+          "guns": 2,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -160.0,
+            60.0
+          ]
+        },
+        {
+          "id": "S1",
+          "station": 0.05,
+          "lateral": 0.86,
+          "guns": 2,
+          "restBearingDeg": 0.0,
+          "trainLimitsDeg": [
+            -60.0,
+            160.0
+          ]
+        },
+        {
+          "id": "S2",
+          "station": -0.03,
+          "lateral": -0.86,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -160.0,
+            60.0
+          ]
+        },
+        {
+          "id": "S3",
+          "station": -0.03,
+          "lateral": 0.86,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -60.0,
+            160.0
+          ]
+        },
+        {
+          "id": "S4",
+          "station": -0.11,
+          "lateral": -0.86,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -160.0,
+            60.0
+          ]
+        },
+        {
+          "id": "S5",
+          "station": -0.11,
+          "lateral": 0.86,
+          "guns": 2,
+          "restBearingDeg": 180.0,
+          "trainLimitsDeg": [
+            -60.0,
+            160.0
+          ]
+        }
+      ]
+    },
+    "antiAir": [
+      {
+        "name": "3.7 cm SK C/30",
+        "count": 12,
+        "calibreMm": 37
+      },
+      {
+        "name": "2 cm Flak",
+        "count": 8,
+        "calibreMm": 20
+      }
+    ],
+    "_antiAirComment": "Summarised as barrel counts. Anti-aircraft fire is modelled statistically against air attacks in Stage 7 rather than as individually tracked mounts.",
+    "torpedoes": {
+      "torpedo": "ger_g7a",
+      "_comment": "Torpedo tubes. Beam-mounted banks train through a limited arc either side; centreline banks can fire to either beam but not ahead or astern, which is why a destroyer attack is made by turning across the target's course rather than by charging straight at her.",
+      "reloadSeconds": 0,
+      "_reloadComment": "Only the Japanese carried reloads and a power system to handle them. Everyone else got one salvo and then had to go home.",
+      "mounts": [
+        {
+          "id": "TT1",
+          "station": -0.04,
+          "lateral": -0.82,
+          "tubes": 3,
+          "restBearingDeg": -90.0,
+          "trainLimitsDeg": [
+            -75.0,
+            75.0
+          ]
+        },
+        {
+          "id": "TT2",
+          "station": -0.04,
+          "lateral": 0.82,
+          "tubes": 3,
+          "restBearingDeg": 90.0,
+          "trainLimitsDeg": [
+            -75.0,
+            75.0
+          ]
+        },
+        {
+          "id": "TT3",
+          "station": -0.14,
+          "lateral": -0.82,
+          "tubes": 3,
+          "restBearingDeg": -90.0,
+          "trainLimitsDeg": [
+            -75.0,
+            75.0
+          ]
+        },
+        {
+          "id": "TT4",
+          "station": -0.14,
+          "lateral": 0.82,
+          "tubes": 3,
+          "restBearingDeg": 90.0,
+          "trainLimitsDeg": [
+            -75.0,
+            75.0
+          ]
+        }
+      ]
+    }
+  },
+  "armour": {
+    "belt": {
+      "thicknessMm": 80,
+      "material": "ger_kcna"
+    },
+    "upperBelt": {
+      "thicknessMm": 0,
+      "material": "ger_wh"
+    },
+    "deckWeather": {
+      "thicknessMm": 12,
+      "material": "ger_wh"
+    },
+    "deckMain": {
+      "thicknessMm": 50,
+      "material": "ger_wh"
+    },
+    "deckSplinter": {
+      "thicknessMm": 30,
+      "material": "ger_wh"
+    },
+    "turretFace": {
+      "thicknessMm": 160,
+      "material": "ger_kcna"
+    },
+    "turretSide": {
+      "thicknessMm": 70,
+      "material": "ger_wh"
+    },
+    "turretRoof": {
+      "thicknessMm": 70,
+      "material": "ger_wh"
+    },
+    "barbette": {
+      "thicknessMm": 80,
+      "material": "ger_kcna"
+    },
+    "conningTower": {
+      "thicknessMm": 150,
+      "material": "ger_kcna"
+    },
+    "bulkheadFore": {
+      "thicknessMm": 80,
+      "material": "ger_kcna"
+    },
+    "bulkheadAft": {
+      "thicknessMm": 70,
+      "material": "ger_kcna"
+    },
+    "torpedoBulkhead": {
+      "thicknessMm": 20,
+      "material": "ger_wh"
+    },
+    "_comment": "Thicknesses in millimetres. Inclination is measured from the vertical: an inclined belt presents more effective thickness to a flat trajectory and less to a plunging one, which is why it is recorded per plate rather than assumed."
+  },
+  "torpedoDefence": {
+    "depthM": 3.5,
+    "layers": 2,
+    "_comment": "Depth of the layered underwater protection system, from the outer plating to the holding bulkhead, and how many layers it is divided into. Modelled as real layered structure in Stage 5, not as a damage-reduction percentage."
+  },
+  "sources": [
+    "Whitley, German Cruisers of World War Two (1985)"
+  ],
+  "notes": "Enormous for a heavy cruiser and burdened by high-pressure steam machinery that was powerful, thirsty and chronically unreliable."
+}

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "usa_mk13",
+  "name": "22.4\" Mark 13 (aircraft)",
+  "nation": "USA",
+  "diameterMm": 569,
+  "massKg": 1005,
+  "warheadKg": 272,
+  "explosive": "torpex",
+  "_warheadComment": "Mass of the explosive charge. What matters for damage is not the torpedo but this: a 490 kg Type 93 warhead does very roughly twice the structural damage of a 280 kg G7a, and no amount of torpedo defence makes that difference go away.",
+  "settings": [
+    {
+      "speedKn": 33.5,
+      "rangeM": 5700
+    }
+  ],
+  "_settingsComment": "Torpedoes were set before launch, trading speed against range. A fast setting gives the target less time to comb the tracks; a slow one lets you shoot from outside her gun range.",
+  "wakeless": false,
+  "_wakelessComment": "Steam torpedoes left a visible track a lookout could spot and a ship could turn to comb. Oxygen and electric torpedoes did not, which is most of why the Type 93 was so feared.",
+  "runDepthM": 5.0,
+  "armingDistanceM": 350.0,
+  "_armingComment": "A torpedo will not detonate before it has run this far from the tube.",
+  "sources": [
+    "NavWeaps.com torpedo data"
+  ],
+  "notes": "Air-dropped. Slow and short-legged, but a torpedo bomber does not need range."
+}

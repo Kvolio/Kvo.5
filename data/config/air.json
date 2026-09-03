@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "_comment": "The optional air module. Nothing in the naval core reads this file: leave the module unregistered and none of it is loaded, which is the point — see docs/AIR_MODULE.md and the isolation test.",
+
+  "combat": {
+    "_comment": "Air-to-air fighting between GROUPS. Resolved statistically, because what decided a carrier battle was whether the fighters got to the bombers before the bombers reached the ships, not the outcome of any individual dogfight.",
+    "engagementRangeM": 4000.0,
+    "roundSeconds": 20.0,
+    "baseKillsPerRound": 0.9,
+    "_baseKillsComment": "Aircraft shot down per round by an evenly matched group of nine. Scaled below by the numbers on each side, by agility against agility, and by how much punishment the target can take.",
+    "agilityWeight": 1.6,
+    "toughnessWeight": 1.4,
+    "bomberPenalty": 0.35,
+    "_bomberComment": "A loaded bomber is not a fighter, and fights like one only in the sense that it is being shot at. Dropping its load nearly doubles its chances, which is why bombers jettisoned.",
+    "escortInterceptFraction": 0.75,
+    "_escortComment": "How much of an escort's strength can be drawn onto attacking fighters before they reach the bombers. The escort's whole job is this number."
+  },
+
+  "antiAir": {
+    "_comment": "The fleet shooting back. Barrel counts come from each ship's own anti-air outfit; what they achieve is a function of how many barrels bear, how close the aircraft are, and how long they have to stay there. A torpedo bomber's approach is long, low, straight and slow, which is exactly why torpedo squadrons were annihilated and dive bombers were not.",
+    "roundSeconds": 5.0,
+    "effectiveRangeM": {
+      "heavy": 11000.0,
+      "medium": 4500.0,
+      "light": 1800.0
+    },
+    "killsPerBarrelPerRound": {
+      "heavy": 0.0022,
+      "medium": 0.0055,
+      "light": 0.0032
+    },
+    "_killsComment": "Per barrel per five seconds at the ideal range. Heavy AA reaches out furthest and hits least; the 40 mm band in the middle did most of the killing; the light guns are last-ditch. Calibrated so a US task force of 1944 costs an attacking squadron a third of its strength, which is what happened.",
+    "attackRunMultiplier": 2.4,
+    "_attackRunComment": "A group in its attack run is flying predictably and cannot manoeuvre, and the guns hit it far more often. This is the whole cost of pressing home an attack.",
+    "proximityFuzeFrom": 1943,
+    "proximityFuzeFactor": 2.6,
+    "_proximityComment": "The VT fuze roughly tripled heavy AA effectiveness on introduction. Applied to heavy barrels only, and only for ships of 1943 and later.",
+    "agilityEvasion": 0.45
+  },
+
+  "attack": {
+    "_comment": "Delivering the ordnance. Bombs become ordinary projectiles and aerial torpedoes become ordinary torpedoes, so the naval core resolves both through the same tracer, the same penetration model and the same damage chain as a shell or a submarine's torpedo. HitResolver contains no aircraft branch, and the isolation test asserts it.",
+    "diveAccuracyFraction": 0.06,
+    "_diveComment": "Aiming error as a fraction of release altitude. A steep dive from 600 m puts bombs within some 35 m, which is why dive bombers hit moving ships and level bombers did not.",
+    "levelAccuracyFraction": 0.14,
+    "torpedoAimSigmaRad": 0.045,
+    "torpedoSpreadRad": 0.03,
+    "releaseIntervalSeconds": 3.0,
+    "_releaseComment": "Aircraft attack in sequence, not simultaneously, so a ship under attack has time to comb the first tracks and is caught by the last."
+  },
+
+  "carrier": {
+    "_comment": "What a carrier can still do, read from the state of her own compartments and components. The damage core wrecks a flight deck, a hangar or an elevator as ordinary geometry, exactly as it wrecks an engine room; the air module is what knows that a wrecked elevator means aircraft cannot be brought up.",
+    "launchIntervalSeconds": 8.0,
+    "deckSpotAircraft": 24,
+    "_deckSpotComment": "How many aircraft can be ranged on deck for one launch. A bigger strike goes in waves, which is why a carrier caught between waves was so vulnerable.",
+    "recoveryIntervalSeconds": 30.0,
+    "minimumDeckCondition": 0.35,
+    "minimumElevators": 1,
+    "hangarFireGrounding": 0.25,
+    "_hangarComment": "A fire in the hangar this bad stops flying altogether. It is what happened to Japanese carriers at Midway, and it is read from the same fire model that burns a boiler room."
+  }
+}

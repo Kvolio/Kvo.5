@@ -1,0 +1,36 @@
+; Naval Battle Sandbox — Godot 4.4 project configuration.
+;
+; The simulation core (res://src/sim/**) is deliberately Node-free and is NOT
+; wired in here. Only presentation-layer autoloads are registered.
+
+config_version=5
+
+[application]
+
+config/name="Naval Battle Sandbox"
+config/description="Top-down 2D naval battle simulation sandbox: warship design, armor, damage and fleet combat."
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.4", "GL Compatibility")
+
+[autoload]
+
+AppBus="*res://src/core/app_bus.gd"
+GameConfig="*res://src/core/game_config.gd"
+ShipDatabase="*res://src/core/ship_database.gd"
+WeaponDatabase="*res://src/core/weapon_database.gd"
+
+[display]
+
+window/size/viewport_width=1600
+window/size/viewport_height=900
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+
+[debug]
+
+gdscript/warnings/untyped_declaration=1

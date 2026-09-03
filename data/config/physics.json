@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Hydrodynamic and manoeuvring constants. These shape how every ship moves; see docs/ARCHITECTURE.md. Values are deliberately physical rather than per-class tuning knobs, so that a destroyer handles differently from a battleship because it is smaller and lighter, not because a table says so.",
+
+  "hydrodynamics": {
+    "_comment": "Resistance is modelled as R = c * v^2, so power P = R*v = c*v^3. The drag coefficient c is solved per ship from its own design power and design speed, which means no ship needs a hand-authored drag number.",
+    "surgeAddedMassFactor": 1.08,
+    "_surgeAddedMassComment": "Water dragged along with the hull when accelerating fore-and-aft. Roughly 5-10% of displacement for a ship-shaped body.",
+    "bollardThrustFactor": 1.2,
+    "_bollardThrustComment": "Thrust ceiling at zero speed, as a multiple of the resistance at design speed. Prevents the power-limited thrust term (P/v) going singular at rest.",
+    "asternPowerFraction": 0.35,
+    "_asternPowerComment": "Astern power available from the reversing turbines, as a fraction of ahead power. 30-45% is typical for WWII steam plant.",
+    "asternResistanceMultiplier": 2.5,
+    "_asternResistanceComment": "A hull driven stern-first is not the shape it was designed to be. Resistance rises steeply.",
+    "maxSternwayFraction": 0.30,
+    "_maxSternwayComment": "Ceiling on sternway as a fraction of design speed. This is NOT derived from power and resistance, and is not pretending to be: astern speed is limited chiefly by propeller thrust breakdown in reverse and by the loads sternway puts on the rudder, neither of which this model simulates. 30% puts Iowa at about 10 knots astern, which matches trials.",
+    "minimumThrustSpeed": 0.5,
+    "_minimumThrustSpeedComment": "m/s. Below this the power-limited thrust term uses this speed instead, to keep P/v finite."
+  },
+
+  "manoeuvring": {
+    "_comment": "Turning is driven by rudder angle and forward speed. A ship with no way on cannot steer, which falls out of the v/R term rather than being special-cased.",
+    "defaultTacticalDiameterLengths": 4.5,
+    "_tacticalDiameterComment": "Steady turning circle diameter at full rudder, in ship lengths. 3.0-4.0 is typical for destroyers, 4.0-5.5 for battleships. Overridden per ship in data/ships/.",
+    "defaultMaxRudderDeg": 35.0,
+    "defaultRudderRateDegPerSec": 3.0,
+    "_rudderRateComment": "How fast the rudder itself moves. Large ships are slower; a damaged steering motor is slower still.",
+    "defaultYawResponseTimeS": 12.0,
+    "_yawResponseComment": "Time constant for the hull to build up to its steady turn rate. Large ships take much longer to answer the helm than the rudder takes to move.",
+    "turnSpeedLossAtFullRudder": 0.35,
+    "_turnSpeedLossComment": "Fraction of top speed lost in a hard turn. Real ships bleed a great deal of speed heeling into a turn.",
+    "shaftAsymmetryYawGain": 0.35,
+    "_shaftAsymmetryComment": "Yaw rate produced per unit of port/starboard thrust imbalance, as a fraction of full-rudder yaw rate. Matters once a shaft is lost."
+  },
+
+  "seakeeping": {
+    "listCapsizeAngleDeg": 45.0,
+    "_listCapsizeComment": "Placeholder ceiling used before Stage 4 computes a real GZ curve; a ship past this angle is capsizing.",
+    "trimCapsizeAngleDeg": 25.0
+  }
+}

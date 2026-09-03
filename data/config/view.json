@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "_comment": "How ships are drawn. Nothing here affects the simulation \u2014 the view reads sim state and never writes it \u2014 but the thresholds decide what a player can actually see, and the turret plans decide whether a gunhouse reads as a gunhouse.",
+  "zoom": {
+    "_comment": "Apparent hull length in PIXELS at which each tier of detail begins. Apparent size, not ship class: zooming in on a destroyer resolves her exactly as it does a battleship.",
+    "minSilhouettePixels": 14.0,
+    "symbolPixels": 9.0,
+    "minTurretPixels": 70.0,
+    "minDetailPixels": 240.0,
+    "_detailComment": "Above this the ship is drawn from her structure template \u2014 barbettes, superstructure, directors, secondaries, deck lines. Below it, hull and turrets only."
+  },
+  "turret": {
+    "_comment": "Gunhouse plan shapes. A turret in plan view is not a rectangle: the face plate is narrower than the body because the sides converge on it, and the rear is cut away. Proportions are of the gunhouse's own length and width, so they describe a SHAPE and carry no ship statistics.",
+    "defaultPlan": "hexagonal",
+    "gunhouseWidthCalibres": 20.0,
+    "gunhousePerBarrelCalibres": 2.5,
+    "gunhouseLengthRatio": 1.15,
+    "_sizeComment": "Gunhouse width in calibres, plus a further allowance per barrel. A triple 16-inch turret comes out about 11 m across and a twin 5-inch mount about 3, which is why a battleship's main battery dwarfs her secondaries without either being drawn to a fixed size.",
+    "nationPlans": {
+      "USA": "hexagonal",
+      "Japan": "hexagonal",
+      "Germany": "rounded",
+      "UK": "box"
+    },
+    "plans": {
+      "hexagonal": {
+        "_comment": "US and Japanese practice: a narrow sloped face, widening to full breadth about a third back, parallel sides, tapered rear with cut corners.",
+        "faceHalfWidth": 0.62,
+        "shoulderAt": 0.34,
+        "rearHalfWidth": 0.84,
+        "rearCornerAt": 0.88
+      },
+      "rounded": {
+        "_comment": "German practice: a broad face and a rounded rear.",
+        "faceHalfWidth": 0.78,
+        "shoulderAt": 0.22,
+        "rearHalfWidth": 0.92,
+        "rearCornerAt": 0.8
+      },
+      "box": {
+        "_comment": "British practice: close to a rectangle, with the corners knocked off.",
+        "faceHalfWidth": 0.88,
+        "shoulderAt": 0.12,
+        "rearHalfWidth": 0.96,
+        "rearCornerAt": 0.94
+      }
+    },
+    "barbetteDiameterFraction": 0.85,
+    "_barbetteComment": "Barbette diameter as a fraction of the gunhouse width, matching the cylinder the structure builder puts there. It is fixed to the ship while the gunhouse turns on it, which is what makes training legible at a glance.",
+    "blastBagLength": 0.16,
+    "blastBagWidth": 1.9,
+    "_blastBagComment": "The canvas boot at the barrel root, as a fraction of barrel length and of barrel width. Small, and most of what makes a turret read as a turret rather than a box with sticks.",
+    "barrelWidthCalibres": 2.6,
+    "_barrelComment": "Drawn barrel width in calibres. A 16-inch gun's tube is far thicker than its bore; this is what makes a battleship's guns look like guns beside a destroyer's.",
+    "recoilTravel": 0.16,
+    "recoilRunOutSeconds": 2.5,
+    "_recoilComment": "Recoil as a fraction of barrel length, and how long the gun takes to run back out. Driven by the turret's real reload state, so it is caused rather than animated."
+  },
+  "detail": {
+    "_comment": "Elements projected from the ship's structure template. Drawing them is a projection of geometry the tracer already intersects, not separate art that could disagree with it.",
+    "superstructureAlpha": 0.42,
+    "componentAlpha": 0.55,
+    "deckLineAlpha": 0.16,
+    "deckLineCount": 9,
+    "secondaryMountScale": 9.0,
+    "directorRadiusM": 1.6
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "id": "destroyer",
+  "name": "Destroyer hull",
+  "description": "Very fine, high length-to-beam form built for speed. Almost no parallel midbody, which is precisely why there is nowhere to put meaningful armour.",
+  "profile": [
+    [-0.5, 0.36],
+    [-0.44, 0.5126],
+    [-0.38, 0.6258],
+    [-0.32, 0.7276],
+    [-0.26, 0.8227],
+    [-0.2, 0.9131],
+    [-0.14, 1.0],
+    [0.08, 1.0],
+    [0.15, 0.8456],
+    [0.22, 0.6886],
+    [0.29, 0.5285],
+    [0.36, 0.364],
+    [0.43, 0.1924],
+    [0.5, 0.0]
+  ],
+  "waterplaneCoefficient": 0.6952,
+  "_waterplaneCoefficientComment": "Derived from the profile above; recorded for reference. Warship values sit around 0.70-0.75.",
+  "verticalFullness": 0.69,
+  "_verticalFullnessComment": "Fraction of the waterplane-area x draft prism the submerged hull actually fills. Multiplied by the waterplane coefficient this gives the block coefficient: about 0.59 for a fast battleship, 0.50 for a destroyer."
+}

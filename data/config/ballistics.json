@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Exterior ballistics. Every constant a shell's flight depends on lives here, so the trajectory model can be corrected without touching engine code. Calibrated against published range tables: see docs/BALLISTICS.md.",
+  "drag": {
+    "_comment": "Drag coefficient against Mach number for a capped naval projectile. Shared by every shell as the SHAPE of the curve; each shell then scales it by its own formFactor, because how sharply pointed a shell is and how good its ballistic cap was are properties of the shell, not the gun. The curve shows the expected transonic rise: drag roughly doubles through Mach 1 and falls away again supersonically.",
+    "coefficientVsMach": [
+      [
+        0.0,
+        0.1676
+      ],
+      [
+        0.6,
+        0.1676
+      ],
+      [
+        0.8,
+        0.1832
+      ],
+      [
+        0.9,
+        0.2272
+      ],
+      [
+        0.98,
+        0.3692
+      ],
+      [
+        1.05,
+        0.426
+      ],
+      [
+        1.2,
+        0.4232
+      ],
+      [
+        1.5,
+        0.3862
+      ],
+      [
+        2.0,
+        0.3408
+      ],
+      [
+        2.5,
+        0.3152
+      ],
+      [
+        3.0,
+        0.301
+      ],
+      [
+        4.0,
+        0.284
+      ],
+      [
+        6.0,
+        0.2783
+      ]
+    ]
+  },
+  "atmosphere": {
+    "_comment": "International Standard Atmosphere, tabulated rather than computed. A long-range shell spends most of its flight above 3 km where the air is a third thinner, and ignoring that shortens 40 km ranges by kilometres. Tabulating it also keeps exp() out of the trajectory loop, which matters for reproducibility: exp and log are not required to be correctly rounded, so they are where two platforms would first disagree.",
+    "altitudeM": [
+      0,
+      1000,
+      2000,
+      3000,
+      4000,
+      5000,
+      6000,
+      7000,
+      8000,
+      9000,
+      10000,
+      11000,
+      12000,
+      14000,
+      16000,
+      20000
+    ],
+    "densityKgM3": [
+      1.225,
+      1.1117,
+      1.0066,
+      0.9093,
+      0.8194,
+      0.7364,
+      0.6601,
+      0.59,
+      0.5258,
+      0.4671,
+      0.4135,
+      0.3648,
+      0.3119,
+      0.2279,
+      0.1665,
+      0.0889
+    ],
+    "speedOfSoundMs": [
+      340.3,
+      336.4,
+      332.5,
+      328.6,
+      324.6,
+      320.5,
+      316.5,
+      312.3,
+      308.1,
+      303.8,
+      299.5,
+      295.1,
+      295.1,
+      295.1,
+      295.1,
+      295.1
+    ]
+  },
+  "integration": {
+    "_comment": "Runge-Kutta 4 is used everywhere. It is stable enough that a quarter-second step costs under half a metre over 33 km, so range tables can be built cheaply at load while shells in flight integrate at the simulation tick for smooth motion and swept hit tests.",
+    "rangeTableStepSeconds": 0.25,
+    "rangeTableElevationStepDeg": 0.5,
+    "maxFlightSeconds": 400.0,
+    "_maxFlightComment": "A safety stop. The longest real naval trajectory in this data set is about 100 seconds."
+  },
+  "penetration": {
+    "_comment": "Armour penetration. The simulation depends only on the PenetrationModel interface, so a more sophisticated empirical model can be substituted by changing 'model' here and adding a block of its own coefficients \u2014 with no change to HitResolver or DamageResolver.",
+    "model": "de_marre",
+    "de_marre": {
+      "_comment": "De Marre in the naval form V_limit = K * T^0.7 * d^0.75 / sqrt(W), evaluated in the imperial units it is published in (fps, inches, pounds). K is a property of the projectile and lives in data/ammo/. Fitted against published penetration tables it reproduces the 16-inch and 46 cm figures to within about 6-10% across combat ranges; see docs/BALLISTICS.md.",
+      "thicknessExponent": 0.7,
+      "diameterExponent": 0.75,
+      "normalization": {
+        "_comment": "A capped shell striking at an angle bites into the plate and turns towards the normal, so it meets less effective thickness than the raw obliquity implies. The effect is strong against plate thinner than the shell's calibre and vanishes against plate thicker than it, which is why the ratio drives it.",
+        "maxDegreesCapped": 14.0,
+        "maxDegreesUncapped": 5.0
+      },
+      "ricochet": {
+        "_comment": "Past a critical angle a shell skids off rather than biting in. Thick plate relative to the shell's calibre makes that easier, which is why the critical angle falls as the ratio rises. A shell that hugely overmatches the plate drives through regardless.",
+        "criticalAngleDeg": 72.0,
+        "angleReductionPerCalibreRatio": 18.0,
+        "minimumCriticalAngleDeg": 45.0,
+        "overmatchRatioIgnoringAngle": 2.5,
+        "velocityRetained": 0.72,
+        "integrityCost": 0.25
+      },
+      "shatter": {
+        "_comment": "The classic shatter gap. A shell arriving fast at face-hardened plate near its own calibre in thickness can break up on impact even when it had the energy to get through \u2014 the plate wins by destroying the projectile rather than by stopping it. Outside the marginal band the shell either comfortably penetrates or is comfortably stopped, and neither shatters.",
+        "minPlateToCalibreRatio": 0.55,
+        "minVelocityMs": 450.0,
+        "marginLow": 0.85,
+        "marginHigh": 1.35,
+        "faceHardenedOnly": true,
+        "probability": 0.35
+      },
+      "marginalBand": {
+        "_comment": "A ballistic limit is a 50% probability, not a wall. Within this fraction either side of the limit, penetration is decided by a roll rather than by a threshold, which is why two identical shells can give different results against the same plate.",
+        "width": 0.12,
+        "partialPenetrationBelow": 0.88,
+        "_partialComment": "Below the marginal band but above this fraction of the limit, the plate is holed and the shell breaks up going through: fragments enter, an intact bursting charge does not. This 0.88 figure is a heuristic of THIS model, not a law of physics; another model is free to derive partial penetration differently."
+      },
+      "capStripping": {
+        "_comment": "A thin plate met before the main belt can tear the armour-piercing cap off, and the shell then meets the belt as an uncapped projectile with markedly worse performance against face-hardened armour. This is the decapping mechanic, and it needs no special case: it falls out of the tracer resolving layers in order.",
+        "maxPlateToCalibreRatio": 0.25,
+        "penaltyAgainstFaceHardened": 0.75
+      },
+      "spall": {
+        "_comment": "Even a plate that holds sheds fragments off its inner face. Those fragments are what wreck equipment and kill crew behind armour that was never penetrated.",
+        "energyFractionForSpall": 0.55,
+        "massFractionOfShell": 0.06,
+        "coneAngleDeg": 25.0
+      },
+      "deformationWeakening": 0.3,
+      "_deformationComment": "How much a plate's accumulated deformation from earlier hits reduces its resistance, at full deformation. Repeated hits on the same plate really do open it up."
+    }
+  }
+}

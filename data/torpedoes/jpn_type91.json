@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "id": "jpn_type91",
+  "name": "45 cm Type 91 (aircraft)",
+  "nation": "Japan",
+  "diameterMm": 450,
+  "massKg": 848,
+  "warheadKg": 235,
+  "explosive": "type97",
+  "_warheadComment": "Mass of the explosive charge. What matters for damage is not the torpedo but this: a 490 kg Type 93 warhead does very roughly twice the structural damage of a 280 kg G7a, and no amount of torpedo defence makes that difference go away.",
+  "settings": [
+    {
+      "speedKn": 42.0,
+      "rangeM": 2000
+    }
+  ],
+  "_settingsComment": "Torpedoes were set before launch, trading speed against range. A fast setting gives the target less time to comb the tracks; a slow one lets you shoot from outside her gun range.",
+  "wakeless": false,
+  "_wakelessComment": "Steam torpedoes left a visible track a lookout could spot and a ship could turn to comb. Oxygen and electric torpedoes did not, which is most of why the Type 93 was so feared.",
+  "runDepthM": 5.0,
+  "armingDistanceM": 350.0,
+  "_armingComment": "A torpedo will not detonate before it has run this far from the tube.",
+  "sources": [
+    "NavWeaps.com torpedo data"
+  ],
+  "notes": "Air-dropped, and the weapon that did the damage at Pearl Harbor after wooden fins let it run in shallow water."
+}

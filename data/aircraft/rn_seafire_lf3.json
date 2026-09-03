@@ -1,0 +1,19 @@
+{
+  "id": "rn_seafire_lf3",
+  "name": "Seafire L.Mk III",
+  "nation": "uk",
+  "year": 1943,
+  "role": "fighter",
+  "maxSpeedKn": 310,
+  "cruiseSpeedKn": 155,
+  "combatRadiusKm": 250,
+  "ceilingM": 9750,
+  "crew": 1,
+  "guns": 4,
+  "gunCalibreMm": 20.0,
+  "agility": 0.88,
+  "toughness": 0.6,
+  "groupSize": 8,
+  "notes": "A superb interceptor with a fighter's endurance and a carrier aircraft's landing gear, which is to say very short legs and a reputation for breaking on deck.",
+  "schemaVersion": 1
+}

@@ -1,0 +1,19 @@
+{
+  "id": "ijn_a6m5_zero",
+  "name": "A6M5 Zero",
+  "nation": "japan",
+  "year": 1943,
+  "role": "fighter",
+  "maxSpeedKn": 305,
+  "cruiseSpeedKn": 180,
+  "combatRadiusKm": 700,
+  "ceilingM": 11740,
+  "crew": 1,
+  "guns": 4,
+  "gunCalibreMm": 13.2,
+  "agility": 0.92,
+  "toughness": 0.35,
+  "groupSize": 12,
+  "notes": "Extraordinary range and agility bought by leaving out armour and self-sealing tanks. The toughness figure is the whole tragedy of the design.",
+  "schemaVersion": 1
+}

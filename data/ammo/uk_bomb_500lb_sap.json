@@ -1,0 +1,16 @@
+{
+  "id": "uk_bomb_500lb_sap",
+  "name": "500 lb SAP Bomb",
+  "type": "sap",
+  "massKg": 227.0,
+  "diameterMm": 279.0,
+  "muzzleVelocityMs": 0.0,
+  "formFactor": 1.65,
+  "burstingChargeKg": 41.0,
+  "fuzeDelaySeconds": 0.02,
+  "capType": "none",
+  "penetrationK": 2350.0,
+  "confidence": "low",
+  "notes": "Semi-armour-piercing bomb. Figures are the published order of magnitude rather than a precise claim; marked low confidence accordingly.",
+  "schemaVersion": 1
+}

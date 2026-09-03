@@ -1,0 +1,19 @@
+{
+  "id": "usn_f6f_hellcat",
+  "name": "F6F-3 Hellcat",
+  "nation": "usa",
+  "year": 1943,
+  "role": "fighter",
+  "maxSpeedKn": 330,
+  "cruiseSpeedKn": 145,
+  "combatRadiusKm": 500,
+  "ceilingM": 11370,
+  "crew": 1,
+  "guns": 6,
+  "gunCalibreMm": 12.7,
+  "agility": 0.78,
+  "toughness": 0.85,
+  "groupSize": 12,
+  "notes": "The aircraft that took air superiority in the Pacific: not the most agile fighter of the war, but fast, heavily armed and very hard to shoot down, which is what mattered over a fleet.",
+  "schemaVersion": 1
+}

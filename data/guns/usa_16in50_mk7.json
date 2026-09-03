@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "usa_16in50_mk7",
+  "name": "16\"/50 Mark 7",
+  "nation": "USA",
+  "calibreMm": 406.4,
+  "barrelLengthCalibres": 50,
+  "_barrelLengthComment": "Barrel length in calibres, the standard naval convention: a 16\"/50 has a barrel 50 x 16 inches long. Longer barrels give higher muzzle velocity for the same charge.",
+  "rateOfFireRpm": 2.0,
+  "elevation": {
+    "minDeg": -2,
+    "maxDeg": 45,
+    "rateDegPerSec": 12
+  },
+  "_elevationComment": "Maximum elevation sets maximum range as firmly as muzzle velocity does. Bismarck's 30 degree limit is why her very high velocity guns still out-range nobody.",
+  "traverseRateDegPerSec": 4,
+  "muzzleHeightM": 14.0,
+  "_muzzleHeightComment": "Height of the gun axis above the waterline. It matters more than it looks: a gun firing at zero elevation from sea level would put its shell in the water immediately, so this is what gives flat trajectories a usable short range. Capital ship main batteries sit high; destroyer guns are close to the water.",
+  "dispersion": {
+    "rangeSigmaPercent": 0.3,
+    "deflectionSigmaPercent": 0.075
+  },
+  "_dispersionComment": "One standard deviation, as a percentage of range. Range dispersion is always much larger than deflection: a salvo lands in a long thin ellipse along the line of fire, which is why straddles are common and hits are not.",
+  "ammunition": [
+    "usa_16in50_ap_mk8",
+    "usa_16in50_he_mk13"
+  ],
+  "sources": [
+    "NavWeaps.com naval gun data"
+  ],
+  "notes": "The finest heavy naval gun the US built. Long barrel, heavy shell, and a fire-control system good enough to use them."
+}

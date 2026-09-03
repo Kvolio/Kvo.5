@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "uk_4in5_mk3",
+  "name": "4.5\"/45 Mark III",
+  "nation": "UK",
+  "calibreMm": 114.3,
+  "barrelLengthCalibres": 45,
+  "_barrelLengthComment": "Barrel length in calibres, the standard naval convention: a 16\"/50 has a barrel 50 x 16 inches long. Longer barrels give higher muzzle velocity for the same charge.",
+  "rateOfFireRpm": 12.0,
+  "elevation": {
+    "minDeg": -5,
+    "maxDeg": 80,
+    "rateDegPerSec": 15
+  },
+  "_elevationComment": "Maximum elevation sets maximum range as firmly as muzzle velocity does. Bismarck's 30 degree limit is why her very high velocity guns still out-range nobody.",
+  "traverseRateDegPerSec": 20,
+  "muzzleHeightM": 7.0,
+  "_muzzleHeightComment": "Height of the gun axis above the waterline. It matters more than it looks: a gun firing at zero elevation from sea level would put its shell in the water immediately, so this is what gives flat trajectories a usable short range. Capital ship main batteries sit high; destroyer guns are close to the water.",
+  "dispersion": {
+    "rangeSigmaPercent": 0.48,
+    "deflectionSigmaPercent": 0.12
+  },
+  "_dispersionComment": "One standard deviation, as a percentage of range. Range dispersion is always much larger than deflection: a salvo lands in a long thin ellipse along the line of fire, which is why straddles are common and hits are not.",
+  "ammunition": [
+    "uk_4in5_he_mk3"
+  ],
+  "sources": [
+    "NavWeaps.com naval gun data"
+  ]
+}

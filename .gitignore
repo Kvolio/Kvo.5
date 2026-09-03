@@ -1,0 +1,13 @@
+# Godot 4 editor and build artifacts
+.godot/
+/android/
+export_presets.cfg
+*.translation
+
+# Godot exports
+build/
+export/
+
+# OS noise
+.DS_Store
+Thumbs.db

@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Armour plate materials. The quality factor scales a plate's resistance relative to US Class A, which is used as the reference at 1.00. These figures are the most contested numbers in the whole data set: wartime and post-war assessments disagree, national test methods differed, and plate quality varied between batches within a single navy. They are here, tunable, and marked with confidence for exactly that reason.",
+
+  "_faceHardenedComment": "Face-hardened plate has a hard outer layer over a tough backing. It is markedly better against uncapped shells, which it tends to shatter, and markedly worse against a capped shell that can punch the hard face through. Homogeneous plate has no such asymmetry and is what decks, bulkheads and torpedo protection are made of.",
+
+  "materials": {
+    "usa_class_a": {
+      "name": "US Class A (face-hardened)", "nation": "USA",
+      "faceHardened": true, "qualityFactor": 1.00, "densityKgM3": 7850,
+      "confidence": "high",
+      "notes": "The reference against which the other factors here are expressed."
+    },
+    "usa_class_b": {
+      "name": "US Class B (homogeneous)", "nation": "USA",
+      "faceHardened": false, "qualityFactor": 0.98, "densityKgM3": 7850,
+      "confidence": "high"
+    },
+    "usa_sts": {
+      "name": "US Special Treatment Steel", "nation": "USA",
+      "faceHardened": false, "qualityFactor": 0.97, "densityKgM3": 7850,
+      "confidence": "high",
+      "notes": "Structural steel good enough to count as protection. Used for splinter decks, plating and the backing behind Class A."
+    },
+    "uk_ca": {
+      "name": "British Cemented Armour", "nation": "UK",
+      "faceHardened": true, "qualityFactor": 0.98, "densityKgM3": 7850,
+      "confidence": "medium"
+    },
+    "uk_nca": {
+      "name": "British Non-Cemented Armour", "nation": "UK",
+      "faceHardened": false, "qualityFactor": 0.96, "densityKgM3": 7850,
+      "confidence": "medium"
+    },
+    "uk_d_steel": {
+      "name": "British D Quality Steel", "nation": "UK",
+      "faceHardened": false, "qualityFactor": 0.88, "densityKgM3": 7850,
+      "confidence": "medium",
+      "notes": "Structural rather than armour grade; the splinter plating destroyers were given."
+    },
+    "ger_kcna": {
+      "name": "Krupp Cemented n/A", "nation": "Germany",
+      "faceHardened": true, "qualityFactor": 0.98, "densityKgM3": 7850,
+      "confidence": "medium"
+    },
+    "ger_wh": {
+      "name": "Wotan Hart (homogeneous)", "nation": "Germany",
+      "faceHardened": false, "qualityFactor": 0.96, "densityKgM3": 7850,
+      "confidence": "medium",
+      "notes": "Used for decks and torpedo bulkheads. Wotan Weich, a softer grade, was used where ductility mattered more than hardness."
+    },
+    "jpn_vh": {
+      "name": "Vickers Hardened", "nation": "Japan",
+      "faceHardened": true, "qualityFactor": 0.92, "densityKgM3": 7850,
+      "confidence": "low",
+      "notes": "Post-war US testing of Japanese plate suggested it was somewhat inferior to Western face-hardened armour, particularly in the very thick sections used on Yamato. The size of that penalty is genuinely disputed; this factor is a reasonable middle estimate and is the first number to revisit if Yamato feels wrong."
+    },
+    "jpn_nvnc": {
+      "name": "New Vickers Non-Cemented", "nation": "Japan",
+      "faceHardened": false, "qualityFactor": 0.95, "densityKgM3": 7850,
+      "confidence": "low"
+    },
+    "jpn_ds": {
+      "name": "Ducol Steel", "nation": "Japan",
+      "faceHardened": false, "qualityFactor": 0.88, "densityKgM3": 7850,
+      "confidence": "low",
+      "notes": "High-tensile structural steel used for splinter protection and light plating."
+    },
+    "generic_homogeneous": {
+      "name": "Generic homogeneous armour", "nation": "",
+      "faceHardened": false, "qualityFactor": 0.95, "densityKgM3": 7850,
+      "confidence": "low",
+      "notes": "Default for custom designs in the ship designer, and the fallback when a plate names a material that is not defined."
+    },
+    "generic_face_hardened": {
+      "name": "Generic face-hardened armour", "nation": "",
+      "faceHardened": true, "qualityFactor": 0.97, "densityKgM3": 7850,
+      "confidence": "low"
+    },
+    "structural_steel": {
+      "name": "Mild structural steel", "nation": "",
+      "faceHardened": false, "qualityFactor": 0.55, "densityKgM3": 7850,
+      "confidence": "medium",
+      "notes": "Ordinary shell plating and bulkheads. Barely resists a shell at all, but it is what stops splinters and what floods when it is holed, so it has to be modelled as structure rather than ignored."
+    }
+  }
+}

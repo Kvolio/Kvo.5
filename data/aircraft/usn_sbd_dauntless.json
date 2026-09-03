@@ -1,0 +1,22 @@
+{
+  "id": "usn_sbd_dauntless",
+  "name": "SBD-5 Dauntless",
+  "nation": "usa",
+  "year": 1942,
+  "role": "dive_bomber",
+  "maxSpeedKn": 222,
+  "cruiseSpeedKn": 160,
+  "combatRadiusKm": 450,
+  "ceilingM": 7780,
+  "crew": 2,
+  "guns": 2,
+  "gunCalibreMm": 7.62,
+  "agility": 0.5,
+  "toughness": 0.7,
+  "groupSize": 9,
+  "bombId": "usa_bomb_1000lb_ap_mk33",
+  "releaseAltitudeM": 600,
+  "diveAngleDeg": 70,
+  "notes": "Slow, short-ranged and obsolescent by 1943, and it sank more Japanese shipping than anything else the USN flew. A dive bomber's accuracy comes from the steepness of the dive, which is why it is a parameter here.",
+  "schemaVersion": 1
+}

@@ -1,0 +1,16 @@
+{
+  "id": "jpn_bomb_250kg_t99",
+  "name": "Type 99 No.25 250 kg Bomb",
+  "type": "sap",
+  "massKg": 250.0,
+  "diameterMm": 298.0,
+  "muzzleVelocityMs": 0.0,
+  "formFactor": 1.65,
+  "burstingChargeKg": 60.0,
+  "fuzeDelaySeconds": 0.02,
+  "capType": "none",
+  "penetrationK": 2300.0,
+  "confidence": "medium",
+  "notes": "The standard IJN dive bomber load. Semi-armour-piercing: enough body to get through a hangar deck, enough charge to matter when it does.",
+  "schemaVersion": 1
+}

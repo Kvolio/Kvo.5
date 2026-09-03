@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "id": "usa_8in55_ap_mk21",
+  "name": "8\"/55 AP Mark 21",
+  "type": "ap",
+  "massKg": 152.4,
+  "diameterMm": 203.2,
+  "muzzleVelocityMs": 762.0,
+  "formFactor": 0.9618,
+  "_formFactorComment": "Multiplier on the shared drag curve in data/config/ballistics.json. Shells differ in how sharply pointed they are and how good their ballistic caps were, and that is a per-shell property, not a per-gun one. solved so the model reproduces the published maximum range of 27480 m at 41.0 degrees.",
+  "burstingChargeKg": 2.1,
+  "fuzeDelaySeconds": 0.033,
+  "_fuzeComment": "Time from the fuze triggering to detonation. This is what makes a shell burst deep inside a ship instead of at the plate, and what lets it pass clean through a thin-skinned destroyer without going off at all.",
+  "capType": "apc",
+  "penetrationK": 1383,
+  "_penetrationKComment": "De Marre coefficient: the constant in V_limit = K * T^0.7 * d^0.75 / sqrt(W), in the imperial units the formula is published in. NOTE THE DIRECTION: K is the velocity a shell NEEDS per unit of plate, so a HIGHER K means a WORSE penetrator. It expresses how good this projectile is at getting through armour, as distinct from how well it carries its velocity on the way there, which is formFactor. Fitted to the published 8\"/55 penetration table at 20,000-25,000 yards.",
+  "_penetrationKConfidence": "high",
+  "_capTypeComment": "apc = armour-piercing cap. A cap improves penetration of face-hardened plate and can be stripped by a thin plate encountered first.",
+  "sources": [
+    "NavWeaps.com naval gun and ammunition data"
+  ],
+  "confidence": "high"
+}

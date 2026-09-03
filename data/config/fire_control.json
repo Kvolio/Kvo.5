@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Gunnery direction quality. These numbers decide how WRONG a ship's firing solution is, which is what actually sets hit rates at long range \u2014 not the dispersion of the guns. A ship whose plot is 400 m out at 20 km cannot hit with any gun, however tight its pattern.",
+  "rangefinder": {
+    "_comment": "Optical ranging error. A coincidence or stereoscopic rangefinder measures a tiny parallax angle, so its error grows with the SQUARE of the range and shrinks with the base length: sigma = R^2 * angularErrorRad / baseLengthM. This is why capital ships carried rangefinders as long as a destroyer is wide, and why a destroyer's own ranging is close to worthless past 15 km.",
+    "angularErrorRad": 2e-06,
+    "_angularErrorComment": "Effective angular acuity of a trained operator through the instrument's magnification, folded into one figure. 2e-6 rad puts a 10 m base at ~80 m error at 20 km, about 0.4% of range, which is the good end of the published band.",
+    "defaultBaseM": 4.0,
+    "minimumErrorM": 15.0,
+    "bearingSigmaRad": 0.0006,
+    "_bearingComment": "Optical bearing is excellent \u2014 under a mil. Ranging is the hard half of the problem, which is why spotting corrections are for range and almost never for deflection."
+  },
+  "radar": {
+    "_comment": "Radar ranging is nearly range-independent, which is the whole story of 1943 onwards: a set that is worse than a good rangefinder at 8 km is far better at 25 km. Bearing was the weak half until lobe switching arrived.",
+    "sets": {
+      "none": {
+        "rangeSigmaM": 0.0,
+        "bearingSigmaRad": 0.0,
+        "maxRangeM": 0,
+        "blindRangeM": 0
+      },
+      "early_1941": {
+        "rangeSigmaM": 90.0,
+        "bearingSigmaRad": 0.035,
+        "maxRangeM": 22000,
+        "blindRangeM": 1500
+      },
+      "mid_1942": {
+        "rangeSigmaM": 45.0,
+        "bearingSigmaRad": 0.012,
+        "maxRangeM": 28000,
+        "blindRangeM": 1000
+      },
+      "late_1943": {
+        "rangeSigmaM": 18.0,
+        "bearingSigmaRad": 0.0025,
+        "maxRangeM": 36000,
+        "blindRangeM": 700
+      },
+      "late_1944": {
+        "rangeSigmaM": 14.0,
+        "bearingSigmaRad": 0.0018,
+        "maxRangeM": 40000,
+        "blindRangeM": 500
+      }
+    },
+    "defaultSetByYear": [
+      {
+        "from": 1944,
+        "set": "late_1944"
+      },
+      {
+        "from": 1943,
+        "set": "late_1943"
+      },
+      {
+        "from": 1942,
+        "set": "mid_1942"
+      },
+      {
+        "from": 1941,
+        "set": "early_1941"
+      },
+      {
+        "from": 0,
+        "set": "none"
+      }
+    ],
+    "_defaultComment": "Only used where a ship's data file does not name its own set. Fitted by year rather than by nation because the year is the honest part: which navy got a working set first is a per-ship fact, and per-ship facts belong in data/ships/."
+  },
+  "plot": {
+    "_comment": "The plot is the ship's ESTIMATE of the target's course and speed. It is never correct at the moment a target is picked up, and it converges only as long as the target holds her course. A ship that turns invalidates every plot solving on her \u2014 not by a rule, but because the estimate now lags the truth and the range rate derived from it is wrong.",
+    "initialCourseSigmaRad": 0.35,
+    "initialSpeedSigmaMs": 2.2,
+    "settleSeconds": 55.0,
+    "_settleComment": "Time constant of the plot's convergence towards the target's true course and speed. ~55 s for a mechanical computer with a good radar feed; the multipliers below make an older installation slower.",
+    "settleSecondsNoRadar": 95.0,
+    "directorLossSettleFactor": 2.4,
+    "_directorLossComment": "With the directors gone the guns go into local control: each mount solves for itself, by eye, and the plot barely converges at all.",
+    "courseJitterRadPerRootSecond": 0.01,
+    "speedJitterMsPerRootSecond": 0.055,
+    "_jitterComment": "A plot is fed by hand-followed pointers on noisy inputs, so its estimate of the target's course and speed never stops moving about the truth \u2014 it converges to a band, not to a value. Modelled as a random walk added alongside the convergence, which is what gives the tracking loop a non-zero steady-state error however long it runs. Without it the plot settles exactly onto a steady target and stays there, and a four-minute action ends up more accurate than a gunnery trial."
+  },
+  "spotting": {
+    "_comment": "Fall of shot corrects the plot. This is the ladder: the first salvo is fired on the rangefinder alone and usually misses; the spotter calls it over or short, the plot is corrected, and the third or fourth salvo straddles. It is why sustained fire is so much more dangerous than opening fire, and why a ship that checks fire loses her solution.",
+    "correctionFraction": 0.55,
+    "observationSigmaFraction": 0.0035,
+    "_observationComment": "Error in judging how far over or short a splash fell, as a fraction of range \u2014 70 m at 20 km. Judging a splash against the sea from 20 km is genuinely hard, which is why spotting converges rather than solving in one salvo.",
+    "minimumObservationM": 25.0,
+    "aircraftSpottingFactor": 0.55,
+    "_aircraftComment": "A spotting aircraft looks straight down on the fall of shot instead of edge-on, and halves the observation error. Applied by the air module when one is up; absent, this number is never read.",
+    "radarSpottingFactor": 0.45,
+    "blindSpottingFactor": 2.5,
+    "_blindComment": "Spotting the fall of shot at night without radar or starshell is nearly hopeless."
+  },
+  "conditions": {
+    "_comment": "Scenario-level modifiers. Defaults are a clear day; the scenario editor in Stage 8 sets them per battle.",
+    "visibilityFactor": 1.0,
+    "opticalUsable": true
+  },
+  "ballistic": {
+    "_comment": "Systematic error in turning a correct range into a correct elevation: wind aloft, air density and temperature differing from the tables, powder temperature, and barrel wear. Drawn once when a plot is opened and held for the engagement, because these do not vary shot to shot \u2014 which is exactly why spotting corrections work: one correction absorbs the whole of it. Expressed as a fraction of range, since a longer flight integrates more of the atmosphere it was wrong about.",
+    "biasSigmaFraction": 0.0045,
+    "worn_barrel_extra": 0.0
+  },
+  "pointing": {
+    "_comment": "Per-salvo pointing error: the residual after director stabilisation, plus the ship's own motion in a seaway. Drawn fresh for every salvo and shared by every mount in it, because they are all laid by the same director. Both figures are ANGLES, and that matters: a director a twentieth of a degree off is a twentieth of a degree off at any range, and what that costs on the water is decided by how fast the gun's own range table trades elevation for range. On the flat early trajectory it buys range fast, so a laying error throws a shell FURTHER off at ten kilometres than at twenty-five \u2014 the opposite of what an error stated as a percentage of range would say. This is also the error that does not shrink with tracking time or with spotting, so it sets the floor on accuracy however long the action lasts.",
+    "elevationSigmaRad": 0.0012,
+    "_elevationComment": "About seven hundredths of a degree of residual elevation error. Small, and it has to be: a 16-inch gun on the flat part of its trajectory moves the fall of shot by roughly ninety metres for a twentieth of a degree, so this figure alone is worth a hundred metres at close range and sixty at long. It is the optimistic end of what a stabilised director achieved in a moderate sea, and the seaState multiplier below is what makes a destroyer in a swell shoot as badly as she did.",
+    "bearingSigmaRad": 0.0011,
+    "unstabilisedFactor": 2.2,
+    "_unstabilisedComment": "Directors without full stabilisation, or a ship badly damaged, lose most of the benefit.",
+    "seaStateFactorPerStep": 0.18,
+    "_seaStateComment": "Multiplier growth per sea state above 2. A destroyer in a heavy sea cannot shoot straight, and this is why."
+  },
+  "measurement": {
+    "_comment": "How fast repeated ranging pulls the plot's range towards the truth. A rangekeeper integrated successive ranges rather than jumping to each one, so measurement error averages down over a tracking run \u2014 but only measurement error. The ballistic bias above is untouched by it, which is why a ship that has tracked for five minutes still needs to spot her fall of shot.",
+    "filterSeconds": 20.0,
+    "_filterComment": "Time constant of the range filter. Short enough to follow a real range rate, long enough to average a noisy optical range."
+  }
+}
