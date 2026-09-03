@@ -26,6 +26,18 @@ func can_bear(relative_bearing: float) -> bool:
 	return offset >= train_min and offset <= train_max
 
 
+func duplicate() -> TorpedoMountDef:
+	var copy: TorpedoMountDef = TorpedoMountDef.new()
+	copy.mount_id = mount_id
+	copy.station = station
+	copy.lateral = lateral
+	copy.tubes = tubes
+	copy.rest_bearing = rest_bearing
+	copy.train_min = train_min
+	copy.train_max = train_max
+	return copy
+
+
 static func parse(data: Dictionary, index: int = 0) -> TorpedoMountDef:
 	var mount: TorpedoMountDef = TorpedoMountDef.new()
 	mount.mount_id = str(data.get("id", "TT%d" % index))

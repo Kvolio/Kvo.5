@@ -132,6 +132,17 @@ func hull() -> HullGeometry:
 	return _hull
 
 
+## Throw away the cached hull so the next call rebuilds it from the current dimensions.
+##
+## A battle never needs this: a ship's dimensions do not change while she is fighting,
+## which is exactly why the hull is built once and kept. The ship designer changes them
+## constantly, and without this a design would keep the waterplane it had before the
+## beam slider moved — and go on displacing, floating and steering like the ship it used
+## to be.
+func invalidate_hull() -> void:
+	_hull = null
+
+
 ## Steady turning-circle radius at full rudder, in metres.
 func turning_radius_m() -> float:
 	return length_m * tactical_diameter_lengths * 0.5
@@ -149,7 +160,14 @@ func resistance_coefficient() -> float:
 	return propulsion_power_w / (v * v * v)
 
 
-func duplicate_spec() -> ShipSpec:
+## A copy of this design.
+##
+## `deep` decides what happens to the armour and armament. They are descriptions of a
+## design rather than per-ship state, so a battle shares them by reference and saves
+## the copying — but the ship designer edits them, and a shallow copy there would mean
+## thickening a belt rewrote the preset the design was based on for the rest of the
+## session. Anything that intends to modify a design asks for a deep copy.
+func duplicate_spec(deep: bool = false) -> ShipSpec:
 	var copy: ShipSpec = ShipSpec.new()
 	copy.spec_id = spec_id
 	copy.display_name = display_name
@@ -162,6 +180,8 @@ func duplicate_spec() -> ShipSpec:
 	copy.beam_m = beam_m
 	copy.draft_m = draft_m
 	copy.displacement_t = displacement_t
+	copy.standard_displacement_t = standard_displacement_t
+	copy.funnels = funnels
 	copy.hull_form_id = hull_form_id
 	copy.hull_profile = hull_profile.duplicate()
 	copy.vertical_fullness = vertical_fullness
@@ -177,15 +197,25 @@ func duplicate_spec() -> ShipSpec:
 	copy.rudder_rate_rad_s = rudder_rate_rad_s
 	copy.yaw_response_time_s = yaw_response_time_s
 	copy.crew = crew
-	# Armament and armour are immutable descriptions shared between every ship of a
-	# design; only the mutable per-ship state lives on ShipEntity, so these are shared
-	# by reference rather than deep-copied.
-	copy.main_battery = main_battery
-	copy.secondary_battery = secondary_battery
-	copy.anti_air = anti_air
-	copy.torpedo_battery = torpedo_battery
-	copy.armour = armour
-	copy.aviation = aviation
+	# Armament and armour are descriptions shared between every ship of a design; only
+	# the mutable per-ship state lives on ShipEntity, so a battle shares them by
+	# reference. The designer asks for a deep copy because it is about to change them.
+	if deep:
+		copy.main_battery = main_battery.duplicate() if main_battery != null else null
+		copy.secondary_battery = \
+			secondary_battery.duplicate() if secondary_battery != null else null
+		copy.anti_air = anti_air.duplicate(true)
+		copy.torpedo_battery = \
+			torpedo_battery.duplicate() if torpedo_battery != null else null
+		copy.armour = armour.duplicate() if armour != null else null
+		copy.aviation = aviation.duplicate(true)
+	else:
+		copy.main_battery = main_battery
+		copy.secondary_battery = secondary_battery
+		copy.anti_air = anti_air
+		copy.torpedo_battery = torpedo_battery
+		copy.armour = armour
+		copy.aviation = aviation
 	return copy
 
 

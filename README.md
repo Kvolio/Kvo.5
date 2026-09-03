@@ -37,7 +37,8 @@ the machinery and magazines.
 
 ## Running it
 
-Open the project folder in Godot 4.4 and press play.
+Open the project folder in Godot 4.4 and press play. The menu offers a battle or the
+ship designer.
 
 ### Tests
 
@@ -66,6 +67,7 @@ a stale cache makes every suite referencing a newly added class fail to parse.
 ```bash
 tools/screenshot.sh /tmp/shot.png
 tools/screenshot.sh /tmp/shot.png --screenshot-zoom=1.1 --screenshot-focus=1
+tools/screenshot.sh /tmp/shot.png --screen=designer      # or menu, or battle
 ```
 
 Renders the real game to a PNG, falling back to Xvfb when there is no display.
@@ -97,6 +99,7 @@ combat code.
 - [`docs/DETERMINISM.md`](docs/DETERMINISM.md) — the reproducibility contract and its limits
 - [`docs/BALLISTICS.md`](docs/BALLISTICS.md) — the trajectory model and how it was calibrated
 - [`docs/DAMAGE.md`](docs/DAMAGE.md) — flooding, fire, torpedoes, damage control, and why integrity is derived
+- [`docs/DESIGNER.md`](docs/DESIGNER.md) — the ship designer, and why it weighs rather than penalises
 - [`docs/RENDERING.md`](docs/RENDERING.md) — how ships are drawn, and why none of it is art
 - [`docs/NAVAL_ARCHITECTURE.md`](docs/NAVAL_ARCHITECTURE.md) — weighing a design, and where the model still misses
 - [`docs/SOURCES.md`](docs/SOURCES.md) — where the historical figures came from, and which to doubt
@@ -113,7 +116,7 @@ Built in stages, each one tested before the next begins.
 - [x] **Stage 3** — ballistics, ship structure, trajectory tracing, penetration
 - [x] **Stage 4** — damage, compartments, flooding, fire, derived integrity
 - [x] **Stage 5** — magazine detonation, torpedoes, capsize, damage control
-- [ ] **Stage 6** — ship designer and naval architecture
+- [x] **Stage 6** — ship designer and naval architecture
 - [ ] **Stage 7** — AI, formations, detection, carrier aircraft
 - [ ] **Stage 8** — scenario editor, save/load, replay, debug mode, combat log
 - [ ] **Stage 9** — performance and visual polish

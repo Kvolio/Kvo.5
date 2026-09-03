@@ -25,6 +25,15 @@ func has_reloads() -> bool:
 	return reload_seconds > 0.0
 
 
+func duplicate() -> TorpedoBatteryDef:
+	var copy: TorpedoBatteryDef = TorpedoBatteryDef.new()
+	copy.torpedo_id = torpedo_id
+	copy.reload_seconds = reload_seconds
+	for mount: TorpedoMountDef in mounts:
+		copy.mounts.append(mount.duplicate())
+	return copy
+
+
 static func parse(data: Dictionary) -> TorpedoBatteryDef:
 	var battery: TorpedoBatteryDef = TorpedoBatteryDef.new()
 	battery.torpedo_id = str(data.get("torpedo", ""))

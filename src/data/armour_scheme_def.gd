@@ -35,6 +35,16 @@ class Plate extends RefCounted:
 	func thickness_m() -> float:
 		return thickness_mm * SimUnits.MM_TO_M
 
+	func duplicate() -> Plate:
+		var copy: Plate = Plate.new()
+		copy.zone = zone
+		copy.thickness_mm = thickness_mm
+		copy.material_id = material_id
+		copy.inclination_rad = inclination_rad
+		copy.note = note
+		copy.lower_edge_thickness_mm = lower_edge_thickness_mm
+		return copy
+
 
 ## Zones every ship defines. Absent zones become zero-thickness plates rather than
 ## nulls, so the tracer never has to special-case a ship that has no upper belt.
@@ -75,6 +85,20 @@ func total_deck_mm() -> float:
 
 func has_torpedo_defence() -> bool:
 	return torpedo_defence_depth_m > 0.0
+
+
+## A scheme that can be edited without touching the one it was copied from.
+##
+## The designer's whole job is to change these numbers. Sharing the plates by reference
+## is safe only while nothing ever writes to them, and thickening the belt on a design
+## based on Iowa would otherwise rewrite Iowa for the rest of the session.
+func duplicate() -> ArmourSchemeDef:
+	var copy: ArmourSchemeDef = ArmourSchemeDef.new()
+	for zone: String in plates:
+		copy.plates[zone] = (plates[zone] as Plate).duplicate()
+	copy.torpedo_defence_depth_m = torpedo_defence_depth_m
+	copy.torpedo_defence_layers = torpedo_defence_layers
+	return copy
 
 
 static func parse(armour: Dictionary, torpedo_defence: Dictionary) -> ArmourSchemeDef:

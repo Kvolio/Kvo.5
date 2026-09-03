@@ -121,20 +121,14 @@ func _build_help() -> void:
 	_help_label.add_theme_font_size_override("font_size", 11)
 	_help_label.text = """Left click  select ship      Right drag  pan      Wheel  zoom
 Space  pause        1-6  time scale        F  frame all ships
-W / S  speed        A / D  rudder          X  rudder amidships"""
+W / S  speed        A / D  rudder          X  rudder amidships
+Esc  back to the menu"""
 	panel.add_child(_help_label)
 
 
+## Shared with the ship designer, so the two screens look like one application.
 static func _panel() -> PanelContainer:
-	var panel: PanelContainer = PanelContainer.new()
-	var style: StyleBoxFlat = StyleBoxFlat.new()
-	style.bg_color = ViewPalette.PANEL_BG
-	style.border_color = ViewPalette.PANEL_EDGE
-	style.set_border_width_all(1)
-	style.set_content_margin_all(8)
-	panel.add_theme_stylebox_override("panel", style)
-	panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	return panel
+	return UiKit.panel()
 
 
 func refresh() -> void:

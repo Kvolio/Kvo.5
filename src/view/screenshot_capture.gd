@@ -4,7 +4,8 @@ extends Node
 ##
 ##   godot --path . -- --screenshot=/tmp/shot.png --screenshot-frame=120
 ##
-## Added as a child of any screen that wants to be capturable. It runs off the real
+## Added once at the root so any screen can be captured — the battle, the designer or
+## the menu. It runs off the real
 ## scene, autoloads and all, rather than a synthetic harness, so what lands in the
 ## file is exactly what a player would see — which is the only way a screenshot is
 ## worth anything as a check.
@@ -45,11 +46,28 @@ func _apply_framing() -> void:
 	var camera: Camera2D = get_viewport().get_camera_2d()
 	if camera == null:
 		return
-	var world: SimWorld = get_parent().get("world") as SimWorld
+	var world: SimWorld = _find_world()
 	if _focus_index >= 0 and world != null and _focus_index < world.ships.size():
 		camera.global_position = world.ships[_focus_index].position
 	if _zoom > 0.0:
 		camera.zoom = Vector2(_zoom, _zoom)
+
+
+## The simulation belonging to whatever screen is currently up, if it has one. Checked
+## on the parent first and then among its children, so this works whether it is a child
+## of the battle itself or a sibling of it under the application root.
+func _find_world() -> SimWorld:
+	var parent: Node = get_parent()
+	if parent == null:
+		return null
+	var found: SimWorld = parent.get("world") as SimWorld
+	if found != null:
+		return found
+	for sibling: Node in parent.get_children():
+		found = sibling.get("world") as SimWorld
+		if found != null:
+			return found
+	return null
 
 
 ## A warm-up delay is not optional: the first frames are drawn before shaders have

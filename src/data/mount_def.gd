@@ -47,6 +47,18 @@ func blind_arc() -> float:
 	return TAU - (train_max - train_min)
 
 
+func duplicate() -> MountDef:
+	var copy: MountDef = MountDef.new()
+	copy.mount_id = mount_id
+	copy.station = station
+	copy.lateral = lateral
+	copy.guns = guns
+	copy.rest_bearing = rest_bearing
+	copy.train_min = train_min
+	copy.train_max = train_max
+	return copy
+
+
 static func parse(data: Dictionary, index: int = 0) -> MountDef:
 	var mount: MountDef = MountDef.new()
 	mount.mount_id = str(data.get("id", "M%d" % index))

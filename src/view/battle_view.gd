@@ -8,6 +8,10 @@ extends Node2D
 ## intent becomes a SimCommand, which is what keeps a battle reproducible from its
 ## seed and command log alone.
 
+## Raised when the player asks to leave the battle. AppRoot listens; the battle itself
+## does not know what is above it.
+signal exit_requested()
+
 const SPEED_ORDER_STEP_KN: float = 2.0
 const CLICK_PIXEL_RADIUS: float = 24.0
 
@@ -23,6 +27,11 @@ var _hud: Control = null
 var _selected_id: int = 0
 var _time_scale_before_pause: float = 1.0
 var _engagements: Array[ShipEntity] = []
+
+## A design sent straight from the ship designer. She joins the line as the player's
+## flagship, which is what makes the designer worth using: build a ship, take her out,
+## and watch the armour scheme you chose meet a shell.
+var _player_design: ShipSpec = null
 
 
 func _ready() -> void:
@@ -76,10 +85,6 @@ func _build_scene() -> void:
 	_hud.time_scale_requested.connect(_on_time_scale_requested)
 	_hud.pause_toggled.connect(_toggle_pause)
 
-	# Inert unless --screenshot is on the command line.
-	var capture: Node = _instantiate("res://src/view/screenshot_capture.gd") as Node
-	if capture != null:
-		add_child(capture)
 
 
 ## Instantiate a view script, reporting a compile failure rather than raising a
@@ -121,7 +126,12 @@ func _start_demo_battle() -> void:
 		var x: float = -11000.0 if team == 0 else 11000.0
 		var y_offset: float = -4500.0 if team == 0 else 4500.0
 		for i: int in line_up.size():
-			var spec: ShipSpec = ShipDatabase.get_spec(line_up[i])
+			# The player's own design leads the blue line if she brought one.
+			var spec: ShipSpec = null
+			if team == 0 and i == 0 and _player_design != null:
+				spec = _player_design.duplicate_spec()
+			else:
+				spec = ShipDatabase.get_spec(line_up[i])
 			if spec == null:
 				continue
 			if team == 1:
@@ -145,6 +155,11 @@ func _start_demo_battle() -> void:
 	_labels.world = world
 	_hud.world = world
 	(_grid as Object).set("map_size", world.map_size)
+
+
+## Take a design straight from the designer, without it having to be saved first.
+func set_player_design(spec: ShipSpec) -> void:
+	_player_design = spec
 
 
 func _process(delta: float) -> void:
@@ -216,6 +231,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			_nudge_rudder(0.25)
 		KEY_X:
 			_order_rudder_absolute(0.0)
+		KEY_ESCAPE:
+			exit_requested.emit()
 
 
 ## Mirrors BattleHud.TIME_SCALES; kept as a constant here so the keyboard shortcuts
