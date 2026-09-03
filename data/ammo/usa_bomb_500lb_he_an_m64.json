@@ -1,0 +1,16 @@
+{
+  "id": "usa_bomb_500lb_he_an_m64",
+  "name": "500 lb GP Bomb AN-M64",
+  "type": "he",
+  "massKg": 226.8,
+  "diameterMm": 273.0,
+  "muzzleVelocityMs": 0.0,
+  "formFactor": 1.7,
+  "burstingChargeKg": 118.0,
+  "fuzeDelaySeconds": 0.01,
+  "capType": "none",
+  "penetrationK": 2600.0,
+  "confidence": "medium",
+  "notes": "General-purpose bomb: half its weight is explosive, which is why it wrecks decks, aircraft and unprotected structure and does almost nothing to a belt.",
+  "schemaVersion": 1
+}

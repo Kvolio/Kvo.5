@@ -1,0 +1,16 @@
+{
+  "id": "usa_bomb_1000lb_ap_mk33",
+  "name": "1000 lb AP Bomb Mk 33",
+  "type": "ap",
+  "massKg": 453.6,
+  "diameterMm": 356.0,
+  "muzzleVelocityMs": 0.0,
+  "formFactor": 1.6,
+  "burstingChargeKg": 65.0,
+  "fuzeDelaySeconds": 0.025,
+  "capType": "none",
+  "penetrationK": 2100.0,
+  "confidence": "medium",
+  "notes": "Armour-piercing bomb for dive bombers. Muzzle velocity is zero because it has none: a bomb arrives at whatever speed the dive and the fall gave it, which is why release altitude decides what it can penetrate. The high De Marre K reflects a thin-walled bomb body, which is a far worse penetrator than a shell of the same weight.",
+  "schemaVersion": 1
+}

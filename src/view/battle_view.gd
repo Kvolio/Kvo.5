@@ -104,8 +104,10 @@ static func _instantiate(path: String) -> Object:
 
 ## A stand-in engagement so the battlefield has something on it.
 ##
-## Ships come from ShipDatabase, the same path the scenario system will use in Stage
-## 8, so this is a placeholder scenario rather than a placeholder pipeline.
+## Two fleets from `data/fleets/`, deployed by the same code a scenario will use in
+## Stage 8, fought by the AI from each side's own contact plot. This is a placeholder
+## scenario rather than a placeholder pipeline: nothing here knows the ships, the
+## formations or the orders of battle — it names two files.
 func _start_demo_battle() -> void:
 	world = SimWorld.create(20260902, {
 		"sim": GameConfig.get_dict("sim"),
@@ -114,47 +116,56 @@ func _start_demo_battle() -> void:
 		"structure": GameConfig.get_dict("structure"),
 		"damage": GameConfig.get_dict("damage"),
 		"torpedo": GameConfig.get_dict("torpedo"),
+		"fire_control": GameConfig.get_dict("fire_control"),
+		"detection": GameConfig.get_dict("detection"),
+		"ai": GameConfig.get_dict("ai"),
 	})
+	world.map_size = Vector2(60000.0, 60000.0)
 	world.set_armory(WeaponDatabase.armory())
 
-	# Two lines passing on opposite courses about 9 km apart — the classic gun action
-	# geometry, and the one that actually shows the guns doing something, since both
-	# sides can bring a full broadside to bear.
-	var line_up: Array[String] = ["uss_iowa", "uss_fletcher"]
-	for team: int in 2:
-		var facing: float = 0.0 if team == 0 else PI
-		var x: float = -11000.0 if team == 0 else 11000.0
-		var y_offset: float = -4500.0 if team == 0 else 4500.0
-		for i: int in line_up.size():
-			# The player's own design leads the blue line if she brought one.
-			var spec: ShipSpec = null
-			if team == 0 and i == 0 and _player_design != null:
-				spec = _player_design.duplicate_spec()
-			else:
-				spec = ShipDatabase.get_spec(line_up[i])
-			if spec == null:
-				continue
-			if team == 1:
-				spec.display_name = "%s (Red)" % spec.display_name
-			# Ships in each line follow one another, spaced astern.
-			var along: float = float(i) * (-1400.0 if team == 0 else 1400.0)
-			var ship: ShipEntity = world.add_ship(
-				spec, Vector2(x + along, y_offset), facing, team)
-			MovementSystem.order_speed(ship, SimUnits.knots_to_ms(24.0))
-			_engagements.append(ship)
+	# Carrier aviation is a module the game registers, not a part of the simulation.
+	# Comment this line out and the battle still runs — the carriers simply have
+	# nobody to tell that their flight decks work. See docs/AIR_MODULE.md.
+	AirModule.register(world, GameConfig.get_dict("air"))
 
-	# Each side engages its opposite number. Stage 7 replaces this with target
-	# selection by the AI; the mechanism is the same either way.
-	var half: int = _engagements.size() / 2
-	for i: int in half:
-		_engagements[i].target_id = _engagements[i + half].id
-		_engagements[i + half].target_id = _engagements[i].id
+	# Two task groups on converging courses, at the edge of radar and beyond sight of
+	# one another. They have to FIND each other first, which is most of a naval action
+	# and all of the reason detection exists — but not so far apart that the player
+	# watches twenty minutes of empty sea. At this separation the plots fill in over the
+	# first minute or two and the action opens a few minutes later.
+	var lookup: Callable = func(spec_id: String) -> ShipSpec:
+		return ShipDatabase.get_spec(spec_id)
+	_deploy("usn_fast_carrier_task_group", Vector2(-13000.0, -7000.0),
+		deg_to_rad(25.0), 0, lookup)
+	_deploy("ijn_mobile_force", Vector2(13000.0, 7000.0), deg_to_rad(205.0), 1, lookup)
+
+	# The player's own design joins the blue force, and is hers to steer rather than
+	# the AI's — which is the whole point of having built her.
+	if _player_design != null:
+		var own: ShipEntity = world.add_ship(_player_design.duplicate_spec(),
+			Vector2(-13000.0, -10000.0), deg_to_rad(25.0), 0)
+		MovementSystem.order_speed(own, SimUnits.knots_to_ms(24.0))
+		_engagements.append(own)
 
 	_ships.world = world
 	_effects.world = world
 	_labels.world = world
 	_hud.world = world
 	(_grid as Object).set("map_size", world.map_size)
+
+
+## Put one fleet on the water, formed up and under way.
+func _deploy(fleet_id: String, origin: Vector2, heading: float, team: int,
+		lookup: Callable) -> void:
+	var fleet: FleetDef = FleetIo.load_from_file(
+		"res://data/fleets/%s.json" % fleet_id)
+	if fleet == null:
+		push_warning("BattleView: could not load fleet '%s'" % fleet_id)
+		return
+	fleet.team = team
+	for ship: ShipEntity in FleetIo.deploy(world, fleet, origin, heading, lookup):
+		MovementSystem.order_speed(ship, SimUnits.knots_to_ms(24.0))
+		_engagements.append(ship)
 
 
 ## Take a design straight from the designer, without it having to be saved first.

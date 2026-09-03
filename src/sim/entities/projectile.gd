@@ -20,6 +20,12 @@ var shell: ShellDef = null
 var penetration_k: float = 1380.0
 var gun_id: String = ""
 
+## Which of the ship's batteries fired it. Carried so the fall of shot corrects the
+## plot that actually laid the gun: a ship's main battery director and her secondary
+## director were separate installations solving separate problems, and letting a
+## five-inch splash correct a sixteen-inch plot would ruin both.
+var battery: StringName = &"main"
+
 ## World position, with z as height above the waterline.
 var position: Vector3 = Vector3.ZERO
 var velocity: Vector3 = Vector3.ZERO
@@ -33,11 +39,13 @@ var origin: Vector3 = Vector3.ZERO
 
 
 func reset(p_id: int, p_shell: ShellDef, p_k: float, p_origin: Vector3, p_velocity: Vector3,
-		p_shooter: int, p_target: int, p_team: int, p_gun: String) -> void:
+		p_shooter: int, p_target: int, p_team: int, p_gun: String,
+		p_battery: StringName = &"main") -> void:
 	id = p_id
 	shell = p_shell
 	penetration_k = p_k
 	gun_id = p_gun
+	battery = p_battery
 	origin = p_origin
 	position = p_origin
 	velocity = p_velocity
@@ -72,6 +80,7 @@ func serialize() -> Dictionary:
 	return {
 		"id": id, "shooterId": shooter_id, "targetId": target_id, "team": team,
 		"shell": shell.shell_id if shell != null else "", "gun": gun_id,
+		"battery": String(battery),
 		"position": Serializer.vec3_to_array(position),
 		"velocity": Serializer.vec3_to_array(velocity),
 		"origin": Serializer.vec3_to_array(origin),

@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "_comment": "Who can see what. Detection is held per TEAM rather than per ship, because that is what a flagship's plot was: lookouts and radar aboard every ship reporting into one picture that the whole formation manoeuvres on.",
+
+  "sighting": {
+    "_comment": "The horizon is the first thing that decides a sighting, and for most of the war it was the ONLY thing that mattered on a clear day: a lookout does not fail to see a battleship at 25 km because she is small, he fails because she is below the curve of the earth. Distance to the horizon in metres is horizonCoefficient * sqrt(height in metres), and two observers each get their own — which is why the masts are sighted long before the hull, and why a destroyer sees a battleship well before the battleship sees her.",
+    "horizonCoefficientM": 3570.0,
+    "radarHorizonCoefficientM": 4120.0,
+    "_radarHorizonComment": "Radar sees further than the eye at the same height because the atmosphere refracts centimetric waves downwards — the standard four-thirds-earth approximation.",
+    "mastFactor": 1.35,
+    "_mastFactorComment": "Multiplier on the top of the built superstructure to reach the foretop and the masthead, where the lookouts and the aerials actually were. Applied to the geometry the design produced rather than stated per ship, so a design nobody has drawn before still has a horizon that follows from its own shape."
+  },
+
+  "visual": {
+    "_comment": "Within the horizon, whether she is seen at all. Meteorological visibility caps everything; a bigger ship is picked up further out within that cap.",
+    "meteorologicalRangeM": 40000.0,
+    "referenceSilhouetteM2": 2500.0,
+    "silhouetteExponent": 0.35,
+    "_silhouetteComment": "How much bigger a bigger ship's detection range is. A cruiser is not seen twice as far as a destroyer for being twice her size — contrast against the sea does not work that way — so the exponent is well under a half.",
+    "nightFactor": 0.12,
+    "_nightComment": "Unaided night vision against a dark sea. The number is why radar mattered so much and why the Japanese, who trained their lookouts obsessively, kept winning night actions into 1943."
+  },
+
+  "gunFlash": {
+    "_comment": "A gun flash is visible far past the horizon at night, reflected off haze and cloud. It is how most night actions actually opened — and it is why opening fire is a decision and not a free action.",
+    "rangeFactorOfHorizon": 2.2,
+    "dayRangeFactorOfHorizon": 1.05,
+    "bearingOnly": true,
+    "_bearingOnlyComment": "A flash gives a bearing and almost nothing else: the range that comes with it is a guess, so a contact from one is poor until something better confirms it."
+  },
+
+  "fireGlow": {
+    "_comment": "A ship on fire is a beacon. This is why a damaged ship at night was so much easier to finish than to find in the first place.",
+    "rangeFactorOfHorizon": 1.6,
+    "minimumFireFraction": 0.04
+  },
+
+  "radar": {
+    "_comment": "Search radar, distinct from the gunnery sets in fire_control.json — a ship could hold a contact on air-search or surface-search radar she could not yet range on. Ranges by set are the honest published order of magnitude, not a precise claim.",
+    "sets": {
+      "none":       { "rangeM": 0,     "bearingSigmaRad": 0.0 },
+      "early_1941": { "rangeM": 18000, "bearingSigmaRad": 0.05 },
+      "mid_1942":   { "rangeM": 26000, "bearingSigmaRad": 0.02 },
+      "late_1943":  { "rangeM": 34000, "bearingSigmaRad": 0.006 },
+      "late_1944":  { "rangeM": 40000, "bearingSigmaRad": 0.004 }
+    },
+    "rangeSigmaM": 60.0
+  },
+
+  "plot": {
+    "_comment": "How the picture ages. A contact is not forgotten the instant it is out of sight — it is carried forward on its last known course until it has been stale long enough to be worthless, which is exactly the interval during which a ship that turned away is no longer where the plot says she is.",
+    "updateIntervalTicks": 15,
+    "forgetSeconds": 180.0,
+    "firmSeconds": 12.0,
+    "_firmComment": "How long a contact must be held before it counts as firm enough to shoot at. Below this it is a report, not a target.",
+    "positionErrorSmoothSeconds": 8.0,
+    "classifySeconds": 25.0,
+    "_classifyComment": "Telling a cruiser from a destroyer at long range takes time and good light, and getting it wrong is how ships ended up engaging the wrong enemy."
+  },
+
+  "conditions": {
+    "_comment": "Scenario weather and time of day. Defaults are a clear day; the scenario editor sets them per battle.",
+    "night": false,
+    "visibilityFactor": 1.0
+  }
+}

@@ -40,9 +40,14 @@ static func fire_ready_mounts(
 				fired.append(projectile)
 
 		turret.mark_fired()
+		# She has shown herself. At night a gun flash carries well past the horizon,
+		# and this is what the detection sweep reads to notice it.
+		shooter.firing_seconds_ago = 0.0
 		world.events.emit_event(&"salvo_fired", shooter.id, target.id,
 			SimEvent.Severity.INFO, {
 				"mount": turret.mount.mount_id,
+				"battery": String(turret.battery),
+				"calibreMm": turret.gun.calibre_m * 1000.0,
 				"gun": turret.gun.display_name,
 				"shell": turret.selected_shell,
 				"barrels": turret.barrels(),
@@ -81,6 +86,14 @@ static func _fire_one(
 		cos(bearing) * cos(elevation), sin(bearing) * cos(elevation), sin(elevation)
 	) * shell.muzzle_velocity_ms
 
+	# The shell leaves a moving ship and takes her motion with it. Twenty knots over
+	# half a minute of flight is nearly four hundred metres, which is why fire control
+	# solves the intercept against RELATIVE motion — the two are the same compensation
+	# seen from either end, and leaving out both would have been self-consistent while
+	# leaving out one is simply wrong.
+	var own: Vector2 = shooter.velocity()
+	velocity += Vector3(own.x, own.y, 0.0)
+
 	var origin: Vector3 = Vector3(muzzle.x, muzzle.y, turret.gun.muzzle_height_m)
 	return world.spawn_projectile(shell, turret.gun, origin, velocity,
-		shooter.id, target.id, shooter.team)
+		shooter.id, target.id, shooter.team, turret.battery)

@@ -35,6 +35,7 @@ const COMPONENT_RUDDER: String = "rudder"
 const COMPONENT_DIRECTOR: String = "director"
 const COMPONENT_RADAR: String = "radar"
 const COMPONENT_ELEVATOR: String = "elevator"
+const COMPONENT_FLIGHT_DECK: String = "flight_deck"
 
 ## Longitudinal segments used for the shell plating. Enough that the taper of a fine
 ## bow is followed rather than approximated by a single flat plate.
@@ -742,6 +743,17 @@ func _build_components(t: ShipStructureTemplate, spec: ShipSpec) -> void:
 		Vector3(t.bridge_x + reach * 0.7, 1.5, director_z + 2.0)))
 
 	if spec.is_carrier():
+		# The flight deck is an ordinary component, wrecked by ordinary means. The
+		# damage core knows only that a large thin thing on top of the ship has been
+		# broken; that this stops her flying is something only the air module knows,
+		# and it reads it from here.
+		var deck_length: float = float(spec.aviation.get("flightDeckLengthM", spec.length_m * 0.95))
+		var deck_width: float = float(spec.aviation.get("flightDeckWidthM", spec.beam_m * 0.85))
+		t.add_volume(GeometryPrimitives.make_volume(
+			0, GeometryPrimitives.VolumeKind.COMPONENT, COMPONENT_FLIGHT_DECK, "Flight deck",
+			Vector3(-deck_length * 0.5, -deck_width * 0.5, t.main_deck_z),
+			Vector3(deck_length * 0.5, deck_width * 0.5, t.main_deck_z + 0.4)))
+
 		var elevators: int = maxi(int(spec.aviation.get("elevators", 2)), 1)
 		for i: int in elevators:
 			var x: float = lerpf(-0.3, 0.3, float(i) / maxf(float(elevators - 1), 1.0)) * spec.length_m

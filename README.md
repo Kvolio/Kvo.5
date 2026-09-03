@@ -51,9 +51,14 @@ tools/test.sh --exclude=gun_action   # everything except the integration suite
 ```
 
 Each suite reports how long it took, because a suite that has quietly become slow is
-usually a system that has quietly become slow. The integration suite fights whole
-battles and takes a minute or two on its own, so `--exclude` is useful while
-iterating on the unit suites.
+usually a system that has quietly become slow. The two integration suites fight whole
+battles — a gun action and a seventeen-ship fleet action — and take several minutes
+between them, so `--exclude` is useful while iterating on the unit suites.
+
+The fleet action suite is deliberately expensive, because it asserts an outcome rather
+than a mechanism: two fleets in contact, both sides fought by the AI from their own
+contact plots, and the assertion that a battle actually happens. Every unit test in
+Stage 7 passed while the whole thing did nothing at all.
 
 Exit code is non-zero on failure. Lint suites run before unit suites so an
 architectural violation is reported before the behaviour it breaks.
@@ -102,6 +107,9 @@ combat code.
 - [`docs/DESIGNER.md`](docs/DESIGNER.md) — the ship designer, and why it weighs rather than penalises
 - [`docs/RENDERING.md`](docs/RENDERING.md) — how ships are drawn, and why none of it is art
 - [`docs/NAVAL_ARCHITECTURE.md`](docs/NAVAL_ARCHITECTURE.md) — weighing a design, and where the model still misses
+- [`docs/FIRE_CONTROL.md`](docs/FIRE_CONTROL.md) — why ships miss, and the four ways a firing solution is wrong
+- [`docs/TACTICS.md`](docs/TACTICS.md) — the horizon, contact plots, immunity zones, captains and formations
+- [`docs/AIR_MODULE.md`](docs/AIR_MODULE.md) — carrier aviation, and the line it does not cross
 - [`docs/SOURCES.md`](docs/SOURCES.md) — where the historical figures came from, and which to doubt
 
 ---
@@ -117,6 +125,6 @@ Built in stages, each one tested before the next begins.
 - [x] **Stage 4** — damage, compartments, flooding, fire, derived integrity
 - [x] **Stage 5** — magazine detonation, torpedoes, capsize, damage control
 - [x] **Stage 6** — ship designer and naval architecture
-- [ ] **Stage 7** — AI, formations, detection, carrier aircraft
+- [x] **Stage 7** — fire control quality, detection, AI, formations, the optional air module
 - [ ] **Stage 8** — scenario editor, save/load, replay, debug mode, combat log
 - [ ] **Stage 9** — performance and visual polish

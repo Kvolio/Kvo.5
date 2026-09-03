@@ -132,6 +132,31 @@ func solve_for_range(target_range: float) -> FiringSolution:
 	return solution
 
 
+## How far the fall of shot moves for a radian of elevation, at this range.
+##
+## The number that decides what a laying error is actually worth, and it is not
+## constant: on the flat early part of the trajectory a gun's elevation buys range
+## fast, and far out near maximum range it buys almost none. That is why a tenth of a
+## degree of director wander throws a shell further off at ten kilometres than at
+## twenty-five — the opposite of what a "percentage of range" error would say, and the
+## reason this is read off the gun's own table rather than assumed.
+func range_gradient(target_range: float) -> float:
+	if entries.size() < 2:
+		return 0.0
+	var index: int = 0
+	for i: int in _max_range_index:
+		if entries[i].range_m <= target_range:
+			index = i
+		else:
+			break
+	var a: Entry = entries[index]
+	var b: Entry = entries[mini(index + 1, _max_range_index)]
+	var d_elevation: float = b.elevation - a.elevation
+	if absf(d_elevation) < 1e-9:
+		return 0.0
+	return absf((b.range_m - a.range_m) / d_elevation)
+
+
 func _fill(solution: FiringSolution, entry: Entry, target_range: float) -> void:
 	solution.valid = true
 	solution.range_m = target_range

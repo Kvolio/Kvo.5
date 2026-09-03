@@ -51,6 +51,8 @@ static func to_document(spec: ShipSpec) -> Dictionary:
 		}
 	if not spec.aviation.is_empty():
 		document["aviation"] = spec.aviation.duplicate(true)
+	if not spec.fire_control.is_empty():
+		document["fireControl"] = spec.fire_control.duplicate(true)
 	return document
 
 

@@ -48,6 +48,7 @@ static func parse(data: Dictionary, source_path: String = "<memory>") -> ShipSpe
 		data.get("armour", {}) as Dictionary,
 		data.get("torpedoDefence", {}) as Dictionary)
 	spec.aviation = data.get("aviation", {}) as Dictionary
+	spec.fire_control = data.get("fireControl", {}) as Dictionary
 
 	spec.derive_defaults()
 	return spec

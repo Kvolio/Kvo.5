@@ -54,14 +54,26 @@ func test_a_battleship_duel_produces_salvos_shells_and_hits() -> void:
 
 
 func test_shells_are_actually_in_the_air_between_firing_and_arriving() -> void:
-	# At 18 km a 16-inch shell is in flight for half a minute, so a battle should
-	# essentially always have shells on their way.
+	# At 18 km a 16-inch shell is in flight for half a minute, so an action in progress
+	# should essentially always have shells on their way.
+	#
+	# Measured across the action rather than in a window at a fixed time, because an
+	# action does not last a fixed time: whichever ship is unlucky is lost to a
+	# magazine hit somewhere between two and five minutes, and after that the survivor
+	# stands her battery down and the sea is empty. Sampling at two minutes was
+	# measuring whether the duel happened to still be running.
 	var world: SimWorld = _action("uss_iowa", "uss_iowa", 18000.0)
-	TestShips.run_seconds(world, 120.0)
 	var seen_in_flight: int = 0
-	for _i: int in 600:
+	var ticks_with_both_alive: int = 0
+	for _i: int in 60 * 240:
+		if not world.ships[0].is_afloat() or not world.ships[1].is_afloat():
+			break
 		world.step()
+		ticks_with_both_alive += 1
 		seen_in_flight = maxi(seen_in_flight, world.projectiles.size())
+
+	gt(float(ticks_with_both_alive), 60.0 * 45.0,
+		"the action should last long enough to be worth measuring")
 	gt(float(seen_in_flight), 3.0, "several shells in the air at once")
 
 

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "kriegsmarine_raiding_group",
+  "name": "Raiding Group",
+  "nation": "germany",
+  "team": 1,
+  "notes": "Bismarck and Admiral Hipper, as the Atlantic sortie was actually composed: two ships, no carrier, no screen worth the name, and nowhere to run to.",
+  "divisions": [
+    {
+      "id": "heavy",
+      "name": "Raiders",
+      "formation": "column",
+      "spacingM": 900,
+      "stationM": [
+        0,
+        0
+      ],
+      "ships": [
+        {
+          "spec": "bismarck",
+          "name": "Bismarck"
+        },
+        {
+          "spec": "admiral_hipper",
+          "name": "Admiral Hipper"
+        }
+      ]
+    }
+  ]
+}

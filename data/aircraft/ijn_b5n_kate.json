@@ -1,0 +1,23 @@
+{
+  "id": "ijn_b5n_kate",
+  "name": "B5N2 Kate",
+  "nation": "japan",
+  "year": 1941,
+  "role": "torpedo_bomber",
+  "maxSpeedKn": 204,
+  "cruiseSpeedKn": 140,
+  "combatRadiusKm": 550,
+  "ceilingM": 8260,
+  "crew": 3,
+  "guns": 1,
+  "gunCalibreMm": 7.7,
+  "agility": 0.38,
+  "toughness": 0.35,
+  "groupSize": 9,
+  "torpedoId": "jpn_type91",
+  "releaseAltitudeM": 60,
+  "releaseSpeedKn": 100,
+  "releaseRangeM": 800,
+  "notes": "Carried the Type 91, which unlike the American Mk 13 actually worked, and could be dropped higher and faster.",
+  "schemaVersion": 1
+}

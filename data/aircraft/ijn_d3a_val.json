@@ -1,0 +1,22 @@
+{
+  "id": "ijn_d3a_val",
+  "name": "D3A2 Val",
+  "nation": "japan",
+  "year": 1942,
+  "role": "dive_bomber",
+  "maxSpeedKn": 232,
+  "cruiseSpeedKn": 160,
+  "combatRadiusKm": 430,
+  "ceilingM": 10500,
+  "crew": 2,
+  "guns": 3,
+  "gunCalibreMm": 7.7,
+  "agility": 0.6,
+  "toughness": 0.45,
+  "groupSize": 9,
+  "bombId": "jpn_bomb_250kg_t99",
+  "releaseAltitudeM": 500,
+  "diveAngleDeg": 65,
+  "notes": "Fixed undercarriage and thoroughly outdated, and in trained hands the most accurate dive bomber of the early war.",
+  "schemaVersion": 1
+}

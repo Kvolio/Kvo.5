@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "id": "ijn_mobile_force",
+  "name": "Kido Butai Detachment",
+  "nation": "japan",
+  "team": 1,
+  "notes": "Shokaku with Yamato and a cruiser division in support, screened by Kagero-class destroyers whose Type 93 torpedoes are the most dangerous thing in the formation.",
+  "divisions": [
+    {
+      "id": "carriers",
+      "name": "Carrier Group",
+      "formation": "column",
+      "spacingM": 900,
+      "stationM": [
+        0,
+        0
+      ],
+      "ships": [
+        {
+          "spec": "ijn_shokaku",
+          "name": "Shokaku"
+        }
+      ]
+    },
+    {
+      "id": "heavy",
+      "name": "Battle Division",
+      "formation": "column",
+      "spacingM": 900,
+      "stationM": [
+        -2500,
+        -1200
+      ],
+      "ships": [
+        {
+          "spec": "ijn_yamato",
+          "name": "Yamato"
+        }
+      ]
+    },
+    {
+      "id": "cruisers",
+      "name": "Cruiser Division",
+      "formation": "column",
+      "spacingM": 700,
+      "stationM": [
+        2500,
+        1500
+      ],
+      "ships": [
+        {
+          "spec": "ijn_mogami",
+          "name": "Mogami"
+        }
+      ]
+    },
+    {
+      "id": "screen",
+      "name": "Destroyer Screen",
+      "formation": "screen",
+      "spacingM": 5000,
+      "stationM": [
+        4000,
+        0
+      ],
+      "ships": [
+        {
+          "spec": "ijn_kagero",
+          "name": "Kagero",
+          "count": 4
+        }
+      ]
+    }
+  ]
+}

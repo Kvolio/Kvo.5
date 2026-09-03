@@ -51,6 +51,7 @@ static func _advance(world: SimWorld, projectile: Projectile,
 		var span: float = from.z - to.z
 		var t: float = 0.0 if span <= 0.0 else from.z / span
 		var splash: Vector3 = from.lerp(to, t)
+		world.report_fall_of_shot(projectile, Vector2(splash.x, splash.y))
 		world.events.emit_event(&"shell_splash", projectile.shooter_id, projectile.target_id,
 			SimEvent.Severity.INFO, {
 				"position": Serializer.vec2_to_array(Vector2(splash.x, splash.y)),

@@ -1,5 +1,5 @@
 class_name ShipEntity
-extends RefCounted
+extends SimEntity
 
 ## A ship in the world: what it is (`spec`), where it is, and what state it is in.
 ##
@@ -7,6 +7,14 @@ extends RefCounted
 ## Damage state is added by Stage 4 and consumed here through the `*_fraction`
 ## fields, which is how "one shaft destroyed" becomes "slower" without the movement
 ## code knowing anything about shells.
+##
+## A SimEntity, which is what lets detection, formation keeping and the spatial index
+## treat her and an aircraft as the same kind of thing without either of them knowing
+## the other exists — see `src/sim/interfaces/sim_entity.gd`.
+
+## How long a gun flash stays worth reporting.
+const GUN_FLASH_SECONDS: float = 3.0
+
 
 enum Status {
 	ACTIVE,        ## fighting
@@ -14,13 +22,10 @@ enum Status {
 	DESTROYED,     ## sunk, capsized, blown up or broken in half
 }
 
-var id: int = 0
+## `id`, `team`, `position` and `display_name` are SimEntity's.
 var spec: ShipSpec = null
-var team: int = 0
-var display_name: String = ""
 
 # -- kinematics (world frame, SI) --------------------------------------------
-var position: Vector2 = Vector2.ZERO
 var heading: float = 0.0        ## radians; 0 points along +X
 var speed: float = 0.0          ## m/s along the heading; negative is sternway
 var yaw_rate: float = 0.0       ## rad/s, positive to starboard
@@ -29,6 +34,15 @@ var yaw_rate: float = 0.0       ## rad/s, positive to starboard
 var rudder_angle: float = 0.0   ## radians, actual rudder position
 var rudder_order: float = 0.0   ## radians, ordered rudder position
 var throttle: float = 0.0       ## -1 (full astern) .. +1 (full ahead)
+
+## A COURSE order, as against a rudder order. "Steer 090" is not "put the rudder over
+## fifteen degrees": the first is held until she is on it and then held there, the
+## second is obeyed until somebody says otherwise. Without the distinction a ship
+## ordered onto a heading turns through it and goes on turning, which is a circle and
+## not a course. A manual rudder order cancels the course order, exactly as putting the
+## helm over by hand takes a ship off the gyro.
+var ordered_heading: float = 0.0
+var holds_heading: bool = false
 
 # -- attitude ----------------------------------------------------------------
 ## Set by the flooding model in Stage 4. Kept here rather than there because the
@@ -48,6 +62,38 @@ var torpedo_launchers: Array[TorpedoLauncher] = []
 ## The ship this one is shooting at, or 0 for none. Set by the player or the AI;
 ## never inferred inside the gunnery code, so a replay reproduces target changes.
 var target_id: int = 0
+
+## What her gunnery believes about that target, one plot per battery — because a main
+## battery director and a secondary director were separate installations solving
+## separate problems. It matters more than it sounds: the fall of shot corrects the
+## plot that laid the gun, and a five-inch splash correcting a sixteen-inch plot would
+## ruin both. Keyed by battery name; built when she first opens fire.
+##
+## Never quite the truth, which is what makes a hit at 20 km an achievement rather than
+## an arithmetic result. See FireControlSolution.
+var fire_control: Dictionary = {}
+
+## Her fire-control installation, resolved once from her design.
+var fire_control_fit: FireControlSolution.Fit = null
+
+## Fought by the AI rather than by whoever put her here.
+##
+## Off by default, and deliberately: a ship added to a world holds the orders she was
+## given until somebody says otherwise. A scenario, a fleet deployment or the battle
+## view turns the AI on for the ships it wants fought automatically, and a test that
+## sets a course and a target keeps them. Defaulting the other way would mean every
+## test of movement or gunnery was quietly also a test of the AI.
+var ai_controlled: bool = false
+
+## Her captain's tactical state: what he is doing and why. Held on the ship so it
+## serialises with her and so the inspector can show his reasoning.
+var ai: AiSystem.State = null
+
+## The formation she is stationed in, and where in it. Empty means she is manoeuvring
+## independently — which is also what she does the moment there are torpedoes in the
+## water, because station keeping is not worth dying for.
+var formation_id: String = ""
+var station_index: int = 0
 
 # -- condition ---------------------------------------------------------------
 var status: Status = Status.ACTIVE
@@ -77,6 +123,17 @@ var rudder_effectiveness: float = 1.0
 
 ## When the steering gear is wrecked the rudder jams where it stands.
 var rudder_jammed: bool = false
+
+# -- being found ---------------------------------------------------------------
+## Height of the highest thing worth sighting, metres above the waterline. Taken from
+## the structure her design produced, so it is the ship's own upperworks and not a
+## number somebody typed. Set when she is added to the world.
+var sighting_height_m: float = 10.0
+
+## Seconds since she last fired a gun, or -1 if she has not. A gun flash carries far
+## past the horizon at night and is how most night actions actually opened, so it is
+## tracked rather than inferred.
+var firing_seconds_ago: float = -1.0
 
 
 static func create(p_id: int, p_spec: ShipSpec, p_team: int = 0) -> ShipEntity:
@@ -173,8 +230,63 @@ func is_afloat() -> bool:
 	return status != Status.DESTROYED
 
 
+# -- SimEntity and Detectable --------------------------------------------------
+
+func is_alive() -> bool:
+	return status != Status.DESTROYED
+
+
+func spatial_layer() -> int:
+	return SpatialIndex.Layer.SHIP
+
+
+func spatial_radius() -> float:
+	return hull().bounding_radius()
+
+
+## What she looks like to somebody trying to find her.
+##
+## Every figure is measured off the design rather than stated in her data file: the
+## height that sets her horizon is the top of the superstructure the structure builder
+## actually put on her, and the silhouette is the side of the hull and upperworks she
+## really presents. A ship drawn in the designer is therefore as findable as her shape
+## says she should be, with nothing to fill in and nothing to get out of step.
+func detection_signature() -> Detectable.Signature:
+	var signature: Detectable.Signature = Detectable.Signature.new()
+	signature.height_m = sighting_height_m
+	signature.silhouette_m2 = spec.length_m * (sighting_height_m * 0.45 + spec.draft_m * 0.2)
+	signature.radar_area_m2 = signature.silhouette_m2
+	signature.firing = firing_seconds_ago >= 0.0 and firing_seconds_ago < GUN_FLASH_SECONDS
+	signature.burning = 0.0 if condition == null else condition.fire_fraction
+	return signature
+
+
 func can_manoeuvre() -> bool:
 	return status != Status.DESTROYED and propulsion_fraction > 0.0
+
+
+## Is she still trying to hold her station?
+##
+## A ship evading torpedoes or breaking off has stopped caring about the formation, and
+## saying so here is what keeps the formation system from steering her back into a
+## torpedo salvo she has just turned to comb.
+## The plot one of her batteries is solving on, or null if it has not opened one.
+func plot_for(battery: StringName) -> FireControlSolution:
+	return fire_control.get(battery) as FireControlSolution
+
+
+## Her main battery's plot — what the HUD shows and what "her gunnery solution" means
+## without further qualification.
+func main_plot() -> FireControlSolution:
+	return plot_for(&"main")
+
+
+func keeps_station() -> bool:
+	if formation_id.is_empty() or not can_manoeuvre():
+		return false
+	if ai == null:
+		return true
+	return ai.posture != AiSystem.Posture.EVADE and ai.posture != AiSystem.Posture.DISENGAGE
 
 
 ## Speed the ship can still reach, given propulsion damage.

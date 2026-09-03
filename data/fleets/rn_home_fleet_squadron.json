@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "id": "rn_home_fleet_squadron",
+  "name": "Home Fleet Squadron",
+  "nation": "uk",
+  "team": 0,
+  "notes": "Illustrious with King George V and Vanguard, screened by Tribals. An armoured-deck carrier in company with the battle line, which is how the Royal Navy fought hers.",
+  "divisions": [
+    {
+      "id": "heavy",
+      "name": "Battle Squadron",
+      "formation": "column",
+      "spacingM": 800,
+      "stationM": [
+        0,
+        0
+      ],
+      "ships": [
+        {
+          "spec": "hms_king_george_v",
+          "name": "King George V"
+        },
+        {
+          "spec": "hms_vanguard",
+          "name": "Vanguard"
+        }
+      ]
+    },
+    {
+      "id": "carriers",
+      "name": "Carrier",
+      "formation": "column",
+      "spacingM": 900,
+      "stationM": [
+        -3000,
+        2000
+      ],
+      "ships": [
+        {
+          "spec": "hms_illustrious",
+          "name": "Illustrious"
+        }
+      ]
+    },
+    {
+      "id": "screen",
+      "name": "Destroyer Screen",
+      "formation": "screen",
+      "spacingM": 4500,
+      "stationM": [
+        3500,
+        0
+      ],
+      "ships": [
+        {
+          "spec": "hms_tribal",
+          "name": "Tribal",
+          "count": 4
+        }
+      ]
+    }
+  ]
+}

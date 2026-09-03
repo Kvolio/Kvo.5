@@ -15,6 +15,12 @@ extends RefCounted
 ## course the target is on now, and a ship that turns after the salvo is fired is no
 ## longer where the solution said she would be. Nothing models "evasion" explicitly;
 ## it falls out of the lead being wrong.
+##
+## What this system solves is the intercept. What it solves it AGAINST is the ship's
+## plot (`FireControlSolution`), not the target — the plot's estimate of where she is
+## and what she is doing, which is wrong in four separate ways and only becomes less
+## wrong through tracking and spotting. Passing a null plot means perfect information,
+## and exists so a test can exercise the intercept geometry on its own.
 
 ## Iterations of the intercept solve. Each pass costs two array lookups.
 const INTERCEPT_ITERATIONS: int = 4
@@ -39,6 +45,7 @@ class Solution extends RefCounted:
 	var striking_velocity: float = 0.0
 	var descent_angle: float = 0.0
 	var lead_m: float = 0.0                    ## how far ahead of the target it aims
+	var solution_error_m: float = 0.0          ## how far the aim point misses the target by
 	var bears: bool = false                    ## the mount can train onto it
 
 
@@ -49,7 +56,8 @@ class Solution extends RefCounted:
 ## difference between A turret and Y turret is a real bearing offset at close range,
 ## and pretending both are amidships would put half the salvo consistently off.
 static func solve(
-	shooter: ShipEntity, turret: Turret, target: ShipEntity, table: RangeTable
+	shooter: ShipEntity, turret: Turret, target: ShipEntity, table: RangeTable,
+	plot: FireControlSolution = null
 ) -> Solution:
 	var solution: Solution = Solution.new()
 	if table == null:
@@ -60,8 +68,28 @@ static func solve(
 		return solution
 
 	var origin: Vector2 = mount_world_position(shooter, turret)
-	var target_velocity: Vector2 = target.velocity()
-	var aim: Vector2 = target.position
+
+	# The intercept is solved against what the ship BELIEVES, not against the target.
+	# Where the two differ is the whole of the difference between this model and one
+	# that hits three times too often.
+	var believed_position: Vector2 = target.position
+	var believed_velocity: Vector2 = target.velocity()
+	if plot != null:
+		believed_position = plot.estimated_target_position(origin, target)
+		believed_velocity = plot.estimated_velocity()
+
+	# The intercept is solved in the SHOOTER'S frame, against relative motion.
+	#
+	# A shell leaves a ship making twenty knots already carrying those twenty knots, and
+	# over half a minute of flight that is nearly four hundred metres — as large as
+	# every other error in the system put together. Real fire control compensated for
+	# own-ship motion for exactly this reason, and the compensation and the inherited
+	# velocity very nearly cancel: what is left is the intercept against the target's
+	# motion RELATIVE to the firing ship. Solving it here and adding the ship's velocity
+	# to the shell in GunnerySystem is the same statement made twice, once for the
+	# gunlayer and once for the physics.
+	var relative_velocity: Vector2 = believed_velocity - shooter.velocity()
+	var aim: Vector2 = believed_position
 	var range_solution: RangeTable.FiringSolution = null
 
 	solution.present_range_m = origin.distance_to(target.position)
@@ -75,13 +103,31 @@ static func solve(
 		# Straight-line extrapolation over the flight. A turning target is not
 		# modelled, and that is correct: the gunnery officer cannot see the future
 		# either, which is why a ship under fire turns.
-		aim = target.position + target_velocity * range_solution.time_of_flight
+		aim = believed_position + relative_velocity * range_solution.time_of_flight
 
-	solution.aim_point = aim
-	solution.range_m = origin.distance_to(aim)
-	solution.lead_m = aim.distance_to(target.position)
-	solution.world_bearing = (aim - origin).angle()
-	solution.relative_bearing = SimUnits.angle_delta(shooter.heading, solution.world_bearing)
+	solution.lead_m = aim.distance_to(believed_position)
+
+	# The plot has decided where to shoot. Laying the guns on it is a second, separate
+	# source of error: the range table converts range to elevation for an atmosphere
+	# that is not quite the one the shell will fly through, the spotting officer has
+	# already moved the range by whatever his last correction was, and the director is
+	# never perfectly steady. None of that changes where the target is believed to be —
+	# it changes where the shell is sent.
+	var bearing: float = (aim - origin).angle()
+	var laid: float = origin.distance_to(aim)
+	if plot != null:
+		bearing += plot.pointing_bearing_rad
+		laid = plot.laid_range(laid, table.range_gradient(laid))
+		range_solution = table.solve_for_range(laid)
+		if not range_solution.valid:
+			solution.reason = "out of range"
+			return solution
+
+	solution.aim_point = origin + Vector2(cos(bearing), sin(bearing)) * laid
+	solution.range_m = laid
+	solution.solution_error_m = solution.aim_point.distance_to(target.position)
+	solution.world_bearing = bearing
+	solution.relative_bearing = SimUnits.angle_delta(shooter.heading, bearing)
 	solution.elevation = range_solution.elevation
 	solution.time_of_flight = range_solution.time_of_flight
 	solution.striking_velocity = range_solution.striking_velocity
@@ -115,7 +161,8 @@ class ReadyMount extends RefCounted:
 ## of firing: solving an intercept means four passes over a range table, and doing it
 ## twice for the same shot is pure waste.
 static func direct_battery(
-	shooter: ShipEntity, turrets: Array[Turret], target: ShipEntity, armory: Armory
+	shooter: ShipEntity, turrets: Array[Turret], target: ShipEntity, armory: Armory,
+	plot: FireControlSolution = null
 ) -> Array[ReadyMount]:
 	var ready: Array[ReadyMount] = []
 	if target == null or not target.is_afloat():
@@ -127,7 +174,7 @@ static func direct_battery(
 		if not turret.is_operational():
 			continue
 		var table: RangeTable = armory.range_table(turret.gun.gun_id, turret.selected_shell)
-		var solution: Solution = solve(shooter, turret, target, table)
+		var solution: Solution = solve(shooter, turret, target, table, plot)
 		if not solution.valid:
 			turret.stand_down()
 			continue

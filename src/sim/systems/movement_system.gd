@@ -67,6 +67,13 @@ func step(ships: Array[ShipEntity], dt: float) -> void:
 func _step_rudder(ship: ShipEntity, dt: float) -> void:
 	if ship.rudder_jammed:
 		return
+	# A ship on an ordered COURSE steers herself onto it and then holds it. Applying the
+	# correction here rather than at the moment the order is given is what makes it a
+	# course rather than a single heave on the wheel.
+	if ship.holds_heading:
+		var error: float = SimUnits.angle_delta(ship.heading, ship.ordered_heading)
+		ship.rudder_order = clampf(error / HEADING_FULL_RUDDER_RAD, -1.0, 1.0) \
+			* ship.spec.max_rudder_rad
 	# Steering-gear damage limits how far the rudder can be held over as well as how
 	# fast it can be moved: a failing steering motor cannot hold full rudder against
 	# the water pressure on the blade.
@@ -234,7 +241,15 @@ static func set_steady_speed(ship: ShipEntity, target_ms: float) -> void:
 
 
 ## Order a rudder angle as a fraction of hard-over, -1 (hard a-port) to +1.
+## How far off course she has to be for full rudder. Inside it the correction eases
+## off linearly, which is what stops a big ship overshooting the way a fixed gain does.
+const HEADING_FULL_RUDDER_RAD: float = deg_to_rad(20.0)
+
+
 static func order_rudder(ship: ShipEntity, fraction: float) -> void:
+	# A rudder order by hand takes her off the ordered course, exactly as it does on a
+	# real bridge. steer_to_heading() puts her back on it immediately afterwards.
+	ship.holds_heading = false
 	ship.rudder_order = clampf(fraction, -1.0, 1.0) * ship.spec.max_rudder_rad
 
 
@@ -245,9 +260,13 @@ static func order_rudder(ship: ShipEntity, fraction: float) -> void:
 ## linearly inside that. Simple, stable at every ship size, and it does not
 ## overshoot the way a fixed gain does on a large ship.
 static func steer_to_heading(ship: ShipEntity, target_heading: float,
-		full_rudder_error: float = deg_to_rad(20.0)) -> void:
+		full_rudder_error: float = HEADING_FULL_RUDDER_RAD) -> void:
 	var error: float = SimUnits.angle_delta(ship.heading, target_heading)
 	order_rudder(ship, clampf(error / maxf(full_rudder_error, 0.01), -1.0, 1.0))
+	# Held from here on, so she comes onto the course and stays on it whether the order
+	# is repeated every tick by the AI or given once by the player.
+	ship.ordered_heading = SimUnits.normalise_angle(target_heading)
+	ship.holds_heading = true
 
 
 ## Steer towards a world position.

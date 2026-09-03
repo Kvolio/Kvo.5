@@ -79,6 +79,14 @@ var armour: ArmourSchemeDef = null
 # -- aviation (carriers) -----------------------------------------------------
 var aviation: Dictionary = {}
 
+# -- fire control ------------------------------------------------------------
+## Her gunnery direction: rangefinder base length, how many directors, which radar
+## set. Left as a dictionary rather than a typed def because it is a description of
+## an installation rather than something the physics indexes into — FireControlSolution
+## resolves it into a Fit once, and fills in from the configured defaults whatever the
+## data file does not state.
+var fire_control: Dictionary = {}
+
 # -- crew --------------------------------------------------------------------
 var crew: int = 300
 
@@ -209,6 +217,7 @@ func duplicate_spec(deep: bool = false) -> ShipSpec:
 			torpedo_battery.duplicate() if torpedo_battery != null else null
 		copy.armour = armour.duplicate() if armour != null else null
 		copy.aviation = aviation.duplicate(true)
+		copy.fire_control = fire_control.duplicate(true)
 	else:
 		copy.main_battery = main_battery
 		copy.secondary_battery = secondary_battery
@@ -216,6 +225,7 @@ func duplicate_spec(deep: bool = false) -> ShipSpec:
 		copy.torpedo_battery = torpedo_battery
 		copy.armour = armour
 		copy.aviation = aviation
+		copy.fire_control = fire_control
 	return copy
 
 

@@ -50,6 +50,34 @@ var torpedoes: Array[Torpedo] = []
 var damage_config: Dictionary = {}
 var torpedo_config: Dictionary = {}
 
+## Gunnery direction quality: how wrong a ship's plot is allowed to be. Held on the
+## world for the same reason as the damage numbers — a saved battle should reproduce
+## the gunnery it was actually fought with.
+var fire_control_config: Dictionary = {}
+
+## Sea state, 0 (glassy) to 9. Costs pointing accuracy, and costs it worst to the
+## smallest ships. Set by the scenario in Stage 8; a flat calm until then.
+var sea_state: float = 2.0
+
+## Who can see what. Detection is per TEAM, not per ship: a fleet shares what its
+## lookouts and its radar find, which is what a flagship's plot was.
+var detection_config: Dictionary = {}
+var contacts: ContactPlot = null
+
+## How the AI fights. Held on the world so a saved battle reproduces the doctrine it
+## was actually fought with.
+var ai_config: Dictionary = {}
+
+## Formations, in formation-id order. Station keeping runs after the AI has decided
+## what each ship is doing, so a ship that has broken off is not steered back into line.
+var formations: Array[FormationSystem.Formation] = []
+
+## Optional modules, stepped after everything else. Held as bare objects and called
+## through a duck-typed hook, so the naval core names no module type and a build with a
+## module's directory deleted still compiles. This is what makes the aircraft isolation
+## real rather than a convention: there is nothing here for aircraft to be special in.
+var _modules: Array = []
+
 ## Hits resolved recently, newest last. The debug overlay and the combat log read
 ## these; Stage 4's damage resolver writes their consequences back into them.
 var recent_hits: Array[HitReport] = []
@@ -57,6 +85,7 @@ var recent_hits: Array[HitReport] = []
 var _structure_config: Dictionary = {}
 var _damage_interval: int = 30
 var _structures: Dictionary = {}
+var _immunity_zones: Dictionary = {}
 var _projectile_pool: Array[Projectile] = []
 var _torpedo_pool: Array[Torpedo] = []
 var _hit_history_limit: int = 128
@@ -71,6 +100,8 @@ var _ships_by_id: Dictionary = {}
 var _movement: MovementSystem = MovementSystem.new()
 var _ready_to_fire: Dictionary = {}
 var _fire_control_interval: int = 6
+var _detection_interval: int = 15
+var _ai_interval: int = 6
 var _seed: int = 0
 
 
@@ -92,10 +123,19 @@ static func create(seed_value: int = 0, config: Dictionary = {}) -> SimWorld:
 	world._structure_config = config.get("structure", {}) as Dictionary
 	world.damage_config = config.get("damage", {}) as Dictionary
 	world.torpedo_config = config.get("torpedo", {}) as Dictionary
+	world.fire_control_config = config.get("fire_control", {}) as Dictionary
+	world.detection_config = config.get("detection", {}) as Dictionary
+	world.ai_config = config.get("ai", {}) as Dictionary
+	world.contacts = ContactPlot.new()
+	world.sea_state = float(world_config.get("seaState", 2.0))
 	ShipStructureState.ComponentState.configure(world.damage_config)
 	var lod: Dictionary = sim_config.get("lod", {}) as Dictionary
 	world._fire_control_interval = maxi(int(lod.get("fireControlIntervalTicks", 6)), 1)
 	world._damage_interval = maxi(int(lod.get("damageControlTickInterval", 30)), 1)
+	var detection_plot: Dictionary = \
+		(world.detection_config.get("plot", {}) as Dictionary)
+	world._detection_interval = maxi(int(detection_plot.get("updateIntervalTicks", 15)), 1)
+	world._ai_interval = maxi(int(lod.get("aiTickIntervalNear", 6)), 1)
 	world.materials = ArmourMaterials.load_from("res://data/materials/armor.json")
 	world.penetration_model = PenetrationModelRegistry.create(
 		config.get("ballistics", {}) as Dictionary)
@@ -120,11 +160,14 @@ func structure_for(ship: ShipEntity) -> ShipStructureTemplate:
 
 ## Take a projectile from the pool, or make one if the pool is empty.
 func spawn_projectile(shell: ShellDef, gun: GunDef, origin: Vector3, velocity: Vector3,
-		shooter_id: int, target_id: int, team: int) -> Projectile:
+		shooter_id: int, target_id: int, team: int,
+		battery: StringName = &"main") -> Projectile:
 	var projectile: Projectile = (_projectile_pool.pop_back() as Projectile
 		if not _projectile_pool.is_empty() else Projectile.new())
+	# `gun` is null for ordnance that was never in one. A bomb arrives at a ship as a
+	# mass with a velocity and a fuze, and the tracer has no way to ask what dropped it.
 	projectile.reset(ids.allocate(), shell, shell.penetration_k, origin, velocity,
-		shooter_id, target_id, team, gun.gun_id)
+		shooter_id, target_id, team, "" if gun == null else gun.gun_id, battery)
 	projectiles.append(projectile)
 	return projectile
 
@@ -196,6 +239,7 @@ func record_hit(report: HitReport, target: ShipEntity) -> void:
 		severity = SimEvent.Severity.CRITICAL
 	events.emit_event(&"shell_hit", report.shooter_id, target.id, severity, {
 		"shell": report.shell_name,
+		"calibreMm": report.calibre_mm,
 		"rangeM": report.range_m,
 		"termination": HitReport.termination_to_string(report.termination),
 		"penetrated": report.penetrated_armour(),
@@ -274,6 +318,26 @@ func get_seed() -> int:
 	return _seed
 
 
+## Register an optional module.
+##
+## The contract is one method, `step_module(world, dt)`, asserted here rather than
+## trusted: a module that forgets it fails at registration instead of quietly never
+## running. The world knows nothing else about what it has been given.
+func register_module(module: Object) -> void:
+	assert(module != null and module.has_method("step_module"),
+		"a simulation module must implement step_module(world, dt)")
+	_modules.append(module)
+
+
+func module_count() -> int:
+	return _modules.size()
+
+
+func _step_modules() -> void:
+	for module: Object in _modules:
+		module.call("step_module", self, clock.dt)
+
+
 # ------------------------------------------------------------------ entities --
 
 func add_ship(spec: ShipSpec, position: Vector2, heading: float, team: int = 0,
@@ -294,6 +358,11 @@ func add_ship(spec: ShipSpec, position: Vector2, heading: float, team: int = 0,
 		ship.build_torpedo_launchers(armory)
 	# Her own damage state, built from the shared geometry of her design.
 	var template: ShipStructureTemplate = structure_for(ship)
+	# How far she can see, and from how far she can be seen, measured off her own
+	# upperworks plus her masts — which stand well above the highest plating and are
+	# what a lookout is actually standing in.
+	ship.sighting_height_m = template.superstructure_top_z * float(
+		(detection_config.get("sighting", {}) as Dictionary).get("mastFactor", 1.35))
 	ship.structure_state = ShipStructureState.create(template, spec, _structure_config)
 	ship.condition = SurvivabilityEvaluator.assess(ship, template, ship.structure_state,
 		damage_config)
@@ -327,6 +396,32 @@ func remove_ship(ship_id: int) -> bool:
 	return true
 
 
+## What this ship's armour is worth against that ship's main gun.
+##
+## Cached per design pair: the answer depends only on the armour scheme and the gun,
+## both of which are immutable for the length of a battle, and computing it walks a
+## whole range table through the penetration model. Two Iowas facing four Yamatos ask
+## this question eight times and compute it once.
+func immunity_zone(ship: ShipEntity, enemy: ShipEntity) -> ImmunityZone:
+	if armory == null or ship.spec.armour == null or not enemy.spec.has_main_battery():
+		return null
+	var battery: BatteryDef = enemy.spec.main_battery
+	var gun: GunDef = armory.get_gun(battery.gun_id)
+	if gun == null:
+		return null
+	var shell_id: String = gun.default_ammunition()
+	var key: String = "%s|%s|%s" % [ship.spec.spec_id, battery.gun_id, shell_id]
+	var cached: Variant = _immunity_zones.get(key)
+	if cached != null:
+		return cached as ImmunityZone
+
+	var table: RangeTable = armory.range_table(battery.gun_id, shell_id)
+	var zone: ImmunityZone = ImmunityZone.compute(
+		ship.spec.armour, table, armory.get_shell(shell_id), penetration_model, materials)
+	_immunity_zones[key] = zone
+	return zone
+
+
 ## Ships still afloat, in ID order.
 func active_ships() -> Array[ShipEntity]:
 	var out: Array[ShipEntity] = []
@@ -355,18 +450,28 @@ func ships_of_team(team: int) -> Array[ShipEntity]:
 ##
 ##   1. commands      external intent enters, and only here
 ##   2. movement      ships take up their new positions
-##   3. fire control  gunnery solves against those new positions, not last tick's
-##   4. mounts        turrets train, elevate and load towards their orders
-##   5. gunnery       mounts that are laid, loaded and bearing put shells in the air
-##   6. projectiles   shells fly, and the ones that arrive are resolved against armour
-##   7. torpedoes     tubes train, and torpedoes already running close their targets
-##   8. damage        flooding spreads, fires burn, damage control fights both, and
+##   3. detection     each side's plot is brought up to date, so gunnery and the AI
+##                    act on the picture they have this tick rather than last tick's
+##   4. AI            captains choose targets and courses from that plot, and then
+##                    formations close up on whoever has not broken away
+##   5. fire control  gunnery solves against those new positions, not last tick's
+##   6. mounts        turrets train, elevate and load towards their orders
+##   7. gunnery       mounts that are laid, loaded and bearing put shells in the air
+##   8. projectiles   shells fly, and the ones that arrive are resolved against armour
+##   9. torpedoes     tubes train, and torpedoes already running close their targets
+##  10. damage        flooding spreads, fires burn, damage control fights both, and
 ##                    each ship's condition is reassessed from what is wrong with her
-##   9. spatial       the index is brought up to date for next tick's queries
+##  11. modules       optional modules run — aircraft, if any are registered. Last,
+##                    so anything they create enters the world on the next tick and
+##                    a battle with no modules is bit-identical to one before they
+##                    existed
+##  12. spatial       the index is brought up to date for next tick's queries
 func step() -> void:
 	events.begin_tick(clock.tick)
 	_apply_commands()
 	_movement.step(ships, clock.dt)
+	_step_detection()
+	_step_ai()
 	_direct_gunnery()
 	_step_turrets()
 	_fire_guns()
@@ -375,6 +480,7 @@ func step() -> void:
 		_direct_torpedoes()
 		TorpedoSystem.step(self, clock.dt)
 	_step_damage()
+	_step_modules()
 	_sync_spatial()
 	clock.consume_tick()
 
@@ -392,16 +498,84 @@ func _direct_gunnery() -> void:
 	if armory == null:
 		return
 	_ready_to_fire.clear()
+	var cycle_dt: float = clock.dt * float(_fire_control_interval)
 	for ship: ShipEntity in ships:
 		if not ship.is_afloat() or ship.turrets.is_empty():
 			continue
 		if (clock.tick + ship.id) % _fire_control_interval != 0:
 			continue
 		var target: ShipEntity = get_ship(ship.target_id) if ship.target_id != 0 else null
-		var ready: Array[FireControlSystem.ReadyMount] = FireControlSystem.direct_battery(
-			ship, ship.turrets, target, armory)
+		var ready: Array[FireControlSystem.ReadyMount] = []
+		# Each battery is directed on its own plot. Batteries are taken in name order
+		# so the sequence of random draws — and therefore the battle — does not depend
+		# on the order the design happens to list her mounts in.
+		var by_battery: Dictionary = _turrets_by_battery(ship)
+		for battery: String in Serializer.sorted_keys(by_battery):
+			var group: Array[Turret] = by_battery[battery]
+			var plot: FireControlSolution = _run_plot(ship, target, cycle_dt, StringName(battery))
+			ready.append_array(FireControlSystem.direct_battery(
+				ship, group, target, armory, plot))
 		if not ready.is_empty():
 			_ready_to_fire[ship.id] = ready
+
+
+static func _turrets_by_battery(ship: ShipEntity) -> Dictionary:
+	var grouped: Dictionary = {}
+	for turret: Turret in ship.turrets:
+		var key: String = String(turret.battery)
+		if not grouped.has(key):
+			var group: Array[Turret] = []
+			grouped[key] = group
+		(grouped[key] as Array[Turret]).append(turret)
+	return grouped
+
+
+## Advance one ship's gunnery plot, and hand it to the guns.
+##
+## A ship that checks fire loses her solution: the plot is marked shut, and picking the
+## target up again starts from a fresh set of errors. That is not a penalty invented to
+## make checking fire costly — it is what happened, and it is why ships held on to a
+## target they were solving for even when a better one appeared.
+func _run_plot(ship: ShipEntity, target: ShipEntity, dt: float,
+		battery: StringName) -> FireControlSolution:
+	var plot: FireControlSolution = ship.plot_for(battery)
+	if target == null or not target.is_afloat():
+		if plot != null:
+			plot.opened = false
+		return null
+	if fire_control_config.is_empty():
+		return null  # gunnery with perfect information, for tests that want the geometry alone
+	if ship.fire_control_fit == null:
+		ship.fire_control_fit = FireControlSolution.fit_for(ship.spec, fire_control_config)
+	if plot == null:
+		plot = FireControlSolution.new()
+		ship.fire_control[battery] = plot
+	plot.track(ship, target, ship.fire_control_fit, fire_control_config,
+		dt, sea_state, rng.stream(FireControlSolution.RNG_STREAM))
+	return plot
+
+
+## A shell has fallen where the spotting officer can see it.
+##
+## The fall of shot is the only feedback a ship gets, and it is the feedback that
+## matters most: it corrects the range whatever was wrong with it — the rangefinder,
+## the wind aloft, the powder, or the plot's idea of the target's course — because the
+## officer calling the correction cannot tell those apart either.
+func report_fall_of_shot(projectile: Projectile, splash: Vector2) -> void:
+	var shooter: ShipEntity = get_ship(projectile.shooter_id)
+	if shooter == null:
+		return
+	# The plot that laid this gun, and no other. Corrections flow back to the director
+	# that made the error, which is why the batteries carry their labels this far.
+	var plot: FireControlSolution = shooter.plot_for(projectile.battery)
+	if plot == null or not plot.opened or projectile.target_id != plot.target_id:
+		return
+	var target: ShipEntity = get_ship(projectile.target_id)
+	if target == null or not target.is_afloat():
+		return
+	var origin: Vector2 = shooter.position
+	var true_range: float = origin.distance_to(target.position)
+	plot.observe_fall(origin.distance_to(splash) - true_range, true_range)
 
 
 ## Ships fire in ascending id order, and each mount in the order its design lists it,
@@ -417,6 +591,45 @@ func _fire_guns() -> void:
 		GunnerySystem.fire_ready_mounts(
 			self, ship, ready as Array[FireControlSystem.ReadyMount], target)
 	_ready_to_fire.clear()
+
+
+## Captains decide, then formations close up.
+##
+## In that order, and it matters: station keeping must not steer a ship back into line
+## after her captain has just turned her out of it to comb a torpedo track.
+func _step_ai() -> void:
+	if ai_config.is_empty():
+		return
+	AiSystem.step(self, clock.dt, _ai_interval)
+	FormationSystem.step(self, clock.dt)
+
+
+## Add a formation and station its members on one another.
+func add_formation(formation_id: String, team: int, members: Array[ShipEntity],
+		shape: int = FormationSystem.Shape.COLUMN, spacing_m: float = 700.0
+) -> FormationSystem.Formation:
+	var formation: FormationSystem.Formation = FormationSystem.create(
+		formation_id, team, members, shape, spacing_m)
+	formations.append(formation)
+	formations.sort_custom(func(a: FormationSystem.Formation, b: FormationSystem.Formation) -> bool:
+		return a.formation_id < b.formation_id)
+	return formation
+
+
+## Sweep the lookouts and the sets.
+##
+## Runs before gunnery so a ship shoots at the picture she has this tick rather than
+## last tick's, and at a lower rate than the tick because a horizon does not move in a
+## sixtieth of a second. The whole formation's flash and fire markers are aged here too,
+## so a ship that fired is briefly visible past the horizon at night.
+func _step_detection() -> void:
+	var interval: int = _detection_interval
+	for ship: ShipEntity in ships:
+		if ship.firing_seconds_ago >= 0.0:
+			ship.firing_seconds_ago += clock.dt
+	if clock.tick % interval != 0:
+		return
+	DetectionSystem.step(self, clock.dt * float(interval))
 
 
 func _step_turrets() -> void:
@@ -458,7 +671,7 @@ func _apply_command(command: SimCommand) -> void:
 		CMD_SELECT_SHELL:
 			_select_shell(ship, str(params.get("battery", "main")), str(params.get("value", "")))
 		CMD_FIRE_TORPEDOES:
-			_fire_torpedoes(ship)
+			fire_torpedoes(ship)
 		_:
 			push_warning("SimWorld: unhandled command type '%s'" % command.type)
 
@@ -480,7 +693,7 @@ func _direct_torpedoes() -> void:
 
 
 ## Loose every tube that bears. One order empties the ship.
-func _fire_torpedoes(ship: ShipEntity) -> void:
+func fire_torpedoes(ship: ShipEntity) -> void:
 	if armory == null or ship.torpedo_launchers.is_empty():
 		return
 	var target: ShipEntity = get_ship(ship.target_id)

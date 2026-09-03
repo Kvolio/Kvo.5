@@ -44,6 +44,9 @@ static func config() -> Dictionary:
 		"structure": JsonLoader.load_dict("res://data/config/structure.json"),
 		"damage": JsonLoader.load_dict("res://data/config/damage.json"),
 		"torpedo": JsonLoader.load_dict("res://data/config/torpedo.json"),
+		"fire_control": JsonLoader.load_dict("res://data/config/fire_control.json"),
+		"detection": JsonLoader.load_dict("res://data/config/detection.json"),
+		"ai": JsonLoader.load_dict("res://data/config/ai.json"),
 	}
 
 

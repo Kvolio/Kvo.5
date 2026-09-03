@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "_comment": "How a captain who is not the player fights his ship. Every decision here is made from the team's CONTACT PLOT, never from the world's list of ships \u2014 an AI that read the world directly would be playing with the lid off, and would never lose a target in the dark or shoot at a contact that turned away four minutes ago.",
+  "targeting": {
+    "_comment": "What to shoot at. Ties are broken by entity id, which is what makes a fleet action reproducible.",
+    "valueByType": {
+      "battleship": 1.0,
+      "carrier": 1.35,
+      "cruiser": 0.75,
+      "destroyer": 0.45,
+      "default": 0.6
+    },
+    "_valueComment": "A carrier is worth more than a battleship to sink and far less trouble to sink, which is why finding one mattered so much. A destroyer is worth little until she is inside torpedo range, and the closeness term below is what makes that true without a rule saying so.",
+    "rangeScaleM": 12000.0,
+    "unclassifiedPenalty": 0.55,
+    "_unclassifiedComment": "A contact nobody has identified yet is a poor choice of target, and preferring a known one is how ships avoided wasting a broadside on a smudge.",
+    "concentrationPenalty": 0.35,
+    "_concentrationComment": "Per friend already engaging the same target. Concentrating a division on one enemy is sound; concentrating a fleet on one destroyer is not, and this is what stops it.",
+    "switchHysteresis": 1.25,
+    "_switchComment": "A new target must score this much better than the current one before the guns are shifted, because shifting target throws away the gunnery solution \u2014 see FireControlSolution. Without this, ships dither and never hit anything.",
+    "reviewSeconds": 45.0,
+    "_reviewComment": "How long the guns stay on a target before shifting is even considered. Shifting target is a deliberate order and a costly one: it throws away a gunnery solution that took minutes to build. Reconsidering every decision cycle let the score churn as contacts came and went, ships shifted several times a minute, and a twenty-five-minute fleet action produced six hundred shells and not one hit.",
+    "outOfReachPenalty": 0.08,
+    "_reachComment": "Applied to a contact beyond the ship's own gun range. Not zero: a ship with nothing else to look at still points her guns at the enemy and closes, which is what she should do. But she should prefer anything she can actually hit."
+  },
+  "manoeuvre": {
+    "_comment": "Where to fight. The preferred range is not a number in this file: it is read off BOTH immunity zones \u2014 the one that says where she cannot be hurt, and the one that says where he cannot be hurt \u2014 so a well-armoured ship closes to where she is safe and he is not, and a ship with no protection advantage closes anyway, because accuracy improves as the range falls far faster than protection does. Considering only her own armour produced two battle lines holding twenty-five kilometres apart, firing fourteen hundred shells and scoring nothing.",
+    "fallbackRangeFraction": 0.5,
+    "_fallbackComment": "Of her own maximum gun range, used only when neither ship has been assessed \u2014 an unidentified contact, or no armoury loaded.",
+    "rangeToleranceM": 900.0,
+    "unmaskWeight": 0.55,
+    "_unmaskWeight": "How much bringing more barrels to bear is worth against getting to the right range. Turning to open the broadside roughly doubles a ship's weight of fire, which is why it is worth a great deal, but not worth steering into an enemy's immunity zone to get.",
+    "headingOptionsDeg": [
+      0,
+      20,
+      40,
+      60,
+      90,
+      120,
+      150,
+      180,
+      -20,
+      -40,
+      -60,
+      -90,
+      -120,
+      -150
+    ],
+    "disengageIntegrity": 0.45,
+    "disengageFloodedFraction": 0.25,
+    "_disengageComment": "A ship this badly hurt breaks off. Not a morale rule \u2014 a ship that cannot steam or steer or shoot is more useful afloat tomorrow than sunk today, and every navy's doctrine said so.",
+    "engagedSpeedFraction": 0.82,
+    "_engagedSpeedComment": "Of her attainable speed once she is at the range she wants. Flat out is right while closing and while running; a ship holding a range needs to be able to slow down as well as speed up, and a ship already at full power cannot.",
+    "immunityWeight": 2.0,
+    "lethalityWeight": 3.0,
+    "closingWeight": 1.0,
+    "_weightsComment": "Being able to hurt him outweighs being safe from him, and both outweigh the accuracy gained by closing. A ship that valued safety above lethality would steam away from the battle and call it doctrine.",
+    "minimumRangeM": 4000.0,
+    "minimumTorpedoRangeM": 2500.0,
+    "_minimumComment": "How close a captain will take her deliberately. A ship with torpedoes has a reason to be closer than a gun ship does, and history is full of destroyers who acted on it."
+  },
+  "torpedoes": {
+    "_comment": "Torpedo work is the one decision a destroyer captain really makes. She gets one salvo, and spending it early or late is the difference between a battle line broken up and a division wasted.",
+    "firingRangeFraction": 0.55,
+    "_firingRangeComment": "Of the torpedo's own maximum range. Firing at extreme range gives the target minutes to turn away, and history is full of salvos that missed for exactly that reason.",
+    "minimumBearingSpreadDeg": 15.0,
+    "trackSpottingRangeM": 4500.0,
+    "_trackComment": "How far off a torpedo's wake can be seen. Beyond this a ship does not know she is being shot at, which is why the first warning was so often the explosion.",
+    "combTurnDeg": 20.0,
+    "_combComment": "Turning to comb the tracks means turning towards them so the ship presents her narrow bow rather than her broadside. It works, and it is the single most effective thing a captain can do about torpedoes already in the water."
+  },
+  "formation": {
+    "stationToleranceM": 250.0,
+    "speedCorrectionGain": 0.35,
+    "maximumOvertakeFraction": 1.25,
+    "_comment": "Station keeping. A ship out of station closes it by adjusting speed rather than by cutting corners, because a formation that manoeuvres by teleporting its members is not a formation."
+  }
+}

@@ -191,3 +191,17 @@ static func sorted_keys(d: Dictionary) -> Array[String]:
 		keys.append(str(k))
 	keys.sort()
 	return keys
+
+
+## Sorted integer keys of a Dictionary.
+##
+## The same rule as `sorted_keys`, for the dictionaries keyed by entity id that the
+## detection plot and the AI keep. Sorting as strings would put 10 before 9, which is
+## stable but not the order anything else in the simulation iterates entities in, and
+## two different orders both called deterministic is how a divergence hides.
+static func sorted_int_keys(d: Dictionary) -> Array[int]:
+	var keys: Array[int] = []
+	for k: Variant in d.keys():  # determinism-ok: collected then sorted below
+		keys.append(int(k))
+	keys.sort()
+	return keys
