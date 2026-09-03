@@ -508,22 +508,7 @@ func _build_compartments(t: ShipStructureTemplate, spec: ShipSpec) -> void:
 					Vector3(station_a * spec.length_m, y_min, deck_bounds[deck]),
 					Vector3(station_b * spec.length_m, y_max, deck_bounds[deck + 1])))
 
-	# Superstructure: where the bridge, directors and radar live. Unarmoured, exposed,
-	# and the reason a non-penetrating hit can still blind a ship.
-	var super_half: float = spec.length_m * 0.12
-	var super_centre: Vector3 = Vector3(
-		spec.length_m * 0.05, 0.0, (t.main_deck_z + t.superstructure_top_z) * 0.5)
-	var super_size: Vector3 = Vector3(
-		super_half * 2.0, spec.beam_m * 0.5, t.superstructure_top_z - t.main_deck_z)
-	t.add_volume(GeometryPrimitives.make_volume(
-		0, GeometryPrimitives.VolumeKind.COMPARTMENT, ROLE_FIRE_CONTROL, "Superstructure",
-		super_centre - super_size * 0.5, super_centre + super_size * 0.5))
-
-	# Its plating. Thin, and it stops nothing — but without faces here a shell would
-	# pass through the bridge without interacting with anything at all, and a hit that
-	# should wreck the fire control would do literally nothing.
-	_add_light_enclosure(t, "superstructurePlating", super_centre, super_size,
-		_plating_thickness(spec) * 0.6)
+	_build_superstructure(t, spec)
 
 	if spec.is_carrier():
 		_add_hangar(t, spec)
@@ -562,6 +547,104 @@ func _role_for(
 
 ## Six thin STRUCTURE faces around a box. Not armour — it exists so a shell passing
 ## through unarmoured upperworks has something to interact with.
+## The superstructure, as the several distinct things it actually is.
+##
+## One box amidships was the old model, and it was wrong in a way that mattered to more
+## than the picture: a shell crossing the bridge, a shell going through a funnel uptake
+## and a shell into the after control position are three different events, and a single
+## slab could not tell them apart. Now a low deckhouse runs the length of it with a
+## bridge tower, the funnels and an after tower standing on top — so what a shell meets
+## depends on where it lands, which is the whole premise.
+##
+## The funnels are voids for damage purposes, because that is what they are: a hit
+## through an uptake makes a hole in some thin plate and does very little else, which is
+## why ships came home with funnels shot through.
+func _build_superstructure(t: ShipStructureTemplate, spec: ShipSpec) -> void:
+	var deck: float = t.main_deck_z
+	var height: float = t.superstructure_top_z - deck
+
+	# Where it goes is not a constant: it fills the gap the main battery leaves. Ships
+	# were laid out that way round — the turrets and their magazines claim their places
+	# first and the superstructure takes what is left between them — and deriving it the
+	# same way means an unusual turret arrangement in the designer gets its bridge in the
+	# right place instead of standing inside B turret.
+	var span: Vector2 = _superstructure_span(spec)
+	var centre_x: float = (span.x + span.y) * 0.5 * spec.length_m
+	var half_length: float = (span.y - span.x) * 0.5 * spec.length_m * 0.5
+
+	# A continuous deckhouse, wide and low, with everything else standing on it.
+	_add_superstructure_block(t, ROLE_FIRE_CONTROL, "Superstructure deckhouse",
+		spec, centre_x, half_length * 2.0, spec.beam_m * 0.5, deck, height * 0.42)
+
+	# The bridge tower: forward, narrower, and the tallest thing aboard bar the masts.
+	# It is where the directors and the radar sit, which is why losing it blinds a ship
+	# without slowing her down.
+	t.bridge_x = centre_x + half_length * 0.52
+	_add_superstructure_block(t, ROLE_FIRE_CONTROL, "Bridge tower",
+		spec, t.bridge_x, half_length * 0.72, spec.beam_m * 0.32,
+		deck + height * 0.42, height * 0.58)
+
+	# Funnels. How many is a real feature of a design rather than a drawing detail —
+	# it follows the boiler arrangement — so it comes from the data where the data says.
+	var funnels: int = maxi(spec.funnels, 1)
+	for i: int in funnels:
+		var offset: float = 0.0 if funnels == 1 else \
+			lerpf(-0.30, 0.18, float(i) / float(funnels - 1))
+		_add_superstructure_block(t, ROLE_VOID,
+			"Funnel" if funnels == 1 else "Funnel %d" % (i + 1),
+			spec, centre_x + half_length * offset, half_length * 0.34,
+			spec.beam_m * 0.20, deck + height * 0.42, height * 0.50)
+
+	# The after control position, from which she can still be fought if the bridge goes.
+	t.after_superstructure_x = centre_x - half_length * 0.62
+	_add_superstructure_block(t, ROLE_FIRE_CONTROL, "After superstructure",
+		spec, t.after_superstructure_x, half_length * 0.56, spec.beam_m * 0.28,
+		deck + height * 0.42, height * 0.38)
+
+
+## The stations the superstructure runs between, as fractions of length.
+##
+## The widest gap between adjacent main-battery mounts, less the room the turrets
+## themselves need to train. A ship with no main battery gets the middle of her length.
+func _superstructure_span(spec: ShipSpec) -> Vector2:
+	var default_span: Vector2 = Vector2(-0.07, 0.17)
+	if not spec.has_main_battery() or spec.main_battery.mounts.size() < 2:
+		return default_span
+
+	var stations: Array[float] = []
+	for mount: MountDef in spec.main_battery.mounts:
+		stations.append(mount.station)
+	stations.sort()
+
+	# Turrets need room to train, so the superstructure cannot butt against one.
+	var clearance: float = spec.beam_m * 0.42 / maxf(spec.length_m, 1.0)
+	var best: Vector2 = default_span
+	var best_width: float = 0.0
+	for i: int in range(stations.size() - 1):
+		var low: float = stations[i] + clearance
+		var high: float = stations[i + 1] - clearance
+		if high - low > best_width:
+			best_width = high - low
+			best = Vector2(low, high)
+	return best if best_width > 0.08 else default_span
+
+
+## One block of superstructure: a volume something can be inside, wrapped in the thin
+## plating that makes a shell interact with it at all. Without faces here a shell would
+## cross the bridge without touching anything, and a hit that should wreck the fire
+## control would do literally nothing.
+func _add_superstructure_block(t: ShipStructureTemplate, role: String, label: String,
+		spec: ShipSpec, centre_x: float, length: float, width: float,
+		base_z: float, height: float) -> void:
+	var centre: Vector3 = Vector3(centre_x, 0.0, base_z + height * 0.5)
+	var size: Vector3 = Vector3(length, width, height)
+	t.add_volume(GeometryPrimitives.make_volume(
+		0, GeometryPrimitives.VolumeKind.COMPARTMENT, role, label,
+		centre - size * 0.5, centre + size * 0.5))
+	_add_light_enclosure(t, "superstructurePlating", centre, size,
+		_plating_thickness(spec) * 0.6)
+
+
 func _add_light_enclosure(t: ShipStructureTemplate, zone: String, centre: Vector3,
 		size: Vector3, thickness_mm: float) -> void:
 	var half: Vector3 = size * 0.5
@@ -639,19 +722,24 @@ func _build_components(t: ShipStructureTemplate, spec: ShipSpec) -> void:
 	# not blind them, and a battery can still be fought in local control from the
 	# turrets afterwards — which is why losing one is a serious degradation rather
 	# than the end of the action.
+	# They sit ON the towers, not at fixed stations of their own: a main director is on
+	# top of the bridge and the after one on the after control position. Placing them
+	# independently left them standing beside the superstructure on any ship whose
+	# battery layout moved it.
 	var director_z: float = t.superstructure_top_z - 1.0
+	var reach: float = maxf(spec.length_m * 0.02, 2.0)
 	t.add_volume(GeometryPrimitives.make_volume(
 		0, GeometryPrimitives.VolumeKind.COMPONENT, COMPONENT_DIRECTOR, "Forward director",
-		Vector3(spec.length_m * 0.02, -2.0, director_z - 2.0),
-		Vector3(spec.length_m * 0.06, 2.0, director_z)))
+		Vector3(t.bridge_x - reach, -2.0, director_z - 2.0),
+		Vector3(t.bridge_x + reach, 2.0, director_z)))
 	t.add_volume(GeometryPrimitives.make_volume(
 		0, GeometryPrimitives.VolumeKind.COMPONENT, COMPONENT_DIRECTOR, "After director",
-		Vector3(-spec.length_m * 0.17, -2.0, t.main_deck_z + 2.0),
-		Vector3(-spec.length_m * 0.13, 2.0, t.main_deck_z + 5.0)))
+		Vector3(t.after_superstructure_x - reach, -2.0, t.main_deck_z + 2.0),
+		Vector3(t.after_superstructure_x + reach, 2.0, t.main_deck_z + 5.0)))
 	t.add_volume(GeometryPrimitives.make_volume(
 		0, GeometryPrimitives.VolumeKind.COMPONENT, COMPONENT_RADAR, "Radar",
-		Vector3(spec.length_m * 0.02, -1.5, director_z),
-		Vector3(spec.length_m * 0.05, 1.5, director_z + 2.0)))
+		Vector3(t.bridge_x - reach * 0.7, -1.5, director_z),
+		Vector3(t.bridge_x + reach * 0.7, 1.5, director_z + 2.0)))
 
 	if spec.is_carrier():
 		var elevators: int = maxi(int(spec.aviation.get("elevators", 2)), 1)

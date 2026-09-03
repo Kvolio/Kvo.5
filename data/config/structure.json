@@ -51,7 +51,9 @@
       "torpedo_bulge": 0.3,
       "steering_gear": 0.7,
       "crew": 0.8,
-      "default": 0.8
+      "default": 0.8,
+      "aboveMainDeckFactor": 0.15,
+      "_aboveMainDeckComment": "Multiplier applied to anything standing above the main deck. The hull girder is the hull; the superstructure rides on it, and deckhouses were often given expansion joints so the hull could bend without tearing them. Wrecking a bridge costs a ship her fire control, and a funnel shot through costs her draught \u2014 neither costs her structure."
     }
   },
   "crew": {

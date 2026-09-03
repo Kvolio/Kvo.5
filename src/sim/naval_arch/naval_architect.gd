@@ -100,14 +100,20 @@ static func _weigh_hull(analysis: DesignAnalysis, spec: ShipSpec, config: Dictio
 static func _weigh_superstructure(analysis: DesignAnalysis, template: ShipStructureTemplate,
 		config: Dictionary) -> void:
 	var super_config: Dictionary = config.get("superstructure", {}) as Dictionary
+	# Every compartment standing above the main deck: the deckhouse, the bridge tower,
+	# the funnels and the after control position. Found by POSITION rather than by name,
+	# so a design that arranges its upperworks differently is still weighed correctly.
 	var volume: float = 0.0
-	var centre_z: float = template.main_deck_z
-	for index: int in template.volumes_with_role(ShipStructureBuilder.ROLE_FIRE_CONTROL):
-		var block: GeometryPrimitives.Volume = template.volumes[index]
-		if block.label != "Superstructure":
+	var moment: float = 0.0
+	for block: GeometryPrimitives.Volume in template.volumes:
+		if block.kind != GeometryPrimitives.VolumeKind.COMPARTMENT:
 			continue
-		volume += block.volume_m3()
-		centre_z = block.centre().z
+		if block.minimum.z < template.main_deck_z - 0.01:
+			continue
+		var block_volume: float = block.volume_m3()
+		volume += block_volume
+		moment += block_volume * block.centre().z
+	var centre_z: float = template.main_deck_z if volume <= 0.0 else moment / volume
 
 	# Plating first, from the enclosure the builder actually put there.
 	var tonnes: float = 0.0

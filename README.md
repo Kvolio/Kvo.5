@@ -97,6 +97,7 @@ combat code.
 - [`docs/DETERMINISM.md`](docs/DETERMINISM.md) — the reproducibility contract and its limits
 - [`docs/BALLISTICS.md`](docs/BALLISTICS.md) — the trajectory model and how it was calibrated
 - [`docs/DAMAGE.md`](docs/DAMAGE.md) — flooding, fire, torpedoes, damage control, and why integrity is derived
+- [`docs/RENDERING.md`](docs/RENDERING.md) — how ships are drawn, and why none of it is art
 - [`docs/NAVAL_ARCHITECTURE.md`](docs/NAVAL_ARCHITECTURE.md) — weighing a design, and where the model still misses
 - [`docs/SOURCES.md`](docs/SOURCES.md) — where the historical figures came from, and which to doubt
 

@@ -61,6 +61,12 @@ static func assess(ship: ShipEntity, template: ShipStructureTemplate,
 		var volume: GeometryPrimitives.Volume = template.volumes[i]
 		var size: float = volume.volume_m3()
 		var weight: float = float(contribution.get(volume.role, contribution.get("default", 0.8)))
+		# Anything above the main deck rides on the hull girder rather than forming part
+		# of it — deckhouses were often given expansion joints precisely so the hull
+		# could bend without tearing them. So wrecking the bridge or shooting a funnel
+		# through costs a ship her fire control or her draught, not her structure.
+		if volume.minimum.z >= template.main_deck_z - 0.01:
+			weight *= float(contribution.get("aboveMainDeckFactor", 0.15))
 		total_volume += size
 		weighted_total += size * weight
 		wrecked_weighted += size * weight * compartment.wreckage

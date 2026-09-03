@@ -87,6 +87,9 @@ static func _parse_propulsion(spec: ShipSpec, propulsion: Dictionary) -> void:
 
 	spec.shafts = int(propulsion.get("shafts", spec.shafts))
 	spec.boilers = int(propulsion.get("boilers", maxi(spec.shafts * 2, 2)))
+	# Funnel count where the sources give it; otherwise a guess from the boilers, which
+	# is what actually drove it — more boilers meant more uptakes to trunk somewhere.
+	spec.funnels = int(propulsion.get("funnels", 2 if spec.boilers > 4 else 1))
 	spec.machinery_type = str(propulsion.get("machineryType", spec.machinery_type))
 	spec.astern_power_fraction = float(
 		propulsion.get("asternPowerFraction", spec.astern_power_fraction))

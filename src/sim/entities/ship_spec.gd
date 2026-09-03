@@ -38,6 +38,11 @@ var displacement_t: float = 2000.0
 ## figure the data states rather than whatever is left over after everything else has
 ## been weighed. Zero where a source gives no standard figure.
 var standard_displacement_t: float = 0.0
+
+## How many funnels she has. A real feature of the design — it follows the boiler
+## arrangement and where the uptakes are trunked to — and it decides what a shell
+## crossing her amidships actually meets. Zero means "work it out from the boilers".
+var funnels: int = 0
 var hull_form_id: String = "destroyer"
 var hull_profile: PackedVector2Array = PackedVector2Array()
 var vertical_fullness: float = 0.8

@@ -184,8 +184,15 @@ func test_directing_a_battery_lays_every_mount_that_can_bear() -> void:
 	var shooter: ShipEntity = world.ships[0]
 	shooter.target_id = world.ships[1].id
 
-	# Long enough for the mounts to train round and settle.
-	TestShips.run_seconds(world, 90.0)
+	# Long enough for the mounts to train round and settle, and no longer. Shells take
+	# some 45 seconds to cross 20 km, so this finishes before the first salvo can land —
+	# which matters, because a battery whose target has sunk stands down, and a longer
+	# run turned this into a test of how lethal the guns are rather than of whether they
+	# were laid at all.
+	TestShips.run_seconds(world, 40.0)
+	ne(int(world.ships[1].status), int(ShipEntity.Status.DESTROYED),
+		"the target is still afloat, so there is still something to lay on")
+
 	var laid: int = 0
 	for turret: Turret in shooter.main_battery_turrets():
 		if turret.has_orders:

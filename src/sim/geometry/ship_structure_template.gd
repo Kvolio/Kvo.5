@@ -24,6 +24,13 @@ var keel_z: float = -5.0
 var main_deck_z: float = 4.0
 var armour_deck_z: float = 0.0
 var superstructure_top_z: float = 8.0
+
+## Where the bridge tower stands, in metres from amidships. Recorded because the
+## directors and the radar sit ON it: a ship's main director is on top of her bridge,
+## and placing the two independently put them beside each other on ships whose battery
+## layout moved the superstructure.
+var bridge_x: float = 0.0
+var after_superstructure_x: float = 0.0
 var length_m: float = 100.0
 var beam_m: float = 12.0
 var draft_m: float = 5.0

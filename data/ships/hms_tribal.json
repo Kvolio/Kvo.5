@@ -20,7 +20,8 @@
     "shafts": 2,
     "maxSpeedKn": 36.0,
     "boilers": 3,
-    "machineryType": "steam_turbine"
+    "machineryType": "steam_turbine",
+    "funnels": 1
   },
   "manoeuvring": {
     "tacticalDiameterLengths": 3.4,
