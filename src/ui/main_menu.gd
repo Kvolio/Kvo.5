@@ -8,6 +8,7 @@ extends Control
 
 signal battle_requested()
 signal designer_requested()
+signal scenario_editor_requested()
 
 
 func _ready() -> void:
@@ -45,10 +46,14 @@ func _ready() -> void:
 	column.add_child(UiKit.button("Battle", func() -> void: battle_requested.emit()))
 	column.add_child(UiKit.button("Ship designer",
 		func() -> void: designer_requested.emit()))
+	column.add_child(UiKit.button("Scenario editor",
+		func() -> void: scenario_editor_requested.emit()))
 	column.add_child(_gap(8.0))
 
 	var count: Label = UiKit.label(
-		"%d designs in the roster." % ShipDatabase.count(), 11, ViewPalette.TEXT_DIM)
+		"%d designs in the roster, %d actions to fight." % [
+			ShipDatabase.count(), ScenarioIo.load_all().size()],
+		11, ViewPalette.TEXT_DIM)
 	count.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(count)
 

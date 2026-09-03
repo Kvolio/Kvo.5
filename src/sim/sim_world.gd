@@ -274,6 +274,17 @@ func _step_damage() -> void:
 
 
 ## Recompute a ship's condition and let it take effect.
+## Reassess every ship's condition from the state she is actually in.
+##
+## Called after a snapshot restore, because condition is DERIVED: a save carries the
+## flooding and the wreckage and the dead, and the integrity, the list and the status
+## are worked out again from them. Storing the conclusions as well as the evidence
+## would be two fields that are supposed to agree, and eventually would not.
+func reassess_all() -> void:
+	for ship: ShipEntity in ships:
+		_reassess(ship)
+
+
 func _reassess(ship: ShipEntity) -> void:
 	var template: ShipStructureTemplate = structure_for(ship)
 	var previous: ShipEntity.Status = ship.status

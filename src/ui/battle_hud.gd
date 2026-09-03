@@ -111,8 +111,8 @@ func _build_help() -> void:
 	var panel: PanelContainer = _panel()
 	panel.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 	panel.offset_left = 12.0
-	panel.offset_top = -86.0
-	panel.offset_right = 430.0
+	panel.offset_top = -100.0
+	panel.offset_right = 460.0
 	panel.offset_bottom = -12.0
 	add_child(panel)
 
@@ -122,7 +122,8 @@ func _build_help() -> void:
 	_help_label.text = """Left click  select ship      Right drag  pan      Wheel  zoom
 Space  pause        1-6  time scale        F  frame all ships
 W / S  speed        A / D  rudder          X  rudder amidships
-Esc  back to the menu"""
+L  combat log       I  ship inspector      G  why the last shell did that
+F5 / F9  save and reload the battle        Esc  back to the menu"""
 	panel.add_child(_help_label)
 
 

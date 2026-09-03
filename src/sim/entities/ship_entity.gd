@@ -373,8 +373,37 @@ func serialize() -> Dictionary:
 		"rudderEffectiveness": rudder_effectiveness,
 		"rudderJammed": rudder_jammed,
 		"targetId": target_id,
+		"orderedHeading": ordered_heading,
+		"holdsHeading": holds_heading,
+		"aiControlled": ai_controlled,
+		"formationId": formation_id,
+		"stationIndex": station_index,
+		"sightingHeightM": sighting_height_m,
+		"firingSecondsAgo": firing_seconds_ago,
 		"turrets": _serialize_turrets(),
+		"torpedoLaunchers": _serialize_launchers(),
+		"structure": {} if structure_state == null else structure_state.serialize(),
+		"fireControl": _serialize_plots(),
+		"ai": {} if ai == null else {
+			"posture": ai.posture, "preferredRangeM": ai.preferred_range_m,
+			"secondsOnTarget": ai.seconds_on_target,
+			"torpedoesSpent": ai.torpedoes_spent,
+		},
 	}
+
+
+func _serialize_launchers() -> Array:
+	var out: Array = []
+	for launcher: TorpedoLauncher in torpedo_launchers:
+		out.append(launcher.serialize())
+	return out
+
+
+func _serialize_plots() -> Dictionary:
+	var out: Dictionary = {}
+	for battery: String in Serializer.sorted_keys(fire_control):
+		out[battery] = (fire_control[StringName(battery)] as FireControlSolution).serialize()
+	return out
 
 
 func _serialize_turrets() -> Array:
@@ -403,6 +432,39 @@ func deserialize(data: Dictionary) -> void:
 	rudder_effectiveness = float(data.get("rudderEffectiveness", rudder_effectiveness))
 	rudder_jammed = bool(data.get("rudderJammed", rudder_jammed))
 	target_id = int(data.get("targetId", 0))
+	ordered_heading = float(data.get("orderedHeading", ordered_heading))
+	holds_heading = bool(data.get("holdsHeading", holds_heading))
+	ai_controlled = bool(data.get("aiControlled", ai_controlled))
+	formation_id = str(data.get("formationId", formation_id))
+	station_index = int(data.get("stationIndex", station_index))
+	sighting_height_m = float(data.get("sightingHeightM", sighting_height_m))
+	firing_seconds_ago = float(data.get("firingSecondsAgo", firing_seconds_ago))
+
 	var turret_data: Array = data.get("turrets", []) as Array
 	for i: int in mini(turret_data.size(), turrets.size()):
 		turrets[i].deserialize(turret_data[i] as Dictionary)
+
+	var launcher_data: Array = data.get("torpedoLaunchers", []) as Array
+	for i: int in mini(launcher_data.size(), torpedo_launchers.size()):
+		torpedo_launchers[i].deserialize(launcher_data[i] as Dictionary)
+
+	var structure: Dictionary = data.get("structure", {}) as Dictionary
+	if structure_state != null and not structure.is_empty():
+		structure_state.deserialize(structure)
+
+	fire_control.clear()
+	var plots: Dictionary = data.get("fireControl", {}) as Dictionary
+	for battery: String in Serializer.sorted_keys(plots):
+		var plot: FireControlSolution = FireControlSolution.new()
+		plot.deserialize(plots[battery] as Dictionary)
+		fire_control[StringName(battery)] = plot
+
+	var ai_data: Dictionary = data.get("ai", {}) as Dictionary
+	if ai_data.is_empty():
+		ai = null
+	else:
+		ai = AiSystem.State.new()
+		ai.posture = int(ai_data.get("posture", AiSystem.Posture.HOLD))
+		ai.preferred_range_m = float(ai_data.get("preferredRangeM", 0.0))
+		ai.seconds_on_target = float(ai_data.get("secondsOnTarget", 0.0))
+		ai.torpedoes_spent = bool(ai_data.get("torpedoesSpent", false))

@@ -207,6 +207,47 @@ func hash_into(hasher: StateHasher) -> void:
 		hasher.write_float(value)
 
 
+## Restore from a snapshot.
+##
+## Written next to `serialize()` and kept symmetric with it deliberately: the pair is
+## checked by re-simulating from a restored snapshot and requiring the same checksum as
+## the straight-through run, so a field that is written and not read shows up as a
+## divergence rather than as a subtly different battle three minutes later.
+func deserialize(data: Dictionary) -> void:
+	crew_total = int(data.get("crewTotal", crew_total))
+	crew_alive = int(data.get("crewAlive", crew_alive))
+	girder_damage = float(data.get("girderDamage", girder_damage))
+	catastrophic = bool(data.get("catastrophic", catastrophic))
+	catastrophe_reason = str(data.get("catastropheReason", catastrophe_reason))
+
+	var compartment_data: Array = data.get("compartments", []) as Array
+	for i: int in mini(compartment_data.size(), compartments.size()):
+		var entry: Variant = compartment_data[i]
+		var compartment_state: CompartmentState = compartments[i]
+		if entry == null or compartment_state == null:
+			continue
+		var row: Dictionary = entry as Dictionary
+		compartment_state.flood = float(row.get("flood", 0.0))
+		compartment_state.fire = float(row.get("fire", 0.0))
+		compartment_state.wreckage = float(row.get("wreckage", 0.0))
+		compartment_state.breached = bool(row.get("breached", false))
+		compartment_state.breach_area_m2 = float(row.get("breachAreaM2", 0.0))
+		compartment_state.breach_depth_m = float(row.get("breachDepthM", 0.0))
+		compartment_state.crew = int(row.get("crew", 0))
+		compartment_state.ammunition = float(row.get("ammunition", 0.0))
+
+	var component_data: Array = data.get("components", []) as Array
+	for i: int in mini(component_data.size(), components.size()):
+		var entry: Variant = component_data[i]
+		if entry == null or components[i] == null:
+			continue
+		components[i].condition = float((entry as Dictionary).get("condition", 1.0))
+
+	var deformation: Array = data.get("plateDeformation", []) as Array
+	for i: int in mini(deformation.size(), plate_deformation.size()):
+		plate_deformation[i] = float(deformation[i])
+
+
 func serialize() -> Dictionary:
 	var compartment_data: Array = []
 	for compartment_state: CompartmentState in compartments:

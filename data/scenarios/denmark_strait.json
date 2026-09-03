@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "id": "denmark_strait",
+  "name": "Denmark Strait",
+  "description": "Bismarck and Admiral Hipper intercepted by a British squadron. Poor visibility, and both sides in a hurry.",
+  "seed": 20260906,
+  "mapSizeM": [
+    50000,
+    50000
+  ],
+  "conditions": {
+    "seaState": 4,
+    "night": false,
+    "visibilityFactor": 0.55
+  },
+  "forces": [
+    {
+      "team": 0,
+      "name": "Home Fleet",
+      "fleet": "rn_home_fleet_squadron",
+      "positionM": [
+        -11000,
+        -6000
+      ],
+      "headingDeg": 35,
+      "speedKn": 27
+    },
+    {
+      "team": 1,
+      "name": "Raiding Group",
+      "fleet": "kriegsmarine_raiding_group",
+      "positionM": [
+        11000,
+        6000
+      ],
+      "headingDeg": 215,
+      "speedKn": 28
+    }
+  ],
+  "victory": {
+    "type": "points",
+    "timeLimitS": 2700
+  },
+  "notes": "A heavy sea and half the visibility. Both cost gunnery, and the ships that suffer most are the smallest."
+}

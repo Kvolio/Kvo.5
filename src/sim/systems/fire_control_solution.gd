@@ -435,9 +435,28 @@ func hash_into(hasher: StateHasher) -> void:
 	hasher.write_float(pointing_elevation_rad)
 
 
+func deserialize(data: Dictionary) -> void:
+	target_id = int(data.get("targetId", 0))
+	range_error_m = float(data.get("rangeErrorM", 0.0))
+	bearing_error_rad = float(data.get("bearingErrorRad", 0.0))
+	course_estimate = float(data.get("courseEstimate", 0.0))
+	speed_estimate = float(data.get("speedEstimate", 0.0))
+	ballistic_bias = float(data.get("ballisticBias", 0.0))
+	spot_correction_m = float(data.get("spotCorrectionM", 0.0))
+	pointing_elevation_rad = float(data.get("pointingElevationRad", 0.0))
+	pointing_bearing_rad = float(data.get("pointingBearingRad", 0.0))
+	tracking_seconds = float(data.get("trackingSeconds", 0.0))
+	salvos_spotted = int(data.get("salvosSpotted", 0))
+	opened = bool(data.get("opened", true))
+	_clear_fall_of_shot()
+
+
 func serialize() -> Dictionary:
 	return {
 		"targetId": target_id,
+		"pointingElevationRad": pointing_elevation_rad,
+		"pointingBearingRad": pointing_bearing_rad,
+		"opened": opened,
 		"rangeErrorM": range_error_m,
 		"bearingErrorRad": bearing_error_rad,
 		"courseEstimate": course_estimate,

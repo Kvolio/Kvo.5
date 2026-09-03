@@ -14,6 +14,7 @@ extends Node
 const MENU: String = "res://src/ui/main_menu.gd"
 const BATTLE: String = "res://src/view/battle_view.gd"
 const DESIGNER: String = "res://src/ui/ship_designer/ship_designer.gd"
+const SCENARIO_EDITOR: String = "res://src/ui/scenario_editor/scenario_editor.gd"
 const CAPTURE: String = "res://src/view/screenshot_capture.gd"
 
 ## Which screen to open on. `--screen=designer` boots straight into the designer, which
@@ -24,6 +25,9 @@ var _screen: Node = null
 ## A design sent straight from the designer into a battle, so "put her in a battle"
 ## does not depend on having saved her first.
 var _pending_design: ShipSpec = null
+## An action chosen in the scenario editor, fought next. Null means the battle picks
+## its own default.
+var _pending_scenario: ScenarioDef = null
 
 
 func _ready() -> void:
@@ -38,6 +42,8 @@ func _ready() -> void:
 			show_battle()
 		"designer":
 			show_designer()
+		"scenarios":
+			show_scenario_editor()
 		_:
 			show_menu()
 
@@ -64,12 +70,16 @@ func show_menu() -> void:
 		return
 	menu.connect("battle_requested", show_battle)
 	menu.connect("designer_requested", show_designer)
+	menu.connect("scenario_editor_requested", show_scenario_editor)
 
 
 func show_battle() -> void:
 	var battle: Node = _swap_to(BATTLE)
 	if battle == null:
 		return
+	if _pending_scenario != null and battle.has_method("set_scenario"):
+		battle.call("set_scenario", _pending_scenario)
+		_pending_scenario = null
 	if _pending_design != null and battle.has_method("set_player_design"):
 		battle.call("set_player_design", _pending_design)
 		_pending_design = null
@@ -85,6 +95,16 @@ func show_designer() -> void:
 	designer.connect("closed", show_menu)
 	designer.connect("battle_requested", func(spec: ShipSpec) -> void:
 		_pending_design = spec
+		show_battle())
+
+
+func show_scenario_editor() -> void:
+	var editor: Node = _swap_to(SCENARIO_EDITOR)
+	if editor == null:
+		return
+	editor.connect("closed", show_menu)
+	editor.connect("fight_requested", func(scenario: ScenarioDef) -> void:
+		_pending_scenario = scenario
 		show_battle())
 
 

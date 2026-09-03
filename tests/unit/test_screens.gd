@@ -14,7 +14,17 @@ extends SimTest
 const SCREENS: Array[String] = [
 	"res://src/ui/main_menu.gd",
 	"res://src/ui/ship_designer/ship_designer.gd",
+	"res://src/ui/scenario_editor/scenario_editor.gd",
 	"res://src/ui/app_root.gd",
+]
+
+## The inspection surfaces. Built without a world so that "shows nothing gracefully" is
+## checked too — a panel that only works once a battle is running is a panel that
+## crashes the first time somebody opens it on the menu.
+const PANELS: Array[String] = [
+	"res://src/ui/combat_log.gd",
+	"res://src/ui/ship_inspector.gd",
+	"res://src/ui/debug_overlay.gd",
 ]
 
 
@@ -77,6 +87,81 @@ func test_every_screen_constructs_and_tears_down() -> void:
 		gt(float(screen.get_child_count()), 0.0,
 			"%s put something on the screen" % path.get_file())
 		_tear_down(screen)
+
+
+func test_every_inspection_panel_constructs_with_no_battle_to_show() -> void:
+	for path: String in PANELS:
+		var panel: Node = _build(path)
+		ok(panel != null, "%s should construct" % path)
+		if panel == null:
+			continue
+		gt(float(panel.get_child_count()), 0.0, "%s should build a layout" % path)
+		# Refreshing with no world at all must be safe: these are opened from a
+		# keystroke and there is no guarantee a battle is running.
+		if panel.has_method("refresh"):
+			panel.call("refresh")
+		_tear_down(panel)
+
+
+func test_the_inspection_surfaces_describe_a_real_battle() -> void:
+	# Built without a scene tree, so what is checked is the FORMATTING — the part that
+	# reads the causal chain and turns it into sentences. That is the part that breaks
+	# when a field is renamed, and it breaks silently, because a panel that shows
+	# nothing looks much like a panel with nothing to show.
+	var world: SimWorld = TestShips.armed_world(31)
+	var a: ShipEntity = world.add_ship(TestShips.iowa(), Vector2.ZERO, 0.0, 0)
+	var b: ShipEntity = world.add_ship(TestShips.iowa(), Vector2(0.0, 15000.0), PI, 1)
+	a.target_id = b.id
+	b.target_id = a.id
+	MovementSystem.set_steady_speed(a, SimUnits.knots_to_ms(20.0))
+	MovementSystem.set_steady_speed(b, SimUnits.knots_to_ms(20.0))
+	for _i: int in 60 * 240:
+		world.step()
+		if not world.recent_hits.is_empty():
+			break
+	gt(float(world.recent_hits.size()), 0.0, "the duel should produce a hit to describe")
+
+	# The combat log turns events into sentences.
+	var described: int = 0
+	for event: SimEvent in world.events.history():
+		var line: String = CombatLogText.describe(world, event)
+		if line.is_empty():
+			continue
+		described += 1
+		not_ok(line.begins_with("salvo_fired"),
+			"an event the log has no sentence for should be obvious, not silent")
+	gt(float(described), 5.0, "most of what happened should have a line")
+
+	# The debug overlay renders the whole causal chain of the last hit.
+	var report: HitReport = world.recent_hits[world.recent_hits.size() - 1]
+	var chain: Array[String] = DebugOverlayText.describe(report)
+	gt(float(chain.size()), 6.0, "the chain should have several lines")
+	var joined: String = "\n".join(chain)
+	ok(joined.contains("Terminated:"), "and say how the shell finished")
+	ok(joined.contains("m/s"), "with the velocities it actually had")
+	gt(float(report.interactions.size()), 0.0,
+		"which is the tracer's own record, not a reconstruction of it")
+
+
+func test_the_scenario_editor_edits_a_copy_and_not_the_file() -> void:
+	var editor: Node = _build("res://src/ui/scenario_editor/scenario_editor.gd")
+	ok(editor != null, "the scenario editor should construct")
+	if editor == null:
+		return
+	var edited: ScenarioDef = editor.get("_scenario") as ScenarioDef
+	ok(edited != null, "and start on a scenario")
+
+	var original: ScenarioDef = ScenarioIo.load_from_file(
+		"res://data/scenarios/%s.json" % edited.scenario_id)
+	ok(original != null, "which came from a file")
+	edited.sea_state = 7.0
+	edited.night = true
+	var reloaded: ScenarioDef = ScenarioIo.load_from_file(
+		"res://data/scenarios/%s.json" % original.scenario_id)
+	almost(reloaded.sea_state, original.sea_state, 0.001,
+		"editing the scenario must not touch the preset it was started from")
+	not_ok(reloaded.night, "in any respect")
+	_tear_down(editor)
 
 
 func test_the_designer_starts_on_a_design_it_did_not_take_from_the_roster() -> void:

@@ -70,6 +70,7 @@ func serialize() -> Dictionary:
 		"id": id, "shooterId": shooter_id, "targetId": target_id, "team": team,
 		"torpedo": definition.torpedo_id if definition != null else "",
 		"position": Serializer.vec2_to_array(position),
+		"origin": Serializer.vec2_to_array(origin),
 		"heading": heading, "speedMs": speed_ms,
 		"distanceRun": distance_run, "maxRangeM": max_range_m,
 	}

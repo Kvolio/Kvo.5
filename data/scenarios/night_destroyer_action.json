@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "id": "night_destroyer_action",
+  "name": "Night Destroyer Action",
+  "description": "A Japanese destroyer division against an American one, in the dark, at close range. The Kagero has no radar and the finest torpedoes of the war; the Fletcher has radar and does not. This is the Solomons.",
+  "seed": 20260905,
+  "mapSizeM": [
+    30000,
+    30000
+  ],
+  "conditions": {
+    "seaState": 3,
+    "night": true,
+    "visibilityFactor": 0.9
+  },
+  "forces": [
+    {
+      "team": 0,
+      "name": "Destroyer Squadron",
+      "positionM": [
+        -6000,
+        -2000
+      ],
+      "headingDeg": 30,
+      "speedKn": 30,
+      "ships": [
+        {
+          "spec": "uss_fletcher",
+          "name": "Fletcher",
+          "positionM": [
+            0,
+            0
+          ]
+        },
+        {
+          "spec": "uss_fletcher",
+          "name": "Nicholas",
+          "positionM": [
+            -800,
+            0
+          ]
+        },
+        {
+          "spec": "uss_gearing",
+          "name": "Gearing",
+          "positionM": [
+            -1600,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "team": 1,
+      "name": "Destroyer Division 15",
+      "positionM": [
+        6000,
+        2000
+      ],
+      "headingDeg": 210,
+      "speedKn": 30,
+      "ships": [
+        {
+          "spec": "ijn_kagero",
+          "name": "Kagero",
+          "positionM": [
+            0,
+            0
+          ]
+        },
+        {
+          "spec": "ijn_kagero",
+          "name": "Shiranui",
+          "positionM": [
+            -800,
+            0
+          ]
+        },
+        {
+          "spec": "ijn_kagero",
+          "name": "Kuroshio",
+          "positionM": [
+            -1600,
+            0
+          ]
+        }
+      ]
+    }
+  ],
+  "victory": {
+    "type": "annihilation",
+    "timeLimitS": 1200
+  },
+  "notes": "Fought at the range and in the conditions where the Type 93 decided things, and where American radar was the only reason it did not decide them every time."
+}

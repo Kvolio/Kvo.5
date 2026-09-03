@@ -13,6 +13,12 @@ extends Node2D
 signal exit_requested()
 
 const SPEED_ORDER_STEP_KN: float = 2.0
+
+## The action fought when nobody has chosen one.
+const DEFAULT_SCENARIO: String = "carrier_action"
+
+const SAVE_DIR: String = "user://saves"
+const SAVE_PATH: String = "user://saves/battle.json"
 const CLICK_PIXEL_RADIUS: float = 24.0
 
 var world: SimWorld = null
@@ -28,6 +34,20 @@ var _selected_id: int = 0
 var _time_scale_before_pause: float = 1.0
 var _engagements: Array[ShipEntity] = []
 
+# -- inspection surfaces -------------------------------------------------------
+## Three ways of looking at the same causal data: what happened in words, what a ship
+## looks like inside, and why the last shell did what it did. All three read the
+## simulation and none of them writes to it.
+var _combat_log: Control = null
+var _inspector: Control = null
+var _debug: Control = null
+
+## The battle being fought, and the recording of it. A replay is the scenario, the
+## seed and the orders — see docs/REPLAY.md.
+var _scenario: ScenarioDef = null
+var _recorder: ReplayRecorder = null
+var _base_config: Dictionary = {}
+
 ## A design sent straight from the ship designer. She joins the line as the player's
 ## flagship, which is what makes the designer worth using: build a ship, take her out,
 ## and watch the armour scheme you chose meet a shell.
@@ -36,7 +56,7 @@ var _player_design: ShipSpec = null
 
 func _ready() -> void:
 	_build_scene()
-	_start_demo_battle()
+	_start_battle()
 	_camera.frame_points(_ship_positions())
 
 
@@ -85,6 +105,30 @@ func _build_scene() -> void:
 	_hud.time_scale_requested.connect(_on_time_scale_requested)
 	_hud.pause_toggled.connect(_toggle_pause)
 
+	# The three inspection surfaces, all hidden until asked for. They are separate
+	# scripts rather than tabs of the HUD because they answer different questions and
+	# a player usually wants one of them, not all three.
+	_combat_log = _instantiate("res://src/ui/combat_log.gd") as Control
+	if _combat_log != null:
+		_combat_log.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT,
+			Control.PRESET_MODE_MINSIZE, 12)
+		_combat_log.visible = false
+		hud_layer.add_child(_combat_log)
+
+	_inspector = _instantiate("res://src/ui/ship_inspector.gd") as Control
+	if _inspector != null:
+		_inspector.set_anchors_and_offsets_preset(Control.PRESET_CENTER_LEFT,
+			Control.PRESET_MODE_MINSIZE, 12)
+		_inspector.visible = false
+		hud_layer.add_child(_inspector)
+
+	_debug = _instantiate("res://src/ui/debug_overlay.gd") as Control
+	if _debug != null:
+		_debug.set_anchors_and_offsets_preset(Control.PRESET_CENTER_RIGHT,
+			Control.PRESET_MODE_MINSIZE, 12)
+		_debug.visible = false
+		hud_layer.add_child(_debug)
+
 
 
 ## Instantiate a view script, reporting a compile failure rather than raising a
@@ -102,14 +146,13 @@ static func _instantiate(path: String) -> Object:
 	return (script as GDScript).new()
 
 
-## A stand-in engagement so the battlefield has something on it.
+## Set up the battle a scenario describes.
 ##
-## Two fleets from `data/fleets/`, deployed by the same code a scenario will use in
-## Stage 8, fought by the AI from each side's own contact plot. This is a placeholder
-## scenario rather than a placeholder pipeline: nothing here knows the ships, the
-## formations or the orders of battle — it names two files.
-func _start_demo_battle() -> void:
-	world = SimWorld.create(20260902, {
+## Everything goes through `ScenarioIo.build()`, and deliberately nothing else does: a
+## replay works by building the same world from the same file and the same seed, so a
+## battle set up by any other route would be one no replay could reproduce.
+func _start_battle() -> void:
+	_base_config = {
 		"sim": GameConfig.get_dict("sim"),
 		"physics": GameConfig.get_dict("physics"),
 		"ballistics": GameConfig.get_dict("ballistics"),
@@ -119,53 +162,55 @@ func _start_demo_battle() -> void:
 		"fire_control": GameConfig.get_dict("fire_control"),
 		"detection": GameConfig.get_dict("detection"),
 		"ai": GameConfig.get_dict("ai"),
-	})
-	world.map_size = Vector2(60000.0, 60000.0)
-	world.set_armory(WeaponDatabase.armory())
+	}
+	if _scenario == null:
+		_scenario = ScenarioIo.load_from_file(
+			"res://data/scenarios/%s.json" % DEFAULT_SCENARIO)
+	if _scenario == null:
+		push_error("BattleView: no scenario to fight")
+		return
+
+	world = ScenarioIo.build(_scenario, _base_config, WeaponDatabase.armory(),
+		func(spec_id: String) -> ShipSpec: return ShipDatabase.get_spec(spec_id))
 
 	# Carrier aviation is a module the game registers, not a part of the simulation.
-	# Comment this line out and the battle still runs — the carriers simply have
-	# nobody to tell that their flight decks work. See docs/AIR_MODULE.md.
+	# Comment this line out and the battle still runs — the carriers simply have nobody
+	# to tell that their flight decks work. See docs/AIR_MODULE.md.
 	AirModule.register(world, GameConfig.get_dict("air"))
 
-	# Two task groups on converging courses, at the edge of radar and beyond sight of
-	# one another. They have to FIND each other first, which is most of a naval action
-	# and all of the reason detection exists — but not so far apart that the player
-	# watches twenty minutes of empty sea. At this separation the plots fill in over the
-	# first minute or two and the action opens a few minutes later.
-	var lookup: Callable = func(spec_id: String) -> ShipSpec:
-		return ShipDatabase.get_spec(spec_id)
-	_deploy("usn_fast_carrier_task_group", Vector2(-13000.0, -7000.0),
-		deg_to_rad(25.0), 0, lookup)
-	_deploy("ijn_mobile_force", Vector2(13000.0, 7000.0), deg_to_rad(205.0), 1, lookup)
-
-	# The player's own design joins the blue force, and is hers to steer rather than
+	# The player's own design joins the first force, and is hers to steer rather than
 	# the AI's — which is the whole point of having built her.
-	if _player_design != null:
+	if _player_design != null and not _scenario.forces.is_empty():
+		var force: ScenarioDef.Force = _scenario.forces[0]
 		var own: ShipEntity = world.add_ship(_player_design.duplicate_spec(),
-			Vector2(-13000.0, -10000.0), deg_to_rad(25.0), 0)
-		MovementSystem.order_speed(own, SimUnits.knots_to_ms(24.0))
-		_engagements.append(own)
+			force.position + Vector2(0.0, -3000.0).rotated(force.heading_rad),
+			force.heading_rad, force.team)
+		MovementSystem.order_speed(own, SimUnits.knots_to_ms(force.speed_knots))
+		_selected_id = own.id
+
+	for ship: ShipEntity in world.ships:
+		_engagements.append(ship)
+
+	# Recording starts with the battle, because a replay that had to be asked for is
+	# one nobody has when they want it.
+	_recorder = ReplayRecorder.start(world, _scenario.scenario_id, _base_config)
 
 	_ships.world = world
 	_effects.world = world
 	_labels.world = world
 	_hud.world = world
+	if _combat_log != null:
+		_combat_log.world = world
+	if _inspector != null:
+		_inspector.world = world
+	if _debug != null:
+		_debug.world = world
 	(_grid as Object).set("map_size", world.map_size)
 
 
-## Put one fleet on the water, formed up and under way.
-func _deploy(fleet_id: String, origin: Vector2, heading: float, team: int,
-		lookup: Callable) -> void:
-	var fleet: FleetDef = FleetIo.load_from_file(
-		"res://data/fleets/%s.json" % fleet_id)
-	if fleet == null:
-		push_warning("BattleView: could not load fleet '%s'" % fleet_id)
-		return
-	fleet.team = team
-	for ship: ShipEntity in FleetIo.deploy(world, fleet, origin, heading, lookup):
-		MovementSystem.order_speed(ship, SimUnits.knots_to_ms(24.0))
-		_engagements.append(ship)
+## Fight a particular action. Called by the menu before the view is added to the tree.
+func set_scenario(scenario: ScenarioDef) -> void:
+	_scenario = scenario
 
 
 ## Take a design straight from the designer, without it having to be saved first.
@@ -178,11 +223,80 @@ func _process(delta: float) -> void:
 		return
 	# A whole number of fixed ticks. The frame delta decides HOW MANY, never how big.
 	var ticks: int = world.clock.advance(delta)
-	world.step_many(ticks)
+	for _i: int in ticks:
+		world.step()
+		# The recorder watches every tick rather than every frame, so a battle run at
+		# ten times speed records the same thing as one run at normal speed.
+		if _recorder != null:
+			_recorder.observe(world)
 	# Effects age in SIMULATED time, so a splash lasts the same number of simulated
 	# seconds at 1x and at 10x instead of littering the sea at high speed.
 	(_effects as Object).call("advance", float(ticks) * world.clock.dt)
 	_sync_view()
+
+
+## Toggle one of the inspection surfaces.
+func _toggle_panel(panel: Control) -> void:
+	if panel == null:
+		return
+	panel.visible = not panel.visible
+	if panel.visible and panel == _inspector:
+		panel.call("show_ship", _selected_id)
+
+
+## Save the battle as it stands, and put it back.
+##
+## The same snapshot the replay system takes for a rewind — one serializer, because a
+## save that used a different one would eventually disagree with it about what a battle
+## is. Reloading rebuilds the world from the scenario and restores the state into it,
+## which is exactly what `Snapshot.restore` requires and why the scenario id is written
+## into the save.
+func _save_battle() -> void:
+	if world == null or _scenario == null:
+		return
+	var data: Dictionary = Snapshot.capture(world)
+	data["scenario"] = _scenario.scenario_id
+	if not DirAccess.dir_exists_absolute(SAVE_DIR):
+		DirAccess.make_dir_recursive_absolute(SAVE_DIR)
+	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	if file == null:
+		push_error("BattleView: could not write %s" % SAVE_PATH)
+		return
+	file.store_string(Serializer.to_json(data))
+	file.close()
+	print("Battle saved to %s" % SAVE_PATH)
+
+
+func _load_battle() -> void:
+	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.READ)
+	if file == null:
+		return
+	var parsed: Variant = JSON.parse_string(file.get_as_text())
+	file.close()
+	if not (parsed is Dictionary):
+		return
+	var data: Dictionary = parsed as Dictionary
+	var saved: ScenarioDef = ScenarioIo.load_from_file(
+		"res://data/scenarios/%s.json" % str(data.get("scenario", DEFAULT_SCENARIO)))
+	if saved == null:
+		return
+	# A fresh world from the same scenario, then the state put back into it. The
+	# snapshot carries condition and position, not designs — a save that duplicated the
+	# ships would eventually disagree with the files they came from.
+	_scenario = saved
+	_engagements.clear()
+	_start_battle()
+	Snapshot.restore(world, data)
+	print("Battle restored from %s" % SAVE_PATH)
+
+
+func _refresh_panels() -> void:
+	if _combat_log != null and _combat_log.visible:
+		_combat_log.call("refresh")
+	if _inspector != null and _inspector.visible:
+		_inspector.call("show_ship", _selected_id)
+	if _debug != null and _debug.visible:
+		_debug.call("refresh")
 
 
 func _sync_view() -> void:
@@ -206,6 +320,7 @@ func _sync_view() -> void:
 
 	(_hud as Object).set("selected_id", _selected_id)
 	(_hud as Object).call("refresh")
+	_refresh_panels()
 
 
 # -------------------------------------------------------------------- input --
@@ -242,6 +357,16 @@ func _unhandled_input(event: InputEvent) -> void:
 			_nudge_rudder(0.25)
 		KEY_X:
 			_order_rudder_absolute(0.0)
+		KEY_L:
+			_toggle_panel(_combat_log)
+		KEY_I:
+			_toggle_panel(_inspector)
+		KEY_G:
+			_toggle_panel(_debug)
+		KEY_F5:
+			_save_battle()
+		KEY_F9:
+			_load_battle()
 		KEY_ESCAPE:
 			exit_requested.emit()
 

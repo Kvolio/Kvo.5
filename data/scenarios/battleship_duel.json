@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "id": "battleship_duel",
+  "name": "Battleship Duel",
+  "description": "Iowa against Yamato in clear weather at eighteen kilometres. The cleanest test of the gunnery model there is: one gun, one target, nothing else on the sea.",
+  "seed": 20260904,
+  "mapSizeM": [
+    40000,
+    40000
+  ],
+  "conditions": {
+    "seaState": 2,
+    "night": false,
+    "visibilityFactor": 1.0
+  },
+  "forces": [
+    {
+      "team": 0,
+      "name": "United States",
+      "positionM": [
+        -9000,
+        0
+      ],
+      "headingDeg": 0,
+      "speedKn": 25,
+      "ships": [
+        {
+          "spec": "uss_iowa",
+          "name": "Iowa",
+          "positionM": [
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "team": 1,
+      "name": "Japan",
+      "positionM": [
+        9000,
+        0
+      ],
+      "headingDeg": 180,
+      "speedKn": 25,
+      "ships": [
+        {
+          "spec": "ijn_yamato",
+          "name": "Yamato",
+          "positionM": [
+            0,
+            0
+          ]
+        }
+      ]
+    }
+  ],
+  "victory": {
+    "type": "annihilation",
+    "timeLimitS": 1800
+  }
+}

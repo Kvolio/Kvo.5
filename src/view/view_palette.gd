@@ -32,6 +32,17 @@ const PANEL_EDGE: Color = Color(0.30, 0.42, 0.50, 0.55)
 const DESTROYED: Color = Color(0.45, 0.45, 0.48)
 const MISSION_KILL: Color = Color(0.85, 0.78, 0.35)
 
+# -- condition, for the inspector and the combat log --------------------------
+## A ship's compartments are coloured by what is wrong with them, and the colours are
+## the ones the words already suggest: water is blue, fire is orange, wreckage is grey,
+## and something that has gone up is red.
+const DANGER: Color = Color(0.95, 0.35, 0.30)
+const FLOODED: Color = Color(0.30, 0.55, 0.90)
+const BURNING: Color = Color(0.95, 0.55, 0.20)
+const WRECKED: Color = Color(0.40, 0.40, 0.44)
+const INTACT: Color = Color(0.35, 0.62, 0.55)
+const ARMOUR: Color = Color(0.72, 0.68, 0.52)
+
 
 ## Team colour. Team 0 is the player's side by convention.
 static func team_colour(team: int) -> Color:

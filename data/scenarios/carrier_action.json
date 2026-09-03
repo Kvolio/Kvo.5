@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "id": "carrier_action",
+  "name": "Carrier Action",
+  "description": "Two fast carrier groups converging at the edge of radar. Neither side can see the other when the clock starts; finding the enemy first is most of the battle.",
+  "seed": 20260903,
+  "mapSizeM": [
+    60000,
+    60000
+  ],
+  "conditions": {
+    "seaState": 2,
+    "night": false,
+    "visibilityFactor": 1.0
+  },
+  "forces": [
+    {
+      "team": 0,
+      "name": "Task Group 38.3",
+      "fleet": "usn_fast_carrier_task_group",
+      "positionM": [
+        -13000,
+        -7000
+      ],
+      "headingDeg": 25,
+      "speedKn": 24,
+      "player": false
+    },
+    {
+      "team": 1,
+      "name": "Kido Butai Detachment",
+      "fleet": "ijn_mobile_force",
+      "positionM": [
+        13000,
+        7000
+      ],
+      "headingDeg": 205,
+      "speedKn": 24
+    }
+  ],
+  "victory": {
+    "type": "annihilation",
+    "timeLimitS": 3600
+  },
+  "notes": "The default action. Long enough to show detection working, short enough that the guns open within a few minutes."
+}

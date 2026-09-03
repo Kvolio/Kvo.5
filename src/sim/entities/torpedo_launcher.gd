@@ -101,3 +101,11 @@ func serialize() -> Dictionary:
 		"state": int(state), "tubesLoaded": tubes_loaded,
 		"reloadRemaining": reload_remaining, "salvosFired": salvos_fired,
 	}
+
+
+func deserialize(data: Dictionary) -> void:
+	train_offset = float(data.get("trainOffset", train_offset))
+	state = int(data.get("state", int(state)))
+	tubes_loaded = int(data.get("tubesLoaded", tubes_loaded))
+	reload_remaining = float(data.get("reloadRemaining", reload_remaining))
+	salvos_fired = int(data.get("salvosFired", salvos_fired))

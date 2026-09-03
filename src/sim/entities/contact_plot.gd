@@ -151,6 +151,26 @@ static func pass_key(team: int, entity_id: int) -> int:
 	return _pair_key(team, entity_id)
 
 
+## Put one contact back from a snapshot. Restoring the plot matters as much as
+## restoring the ships: a battle whose plots were rebuilt from scratch would have both
+## sides re-finding an enemy they had been tracking for ten minutes.
+func restore(row: Dictionary) -> void:
+	var contact: Contact = Contact.new()
+	contact.entity_id = int(row.get("entityId", 0))
+	contact.team = int(row.get("team", 0))
+	contact.estimated_position = Serializer.array_to_vec2(row.get("position"))
+	contact.estimated_course = float(row.get("course", 0.0))
+	contact.estimated_speed = float(row.get("speed", 0.0))
+	contact.method = int(row.get("method", Method.NONE))
+	contact.held_seconds = float(row.get("heldSeconds", 0.0))
+	contact.stale_seconds = float(row.get("staleSeconds", 0.0))
+	contact.classified = bool(row.get("classified", false))
+	contact.ship_type = str(row.get("shipType", ""))
+	var held: Dictionary = _by_team.get(contact.team, {}) as Dictionary
+	held[contact.entity_id] = contact
+	_by_team[contact.team] = held
+
+
 func hash_into(hasher: StateHasher) -> void:
 	for team: int in Serializer.sorted_int_keys(_by_team):
 		var held: Dictionary = _by_team[team] as Dictionary

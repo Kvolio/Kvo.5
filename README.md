@@ -110,6 +110,7 @@ combat code.
 - [`docs/FIRE_CONTROL.md`](docs/FIRE_CONTROL.md) — why ships miss, and the four ways a firing solution is wrong
 - [`docs/TACTICS.md`](docs/TACTICS.md) — the horizon, contact plots, immunity zones, captains and formations
 - [`docs/AIR_MODULE.md`](docs/AIR_MODULE.md) — carrier aviation, and the line it does not cross
+- [`docs/REPLAY.md`](docs/REPLAY.md) — scenarios, saves, replays, and the three ways of looking at a battle
 - [`docs/SOURCES.md`](docs/SOURCES.md) — where the historical figures came from, and which to doubt
 
 ---
@@ -126,5 +127,5 @@ Built in stages, each one tested before the next begins.
 - [x] **Stage 5** — magazine detonation, torpedoes, capsize, damage control
 - [x] **Stage 6** — ship designer and naval architecture
 - [x] **Stage 7** — fire control quality, detection, AI, formations, the optional air module
-- [ ] **Stage 8** — scenario editor, save/load, replay, debug mode, combat log
+- [x] **Stage 8** — scenarios, save/load, replay, ship inspector, debug mode, combat log
 - [ ] **Stage 9** — performance and visual polish
